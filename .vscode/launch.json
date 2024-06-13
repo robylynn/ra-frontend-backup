@@ -12,11 +12,11 @@
             "justMyCode": false,
             "env": {
                 "CONFIG_FILE_DIR": "/home/r2/r2/ra-frontend/config",
-                // "CONTAINERIZED": "false",
+                "CONTAINERIZED": "false",
                 // "SIMULATE_HARDWARE": "false",
                 // "ROOT_DIR": "/home/roby/r2/development/r2-carbonator-controller",
                 // "BROWSER": "none",
-                "CONFIG_FILE": "network_configuration.yaml",
+                "CONFIG_FILE": "system_configuration.yaml",
                 // "CONTROL_LOOP_CONFIG_FILE": "control_loop_configuration.yaml",
                 // "MQTT_HOST": "127.0.0.1",
                 "PYTHONPATH": "/home/r2/r2/ra-frontend/backend",

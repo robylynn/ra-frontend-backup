@@ -8,9 +8,10 @@ import { Dispatch } from "react";
 import { SetStateAction } from "react";
 
 import { DashboardHeaderContainer } from "@/lib/reusable_components/client_components/dashboard_header_container";
-import IOModuleControl from "@/lib/reusable_components/server_components/io_module_control";
+import IOModuleControl from "@/lib/reusable_components/server_components/io_system_control";
 import LoadingIndicator from "@/lib/reusable_components/server_components/loading_indicator";
 import DashboardContext from "@/lib/reusable_models/dashboard_context";
+import IOSystemControl from "@/lib/reusable_components/server_components/io_system_control";
 
 export default function DiagnosticsContainer(props: {
   id: string;
@@ -20,25 +21,40 @@ export default function DiagnosticsContainer(props: {
 }) {
   const { context } = useContext(DashboardContext);
 
-  const build_module_list = () => {
-    if (!context.configuration.configured || !context.io_state.state_valid)
-      return <></>;
+  // const build_module_list = () => {
+  //   if (!context.configuration.configured || !context.io_state.state_valid)
+  //     return <></>;
 
-    const modules: Array<ReactElement> | undefined =
-      context.configuration.io_modules?.io_modules.map((module) => {
-        return (
-          <IOModuleControl
-            key={`${module.module_name}_${module.module_index}`}
-            module={module}
-            module_state={context.io_state.latest_document.get_module_state(
-              module.module_index,
-            )}
-          />
-        );
-      });
+  //   const modules: Array<ReactElement> | undefined =
+  //     context.configuration.io_modules?.io_modules.map((module) => {
+  //       return (
+  //         <IOModuleControl
+  //           key={`${module.module_name}_${module.module_index}`}
+  //           module={module}
+  //           module_state={context.io_state.latest_document.get_module_state(
+  //             module.module_index,
+  //           )}
+  //         />
+  //       );
+  //     });
 
-    return modules ?? <></>;
-  };
+  //   return modules ?? <></>;
+  // };
+
+  const build_point_list = () => {
+    const points: Array<ReactElement> = [];
+    context.configuration.io_points.forEach((point) => {
+      points.push(
+        // <p>Point {point.point_index}</p>
+      
+        <IOSystemControl
+          io_points={context.configuration.io_points}
+          
+        />
+      )
+    })
+    return points;
+  }
 
   return (
     <DashboardHeaderContainer
@@ -46,10 +62,15 @@ export default function DiagnosticsContainer(props: {
       icon_path={"/icons/sliders.svg"}
       className={`overflow-y-auto ${props.className ?? ""}`}
       fill_tile_id={props.id}
+      fill_tile_callback={props.fill_tile_callback}
     >
       {context.configuration.configured ? (
-        <div className={`grid grid-cols-3 p-2 ${props.className ?? ""}`}>
-          {build_module_list()}
+        <div className={`grid grid-cols-1 p-2 ${props.className ?? ""}`}>
+          {/* {build_module_list()} */}
+          {/* {build_point_list()} */}
+          <IOSystemControl
+            io_points={context.configuration.io_points}
+          />
         </div>
       ) : (
         <LoadingIndicator />

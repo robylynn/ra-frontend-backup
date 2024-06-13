@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+
+## RA Backend
+### MongoDB Database Models
+### Developed by R2 Labs
+
+import hashlib, json
+
+from dataclasses import (
+    dataclass,
+    asdict,
+    InitVar
+)
+from datetime import datetime
+from typing import (
+    ClassVar, 
+    Dict, 
+    Any, 
+    Union, 
+    List
+)
+from enum import (
+    Enum,
+    auto
+)
+
+from frontend.models import MessageSeverity
+from utils.utils import timeseries_record_dict_factory
+
+class MongoInterfaceException(Exception):
+    pass
+
+class MongoLocalInterfaceException(Exception):
+    pass
+
+class MongoCloudInterfaceException(Exception):
+    pass
+
+class DocumentType(Enum):
+    DATA = auto()
+    EVENT = auto()
+    OPERATOR_NOTE = auto()
+    FRONTEND_MESSAGE = auto()
+    IO_STATE = auto()
+
+@dataclass
+class MongoInstanceConfiguration:
+    enabled: bool
+    connection_timeout_ms: int
+    server_selection_timeout_ms: int
+    socket_timeout_ms: int
+    cycle_count_before_yield: int
+    host: str
+    port: int
+    username: str
+    password: str
+    database_name: str
+    data_timeseries_collection: str
+    event_timeseries_collection: str
+    frontend_message_collection: str = None
+    io_state_collection: str = None
+    drop_database_on_start: bool = False
+    drop_collection_on_start: bool = False
+    # use_frontend_message_collection: bool = False
+    frontend_message_collection_size_bytes: int = 1000
+    io_state_collection_size_bytes: int = 1000
+
+@dataclass
+class MongoConfiguration:
+    database_synchronization_period_sec: int
+    synchronization_batch_size: int
+    queue_length_warning_threshold: int
+    queue_get_timeout_secs: float
+
+    local: MongoInstanceConfiguration
+    cloud: MongoInstanceConfiguration
+
+@dataclass
+class TimeseriesMetadata:
+    machine_uid: str
+    commit_serial_number: int
+    machine_startup_time: datetime
+    document_type: DocumentType
+    # experiment_id: str = None
+    # plan_id: str = None
+
+@dataclass
+class MongoTimeseriesRecord:
+    metadata: TimeseriesMetadata
+    timestamp: datetime
+    data: InitVar[Dict[str, Any]]
+
+    timestamp_seconds: float = None
+    record_hash: ClassVar[str] = None
+
+    def __post_init__(self, data: Dict[str, Any]):
+        self._data_dict = {k: v for k, v in data.items()}
+        self.timestamp_seconds = self.timestamp.timestamp()
+        self.record_hash = self.create_hash(self.attribute_dictionary)
+
+    @property
+    def attribute_dictionary(self) -> Dict[str, Any]:
+        return {**asdict(self), **self._data_dict}
+
+    def create_hash(self, attrs: Dict) -> str:
+        hash = hashlib.md5(
+            json.dumps(attrs, default=str).encode()
+        ).hexdigest()
+        
+        return hash
+
+    def serialize_to_dict(self) -> Dict[str, Any]:
+        sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
+        serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self._data_dict, 'record_hash': self.record_hash}
+        serialized['metadata'] = sparse_metadata
+        return serialized
+
+@dataclass
+class MongoFrontendMessage:
+    severity: MessageSeverity
+    message: str
+
+    def serialize_to_database_record(self) -> Dict[str, Any]:
+        return asdict(self, dict_factory=timeseries_record_dict_factory)
+
+@dataclass
+class IOPointData:
+    point_index: int
+    state: Union[bool, float]
+
+    def serialize(self) -> Dict:
+        return asdict(self)
+
+@dataclass
+class DataContainer:
+    io_points: List[IOPointData]
+
+    def serialize(self) -> Dict:
+        return asdict(self)
+
+    # def serialize_to_database_record(self) -> Dict:
+    #     return {
+    #         "io_points": [
+    #             point.serialize() for point in self.io_points
+    #         ]
+    #         # "system_signals": self.system_signals.serialize(),
+    #         # "component_signals": self.component_signals.serialize(),
+    #         # "control_loops": self.control_loops.serialize()
+    #     }

@@ -1,0 +1,51 @@
+# devices:
+#   - name: RAC_1
+#     customer: customer_1
+#     IP: 10.252.1.1
+#   - name: RAC_2
+#     customer: customer_2
+#     IP: 10.252.1.2
+
+database:
+  database_synchronization_period_sec: 2
+  synchronization_batch_size: 100
+  queue_length_warning_threshold: 10
+  queue_get_timeout_secs: 0.1
+
+  local:
+    enabled: True
+    connection_timeout_ms: 1000
+    socket_timeout_ms: 5000
+    server_selection_timeout_ms: 5000
+    cycle_count_before_yield: 150
+    host: 127.0.0.1
+    # host: 172.23.0.51
+    port: 27017
+    username: r2
+    password: password
+    database_name: ra_data
+    data_timeseries_collection: ra_timeseries_data
+    event_timeseries_collection: ra_timeseries_events
+    frontend_message_collection: ra_frontend_messages
+    io_state_collection: ra_io_state
+    drop_database_on_start: False
+    drop_collection_on_start: False
+    # use_frontend_message_collection: true
+    frontend_message_collection_size_bytes: 10000000
+    io_state_collection_size_bytes: 10000000
+  
+  cloud:
+    enabled: False
+    connection_timeout_ms: 1000
+    socket_timeout_ms: 15000
+    server_selection_timeout_ms: 10000
+    cycle_count_before_yield: 5
+    host: 172.25.0.51
+    port: 27017
+    username: r2
+    password: password
+    database_name: cloud_ra_data
+    data_timeseries_collection: ra_timeseries_data
+    event_timeseries_collection: ra_timeseries_events
+    drop_database_on_start: False
+    drop_collection_on_start: False

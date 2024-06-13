@@ -1,11 +1,16 @@
-import os, sys
+import os, sys, numpy as np
 
 from loguru import logger
 from dacite import MissingValueError
 from typing import Tuple
+from enum import Enum
+from typing import (
+    Dict,
+    List
+)
 
 from config.models import (
-    TelemetryConfiguration
+    SystemConfiguration
 )
 
 from config.loader import (
@@ -16,10 +21,10 @@ from config.exceptions import (
     InvalidConfigurationException
 )
 
-def safe_load_network_configuration() -> TelemetryConfiguration:
+def safe_load_system_configuration() -> SystemConfiguration:
     try:
         config_file_name = os.environ.get("CONFIG_FILE")
-        system_configuration: TelemetryConfiguration = load_system_configuration(
+        system_configuration: SystemConfiguration = load_system_configuration(
             config_file_name=config_file_name
         )
     except FileNotFoundError:
@@ -40,8 +45,8 @@ def safe_load_network_configuration() -> TelemetryConfiguration:
     
     return system_configuration
 
-def safe_load_configuration_files() -> Tuple[TelemetryConfiguration]:
-    network_configuration = safe_load_network_configuration()
+def safe_load_configuration_files() -> Tuple[SystemConfiguration]:
+    network_configuration = safe_load_system_configuration()
     # control_loop_configuration = safe_load_control_loop_configuration()
 
     # Verify user control loop matching configurations
@@ -56,3 +61,27 @@ def safe_load_configuration_files() -> Tuple[TelemetryConfiguration]:
     #         sys.exit()
     
     return network_configuration#, control_loop_configuration
+
+def websocket_message_dict_factory(dataclass):
+    d = {}
+    for field in dataclass:
+        if isinstance(field[1], Enum):
+            d[field[0]] = field[1].name
+        elif isinstance(field[1], List) and all([isinstance(entry, Enum) for entry in field[1]]):
+            d[field[0]] = [entry.name for entry in field[1]]
+        elif isinstance(field[1], np.float128):
+            d[field[0]] = float(field[1])
+        else:
+            d[field[0]] = field[1]
+    return d
+
+def timeseries_record_dict_factory(dataclass):
+    d = {}
+    for field in dataclass:
+        if isinstance(field[1], Enum):
+            d[field[0]] = field[1].name
+        elif field[1] == None:
+            pass
+        else:
+            d[field[0]] = field[1]
+    return d

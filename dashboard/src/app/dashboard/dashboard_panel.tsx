@@ -13,12 +13,14 @@ import { SafetyContainer } from "@/app/safety/safety_container";
 import { SetupContainer } from "@/app/setup/setup_container";
 import { PagePanel } from "@/lib/reusable_components/client_components/dashboard_header_container";
 import DeviceContainer from "../devices/devices_container";
+import DiagnosticsContainer from "../diagnostics/diagnostics_container";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
 
   const grid_state = () =>
-    fillTile == "" ? "grid grid-cols-[35%_30%_35%] grid-rows-2" : "";
+    // fillTile == "" ? "grid grid-cols-[35%_30%_35%] grid-rows-2" : "";
+    fillTile == "" ? "grid grid-cols-[50%_50%] grid-rows-1" : "";
   const tile_hidden = (tile_name: string) =>
     fillTile != tile_name && fillTile != "" ? "hidden" : "";
 
@@ -31,13 +33,27 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${props.className ?? ""}
         `}
     >
-      <DeviceContainer
+      {/* <DeviceContainer
         id={"devices"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "devices",
         )}`}
         fill_tile_callback={setFillTile}
+      /> */}
+      <ChartPanelContainer
+        id="charts"
+        update_period_seconds={2}
+        className={`${tile_hidden("charts")}`}
+        fill_tile_callback={setFillTile}
       />
+      <DiagnosticsContainer
+        id={"diagnostics"}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "diagnostics",
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
+
       {/* <ControlContainer
         id={"control"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(

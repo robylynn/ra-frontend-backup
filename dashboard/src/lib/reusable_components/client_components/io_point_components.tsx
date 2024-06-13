@@ -63,14 +63,14 @@ export function AnalogOutputControl(props: {
     <>
       <input
         className="w-[60%] m-0 rounded-sm"
-        id={`${props.point.channel_index}`}
+        id={`${props.point.point_index}`}
         type="number"
         placeholder="Input"
         dir="auto"
         onChange={(event) =>
           handleEntryBoxChange(
             event,
-            props.point.channel_index,
+            props.point.point_index,
             setEntryBoxState,
           )
         }
@@ -81,7 +81,7 @@ export function AnalogOutputControl(props: {
         onClick={() =>
           handleIOPointClick(
             props.module_index,
-            props.point.channel_index,
+            props.point.point_index,
             entryBoxState,
           )
         }
@@ -132,7 +132,7 @@ export function DigitalOutputControl(props: {
         onClick={() => {
           handleIOPointClick(
             props.module_index,
-            props.point.channel_index,
+            props.point.point_index,
             !props.point_state,
           );
         }}

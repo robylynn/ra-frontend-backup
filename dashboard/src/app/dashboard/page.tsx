@@ -13,7 +13,7 @@ export default function Dashboard() {
     <ProtectedPage>
       <div className="flex flex-col justify-end h-full">
         <Header className="h-[10%] w-full" />
-        <BarGaugeContainer gauge_bar_height_px={40} className="h-[20%]" />
+        {/* <BarGaugeContainer gauge_bar_height_px={40} className="h-[20%]" /> */}
         <DashboardMainPanel className="h-[30%] grow" />
         <MessageContainer className="h-[15%]" />
       </div>

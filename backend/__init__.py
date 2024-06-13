@@ -1,3 +1,3 @@
-from config.models import TelemetryConfiguration
+from config.models import SystemConfiguration
 
-telemetry_configuration: TelemetryConfiguration = None
+telemetry_configuration: SystemConfiguration = None

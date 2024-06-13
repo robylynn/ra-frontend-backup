@@ -8,6 +8,11 @@ export interface NextAPIResponseInterface {
   data: any;
 }
 
+export interface BackendAPIResponseInterface {
+  error: boolean;
+  data: string | Array<any> | any
+}
+
 export interface ConnectedDeviceInterface {
   name: string;
   customer: string;
@@ -42,60 +47,60 @@ export type BackendAPIResponse = {
 }
 
 export interface TraceConfigurationInterface {
-  y_component_name: string;
+  // y_component_name: string;
   y_parameter_name: string;
   color: string;
   label: string;
 }
 
 export class TraceConfiguration implements TraceConfigurationInterface {
-  y_component_name: string;
+  // y_component_name: string;
   y_parameter_name: string;
   color: string;
   label: string;
 
   constructor(input: TraceConfigurationInterface) {
-    this.y_component_name = input.y_component_name;
+    // this.y_component_name = input.y_component_name;
     this.y_parameter_name = input.y_parameter_name;
     this.color = input.color;
     this.label = input.label;
   }
 }
 
-export interface ParameterConfigurationInterface {
-  name: string;
-  units: string;
-}
+// export interface ParameterConfigurationInterface {
+//   name: string;
+//   units: string;
+// }
 
-export class ParameterConfiguration implements ParameterConfigurationInterface {
-  name: string;
-  units: string;
+// export class ParameterConfiguration implements ParameterConfigurationInterface {
+//   name: string;
+//   units: string;
 
-  constructor(input: ParameterConfigurationInterface) {
-    this.name = input.name;
-    this.units = input.units;
-  }
-}
+//   constructor(input: ParameterConfigurationInterface) {
+//     this.name = input.name;
+//     this.units = input.units;
+//   }
+// }
 
-export interface HardwareComponentConfigurationInterface {
-  name: string;
-  PID_tag: string;
-  parameters: { [parameter_name: string]: ParameterConfigurationInterface };
-}
+// export interface HardwareComponentConfigurationInterface {
+//   name: string;
+//   PID_tag: string;
+//   parameters: { [parameter_name: string]: ParameterConfigurationInterface };
+// }
 
-export class HardwareComponentConfiguration {
-  name: string;
-  PID_tag: string;
-  parameters: { [parameter_name: string]: ParameterConfiguration } = {};
+// export class HardwareComponentConfiguration {
+//   name: string;
+//   PID_tag: string;
+//   parameters: { [parameter_name: string]: ParameterConfiguration } = {};
 
-  constructor(input: HardwareComponentConfigurationInterface) {
-    this.name = input.name;
-    this.PID_tag = input.PID_tag;
-    for (const key of Object.keys(input.parameters)) {
-      this.parameters[key] = new ParameterConfiguration(input.parameters[key]);
-    }
-  }
-}
+//   constructor(input: HardwareComponentConfigurationInterface) {
+//     this.name = input.name;
+//     this.PID_tag = input.PID_tag;
+//     for (const key of Object.keys(input.parameters)) {
+//       this.parameters[key] = new ParameterConfiguration(input.parameters[key]);
+//     }
+//   }
+// }
 
 //////////////////////////////
 /////////// CHARTS ///////////
@@ -139,22 +144,24 @@ export class ChartConfiguration {
 export interface UIConfigurationInterface {
   client_id: number | undefined;
   charts: { [chart_name: string]: ChartConfigurationInterface };
-  hardware_configuration: {
-    [component_name: string]: HardwareComponentConfigurationInterface;
-  };
-  io_modules: Array<IOModuleInterface>; //IOSystemInterface
-  gauges: { [gauge_name: string]: GaugeConfigurationInterface };
+  // hardware_configuration: {
+  //   [component_name: string]: HardwareComponentConfigurationInterface;
+  // };
+  // io_modules: Array<IOModuleInterface>; //IOSystemInterface
+  io_points: Array<IOPointInterface>;
+  // gauges: { [gauge_name: string]: GaugeConfigurationInterface };
 }
 
-export class UIConfiguration {
+export class UIConfiguration implements UIConfigurationInterface {
   client_id: number | undefined;
   configured: boolean = false;
   charts: { [chart_name: string]: ChartConfiguration } = {};
-  hardware_configuration: {
-    [component_name: string]: HardwareComponentConfiguration;
-  } = {};
-  io_modules: IOSystem | undefined;
-  gauges: { [gauge_name: string]: GaugeConfiguration } = {}; // | undefined
+  // hardware_configuration: {
+  //   [component_name: string]: HardwareComponentConfiguration;
+  // } = {};
+  // io_modules: IOSystem | undefined;
+  io_points: Array<IOPoint> = [];
+  // gauges: { [gauge_name: string]: GaugeConfiguration } = {}; // | undefined
 
   constructor(input?: UIConfigurationInterface) {
     // if (input) {
@@ -165,52 +172,60 @@ export class UIConfiguration {
         );
       }
 
-      for (const component_name of Object.keys(input.hardware_configuration)) {
-        this.hardware_configuration[component_name] =
-          new HardwareComponentConfiguration(
-            input.hardware_configuration[component_name],
-          );
+      // for (const component_name of Object.keys(input.hardware_configuration)) {
+      //   this.hardware_configuration[component_name] =
+      //     new HardwareComponentConfiguration(
+      //       input.hardware_configuration[component_name],
+      //     );
+      // }
+
+      // this.io_modules = new IOSystem(input.io_modules);
+      for (const io_point of input.io_points) {
+        this.io_points.push(
+          new IOPoint({
+            point_index: io_point.point_index,
+            point_type: io_point.point_type
+          })
+        )
       }
 
-      this.io_modules = new IOSystem(input.io_modules);
-
-      for (const gauge_name in input.gauges) {
-        this.gauges[gauge_name] = new GaugeConfiguration(
-          input.gauges[gauge_name],
-        );
-      }
+      // for (const gauge_name in input.gauges) {
+      //   this.gauges[gauge_name] = new GaugeConfiguration(
+      //     input.gauges[gauge_name],
+      //   );
+      // }
 
       this.client_id = input.client_id;
       this.configured = true;
     }
   }
 
-  GetPIDTag(component_name: string): string {
-    if (component_name in this.hardware_configuration) {
-      return this.hardware_configuration[component_name].PID_tag;
-    }
-    return "NA";
-  }
+  // GetPIDTag(component_name: string): string {
+  //   if (component_name in this.hardware_configuration) {
+  //     return this.hardware_configuration[component_name].PID_tag;
+  //   }
+  //   return "NA";
+  // }
 
-  GetComponentParameterUnits(
-    component_name: string,
-    parameter_name: string,
-  ): string {
-    if (component_name in this.hardware_configuration) {
-      if (
-        parameter_name in this.hardware_configuration[component_name].parameters
-      ) {
-        return this.hardware_configuration[component_name].parameters[
-          parameter_name
-        ].units;
-      }
-    }
-    return "NA";
-  }
+  // GetComponentParameterUnits(
+  //   component_name: string,
+  //   parameter_name: string,
+  // ): string {
+  //   if (component_name in this.hardware_configuration) {
+  //     if (
+  //       parameter_name in this.hardware_configuration[component_name].parameters
+  //     ) {
+  //       return this.hardware_configuration[component_name].parameters[
+  //         parameter_name
+  //       ].units;
+  //     }
+  //   }
+  //   return "NA";
+  // }
 
   serialize(): UIConfigurationInterface {
     const json_value = JSON.parse(JSON.stringify(this));
-    json_value.io_modules = this.io_modules?.serialize();
+    //json_value.io_modules = this.io_modules?.serialize();
     return json_value;
   }
 }
@@ -264,25 +279,25 @@ export enum IOPointType {
 }
 
 export interface IOPointInterface {
-  channel_index: number;
-  channel_type: string | IOPointType;
+  point_index: number;
+  point_type: string | IOPointType;
 }
 
-export class IOPoint {
-  channel_index: number = -1;
-  channel_type: IOPointType = IOPointType.NULL;
+export class IOPoint implements IOPointInterface {
+  point_index: number = -1;
+  point_type: IOPointType = IOPointType.NULL;
   state: number | boolean | undefined = undefined;
 
   constructor(input: IOPointInterface) {
-    this.channel_type =
-      typeof input?.channel_type === "string"
+    this.point_type =
+      typeof input?.point_type === "string"
         ? IOPointType[
-            (input?.channel_type ?? "NULL") as keyof typeof IOPointType
+            (input?.point_type ?? "NULL") as keyof typeof IOPointType
           ]
-        : (input?.channel_type as IOPointType);
-    this.channel_index = input?.channel_index ?? -1;
+        : (input?.point_type as IOPointType);
+    this.point_index = input?.point_index ?? -1;
 
-    switch (this.channel_type) {
+    switch (this.point_type) {
       case IOPointType.ANALOG_VOLTAGE_INPUT:
       case IOPointType.ANALOG_CURRENT_INPUT:
       case IOPointType.ANALOG_VOLTAGE_OUTPUT:
@@ -301,73 +316,73 @@ export class IOPoint {
 
   serialize(): IOPointInterface {
     return {
-      channel_index: this.channel_index,
-      channel_type: this.channel_type,
+      point_index: this.point_index,
+      point_type: this.point_type,
     };
   }
 }
 
-export interface IOModuleInterface {
-  module_index: number;
-  module_name: string;
-  io_points: Array<IOPointInterface>;
-}
+// export interface IOModuleInterface {
+//   module_index: number;
+//   module_name: string;
+//   io_points: Array<IOPointInterface>;
+// }
 
-export class IOModule {
-  module_index: number = -1;
-  module_name: string = "";
-  io_points: Array<IOPoint> = [];
+// export class IOModule {
+//   module_index: number = -1;
+//   module_name: string = "";
+//   io_points: Array<IOPoint> = [];
 
-  constructor(input?: IOModuleInterface) {
-    if (input != undefined) {
-      input?.io_points.forEach((input_point, index) => {
-        this.io_points.push(
-          new IOPoint({
-            channel_index: index + 1,
-            channel_type: input_point.channel_type,
-          }),
-        );
-      });
+//   constructor(input?: IOModuleInterface) {
+//     if (input != undefined) {
+//       input?.io_points.forEach((input_point, index) => {
+//         this.io_points.push(
+//           new IOPoint({
+//             channel_index: index + 1,
+//             channel_type: input_point.channel_type,
+//           }),
+//         );
+//       });
 
-      this.module_index = input?.module_index;
-      this.module_name = input?.module_name;
-    }
-  }
+//       this.module_index = input?.module_index;
+//       this.module_name = input?.module_name;
+//     }
+//   }
 
-  serialize(): IOModuleInterface {
-    const point_array: Array<IOPointInterface> = [];
-    this.io_points.forEach((point) => {
-      point_array.push(point.serialize());
-    });
-    return {
-      module_index: this.module_index,
-      module_name: this.module_name,
-      io_points: point_array,
-    };
-  }
-}
+//   serialize(): IOModuleInterface {
+//     const point_array: Array<IOPointInterface> = [];
+//     this.io_points.forEach((point) => {
+//       point_array.push(point.serialize());
+//     });
+//     return {
+//       module_index: this.module_index,
+//       module_name: this.module_name,
+//       io_points: point_array,
+//     };
+//   }
+// }
 
-export interface IOSystemInterface {
-  io_modules: Array<IOModuleInterface>;
-}
+// export interface IOSystemInterface {
+//   io_modules: Array<IOModuleInterface>;
+// }
 
-export class IOSystem {
-  io_modules: Array<IOModule> = [];
-  constructor(
-    input?: Array<IOModuleInterface>, //IOSystemInterface
-  ) {
-    if (input != undefined) {
-      input.forEach((module) => {
-        this.io_modules.push(new IOModule(module));
-      });
-    }
-  }
+// export class IOSystem {
+//   io_modules: Array<IOModule> = [];
+//   constructor(
+//     input?: Array<IOModuleInterface>, //IOSystemInterface
+//   ) {
+//     if (input != undefined) {
+//       input.forEach((module) => {
+//         this.io_modules.push(new IOModule(module));
+//       });
+//     }
+//   }
 
-  serialize(): Array<IOModuleInterface> {
-    const module_array: Array<IOModuleInterface> = [];
-    this.io_modules.forEach((module) => {
-      module_array.push(module.serialize());
-    });
-    return module_array;
-  }
-}
+//   serialize(): Array<IOModuleInterface> {
+//     const module_array: Array<IOModuleInterface> = [];
+//     this.io_modules.forEach((module) => {
+//       module_array.push(module.serialize());
+//     });
+//     return module_array;
+//   }
+// }

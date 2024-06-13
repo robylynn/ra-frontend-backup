@@ -10,7 +10,8 @@ from api.routers import (
     # control_loops_router,
     # streaming_router,
     auth_router,
-    state_router
+    state_router,
+    ui_router
 )
 
 # from utils.utils import (
@@ -76,7 +77,11 @@ if __name__ == "__main__":
         state_router,
         prefix="/state"
     )
-        
+
+    telemetry_backend_server.include_router(
+        ui_router,
+        prefix="/ui"
+    )   
     # )
 
     # system_controller, carbonator_frontend, modbus_interface, system_database = system_initializer.initialize(

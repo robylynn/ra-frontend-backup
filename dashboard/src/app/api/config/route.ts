@@ -5,8 +5,12 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 
 import authOptions from "@/lib/auth/auth_options";
-import { UIConfiguration } from "@/lib/reusable_models/api_models";
-import { createAPIResponse } from "@/lib/reusable_models/api_models";
+import {
+  UIConfiguration,
+  BackendAPIResponseInterface,
+  createAPIResponse,
+} from "@/lib/reusable_models/api_models";
+// import { createAPIResponse } from "@/lib/reusable_models/api_models";
 
 export async function GET(request: NextRequest) {
   // let client_id = null;
@@ -38,10 +42,10 @@ export async function GET(request: NextRequest) {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-    },
+    }
   )
     .then((res) => res.json())
-    .then((res) => res.payload)
+    .then((res: BackendAPIResponseInterface) => res.data)
     .catch((reason) => console.log("REASON: " + reason));
 
   const ui_configuration = new UIConfiguration(received_configuration);
