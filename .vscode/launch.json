@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Backend",
+            "type": "python",
+            "request": "launch",
+            "module": "backend",
+            "justMyCode": false,
+            "env": {
+                "CONFIG_FILE_DIR": "/home/r2/r2/ra-frontend/config",
+                // "CONTAINERIZED": "false",
+                // "SIMULATE_HARDWARE": "false",
+                // "ROOT_DIR": "/home/roby/r2/development/r2-carbonator-controller",
+                // "BROWSER": "none",
+                "CONFIG_FILE": "network_configuration.yaml",
+                // "CONTROL_LOOP_CONFIG_FILE": "control_loop_configuration.yaml",
+                // "MQTT_HOST": "127.0.0.1",
+                "PYTHONPATH": "/home/r2/r2/ra-frontend/backend",
+                // "USER_CODE_DIR": "/home/roby/r2/development/r2-carbonator-controller/user_code",
+                // "LOG_DIRECTORY_ROOT": "/home/roby/r2/development/r2-carbonator-controller",
+                // "BACKUP_LOG_DIRECTORY_ROOT": "/home/roby/r2/development/backup/carbonator",
+                // "HOST_LOG_FILE_DIR": "logs",
+                // "EVENT_LOG_DIRECTORY_NAME": "event_logs",
+                // "DATA_LOG_DIRECTORY_NAME": "data_logs"
+            }
+        },
+        {
+            "name": "Next.js: debug server-side frontend app",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "yarn dev",
+            // "justMyCode": true,
+            "cwd": "/home/r2/r2/ra-frontend/dashboard",
+            "serverReadyAction": {
+                "pattern": "started server on .+, url: (https?://.+)",
+                "uriFormat": "%s",
+                // "action": "debugWithChrome"
+            },
+            "outFiles": [
+                "${workspaceFolder}/.next/server/**/*.js"
+            ],
+        }
+    ]
+}

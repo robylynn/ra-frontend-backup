@@ -1,0 +1,7 @@
+devices:
+  - name: RAC_1
+    customer: customer_1
+    IP: 10.252.1.1
+  - name: RAC_2
+    customer: customer_2
+    IP: 10.252.1.2

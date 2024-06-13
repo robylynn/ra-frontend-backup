@@ -1,0 +1,61 @@
+// Frontend Web Application for RA Products
+// Developed by R2 Labs for Seabound Carbon
+
+"use client";
+
+import { ReactElement, useContext } from "react";
+
+import {
+  DashboardHeaderContainer,
+  PagePanel,
+} from "@/lib/reusable_components/client_components/dashboard_header_container";
+import LoadingIndicator from "@/lib/reusable_components/server_components/loading_indicator";
+import DashboardContext from "@/lib/reusable_models/dashboard_context";
+
+interface MessageContainerInterface {
+  className?: string;
+}
+
+export default function MessageContainer(props: MessageContainerInterface) {
+  const { context } = useContext(DashboardContext);
+
+  const messages = (): ReactElement[] => {
+    const m: ReactElement[] = [];
+    let message_index = 0;
+    if (context.messages == undefined) {
+      return m;
+    }
+
+    for (const message_document of context.messages.documents) {
+      m.push(
+        <p
+          key={message_index}
+          className="dark:text-r2-white"
+        >{`${message_document.timestamp} ${message_document.message}`}</p>,
+      );
+      message_index++;
+    }
+
+    return m.reverse();
+  };
+
+  return (
+    <PagePanel className={`${props.className ?? ""}`}>
+      <DashboardHeaderContainer
+        header_text="SYSTEM LOG"
+        icon_path="/icons/messages.svg"
+        fill_tile_id={"message_container"}
+      >
+        {context.latest_document.document_valid ? (
+          <div className="">
+            <div className="flex flex-col-reverse w-full h-full p-0 px-5 m-0 space-y-0 text-xs rounded-sm grow dark:text-r2-white">
+              {messages()}
+            </div>
+          </div>
+        ) : (
+          <LoadingIndicator />
+        )}
+      </DashboardHeaderContainer>
+    </PagePanel>
+  );
+}
