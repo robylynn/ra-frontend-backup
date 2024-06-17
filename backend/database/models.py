@@ -9,7 +9,8 @@ import hashlib, json
 from dataclasses import (
     dataclass,
     asdict,
-    InitVar
+    InitVar,
+    fields
 )
 from datetime import datetime
 from typing import (
@@ -22,6 +23,10 @@ from typing import (
 from enum import (
     Enum,
     auto
+)
+from dacite import (
+    from_dict, 
+    Config
 )
 
 from frontend.models import MessageSeverity
@@ -42,6 +47,15 @@ class DocumentType(Enum):
     OPERATOR_NOTE = auto()
     FRONTEND_MESSAGE = auto()
     IO_STATE = auto()
+
+class DatabaseCommandType(Enum):
+    GET_DATA_POINTS = auto()
+    GET_IO_DATA_POINTS = auto()
+
+@dataclass
+class DatabaseCommand:
+    command_type: DatabaseCommandType
+    number_of_points: int
 
 @dataclass
 class MongoInstanceConfiguration:
@@ -81,6 +95,18 @@ class TimeseriesMetadata:
     commit_serial_number: int
     machine_startup_time: datetime
     document_type: DocumentType
+
+    @staticmethod
+    def deserialize_from_dict(metadata: Dict) -> "TimeseriesMetadata":
+        input = {}
+        for k, v in metadata.items():
+            if k == 'document_type':
+                input[k] = getattr(DocumentType, v)
+            # elif k == 'machine_startup_time':
+            #     input[k] = datetime.fromisoformat(v)
+            else:
+                input[k] = v
+        return TimeseriesMetadata(**input)
     # experiment_id: str = None
     # plan_id: str = None
 
@@ -91,7 +117,9 @@ class MongoTimeseriesRecord:
     data: InitVar[Dict[str, Any]]
 
     timestamp_seconds: float = None
-    record_hash: ClassVar[str] = None
+    # record_hash: ClassVar[str] = None
+    record_hash: str = None
+    _id: str = None
 
     def __post_init__(self, data: Dict[str, Any]):
         self._data_dict = {k: v for k, v in data.items()}
@@ -109,11 +137,41 @@ class MongoTimeseriesRecord:
         
         return hash
 
+    # @classmethod
+    # def construct_from_database_record(record: Dict):
+    #     return 
+
+    @staticmethod
+    def deserialize_from_dict(record: Dict) -> "MongoTimeseriesRecord":
+        input = {'data': {}}
+        for k, v in record.items():
+            if k == 'metadata':
+                input[k] = TimeseriesMetadata.deserialize_from_dict(v)
+            # elif k == 'timestamp':
+            #     input[k] = datetime.fromisoformat(v)
+            # elif k not in ['timestamp', 'timestamp_seconds', 'record_hash', '_id']:
+            elif k not in [f.name for f in fields(MongoTimeseriesRecord)]:
+                input['data'][k] = v
+
+            else:
+                input[k] = v
+        return MongoTimeseriesRecord(**input)
+        # return from_dict(data_class=MongoTimeseriesRecord, data=record, config=Config(cast=[DocumentType]))
+
     def serialize_to_dict(self) -> Dict[str, Any]:
         sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
         serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self._data_dict, 'record_hash': self.record_hash}
         serialized['metadata'] = sparse_metadata
         return serialized
+
+@dataclass
+class TimeseriesRecordContainer:
+    records: List[MongoTimeseriesRecord]
+
+    def serialize(self):
+        return [
+            r.serialize_to_dict() for r in self.records
+        ]
 
 @dataclass
 class MongoFrontendMessage:
@@ -132,7 +190,7 @@ class IOPointData:
         return asdict(self)
 
 @dataclass
-class DataContainer:
+class IOPointDataContainer:
     io_points: List[IOPointData]
 
     def serialize(self) -> Dict:
@@ -147,3 +205,7 @@ class DataContainer:
     #         # "component_signals": self.component_signals.serialize(),
     #         # "control_loops": self.control_loops.serialize()
     #     }
+
+@dataclass
+class TimeseriesIOData(MongoTimeseriesRecord):
+    data: InitVar[IOPointDataContainer]

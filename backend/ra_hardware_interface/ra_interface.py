@@ -6,7 +6,8 @@ from datetime import datetime
 from threading import Thread
 from typing import (
     Union,
-    Any
+    Any,
+    Dict
 )
 
 from database.interface import MongoInterface
@@ -14,7 +15,7 @@ from database.models import (
     MongoTimeseriesRecord,
     DocumentType,
     TimeseriesMetadata,
-    DataContainer,
+    IOPointDataContainer,
     IOPointData
 )
 
@@ -28,12 +29,12 @@ class RAInterface(Thread):
     def __hash__(self) -> int:
         return hash((self.name))
     
-    def _create_database_document(self, document_type: DocumentType, data: Any) -> MongoTimeseriesRecord:
+    def _create_database_document(self, document_type: DocumentType, data: Dict[str, Any]) -> MongoTimeseriesRecord:
         return MongoTimeseriesRecord(
             metadata=TimeseriesMetadata(
                 machine_uid="ra_demo",
                 commit_serial_number=-1,
-                machine_startup_time=0,
+                machine_startup_time=datetime.now(),
                 # experiment_id=self._operational_state.experiment_id,
                 # plan_id=self._operational_state.plan_id,
                 document_type=document_type
@@ -48,8 +49,8 @@ class RAInterface(Thread):
             logger.info(f"Writing demo database record")
             self.database.enqueue_record(
                 self._create_database_document(
-                    document_type=DocumentType.DATA,
-                    data=DataContainer(
+                    document_type=DocumentType.IO_STATE,
+                    data=IOPointDataContainer(
                         io_points=[
                             IOPointData(
                                 point_index=0,

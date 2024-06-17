@@ -11,7 +11,8 @@ from api.routers import (
     # streaming_router,
     auth_router,
     state_router,
-    ui_router
+    ui_router,
+    streaming_router
 )
 
 # from utils.utils import (
@@ -20,9 +21,9 @@ from api.routers import (
 
 from system_initializer import initialize
 
-telemetry_backend_server = FastAPI()
+ra_backend_server = FastAPI()
 
-telemetry_backend_server.add_middleware(
+ra_backend_server.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
     allow_credentials=True,
@@ -68,20 +69,25 @@ if __name__ == "__main__":
     #     streaming_router,
     #     prefix="/data_streams"
     # )
-    telemetry_backend_server.include_router(
+    ra_backend_server.include_router(
         auth_router,
         prefix="/user"
     )
 
-    telemetry_backend_server.include_router(
+    ra_backend_server.include_router(
         state_router,
         prefix="/state"
     )
 
-    telemetry_backend_server.include_router(
+    ra_backend_server.include_router(
         ui_router,
         prefix="/ui"
-    )   
+    )
+
+    ra_backend_server.include_router(
+        streaming_router,
+        prefix="/streams"
+    )
     # )
 
     # system_controller, carbonator_frontend, modbus_interface, system_database = system_initializer.initialize(
@@ -109,4 +115,4 @@ if __name__ == "__main__":
     #     mqtt_simulator_process.start()
 
     # logger.info("Starting carbonator backend...")
-    uvicorn.run(telemetry_backend_server, host="0.0.0.0", port=8000, timeout_keep_alive=0)
+    uvicorn.run(ra_backend_server, host="0.0.0.0", port=8000, timeout_keep_alive=0)

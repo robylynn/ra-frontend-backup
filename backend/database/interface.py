@@ -13,6 +13,11 @@ from typing import (
     Union
 )
 
+# from enum import (
+#     Enum,
+#     auto
+# )
+
 from dataclasses import (
     dataclass, 
     InitVar
@@ -26,9 +31,12 @@ from queue import Empty
 from multiprocessing import (
     Process,
     Value,
-    Queue as mpQueue
+    Queue as mpQueue,
+    Pipe
 )
+from multiprocessing.connection import Connection
 
+from threading import Thread
 from datetime import datetime
 
 from database.models import (
@@ -36,9 +44,14 @@ from database.models import (
     MongoConfiguration,
     MongoLocalInterfaceException,
     MongoTimeseriesRecord,
+    TimeseriesRecordContainer,
+    IOPointDataContainer,
     MongoInterfaceException,
     MongoInstanceConfiguration,
-    MongoFrontendMessage
+    MongoFrontendMessage,
+    DatabaseCommand,
+    DatabaseCommandType,
+    TimeseriesIOData
 )
 
 from loguru import logger
@@ -95,10 +108,10 @@ class DatabaseInstance:
 
             if not self.collections_initialized:
                 if not self.configuration.drop_database_on_start:
-                    self._data_collection, self._event_collection, self._message_collection, self._io_state_collection = self._create_carbonator_timeseries_collections()
+                    self._data_collection, self._event_collection, self._message_collection, self._io_state_collection = self._create_ra_timeseries_collections()
                 else:
                     self._drop_database()
-                    self._data_collection, self._event_collection, self._message_collection, self._io_state_collection = self._create_carbonator_timeseries_collections()
+                    self._data_collection, self._event_collection, self._message_collection, self._io_state_collection = self._create_ra_timeseries_collections()
                     self._create_users()
                 
                 # if self.configuration.use_frontend_message_collection:
@@ -150,7 +163,7 @@ class DatabaseInstance:
         except OperationFailure:
             logger.info(f"data_reader user already exists on {self.configuration.database_name}")
     
-    def _create_carbonator_timeseries_collections(self) -> List[Collection]:
+    def _create_ra_timeseries_collections(self) -> List[Collection]:
         if os.environ.get("CONTAINERIZED").lower() == "true":
             host_hostname = os.environ.get("HOST_HOSTNAME")
             data_timeseries_collection_name = "_".join([self.configuration.data_timeseries_collection, host_hostname, os.uname()[1]])
@@ -337,6 +350,280 @@ class DatabaseQueue:
         logger.info(f"Cloud database collection for queue {self.name} is out of sync with local database by {unsynchronized_document_count} documents. Inserting {len(batch_documents)} documents from local database to cloud database")
         self.target_remote_collection.insert_many(batch_documents)
 
+# @dataclass
+# class DatabaseThread(Thread):
+#     interface_state: InitVar[MongoInterfaceState]
+#     data_queue: InitVar[DatabaseQueue]
+#     event_queue: InitVar[DatabaseQueue]
+#     message_queue: InitVar[DatabaseQueue]
+#     io_state_queue: InitVar[DatabaseQueue]
+
+#     _interface_state: ClassVar[MongoInterfaceState]
+#     _data_queue: ClassVar[DatabaseQueue]
+#     _event_queue: ClassVar[DatabaseQueue]
+#     _message_queue: ClassVar[DatabaseQueue]
+#     _io_state_queue: ClassVar[DatabaseQueue]
+
+#     _run_thread: ClassVar[bool] = True
+
+#     def __post_init__(
+#         self, 
+#         interface_state: MongoInterfaceState, 
+#         data_queue: DatabaseQueue, 
+#         event_queue: DatabaseQueue, 
+#         message_queue: DatabaseQueue, 
+#         io_state_queue: DatabaseQueue
+#     ):
+#         super(DatabaseThread, self).__init__()
+#         self._interface_state = interface_state
+#         self._data_queue = data_queue
+#         self._event_queue = event_queue
+#         self._message_queue = message_queue
+#         self._io_state_queue = io_state_queue
+
+# @dataclass
+class DatabaseThread(Thread):
+    # interface_state: InitVar[MongoInterfaceState]
+    # data_queue: InitVar[DatabaseQueue]
+    # event_queue: InitVar[DatabaseQueue]
+    # message_queue: InitVar[DatabaseQueue]
+    # io_state_queue: InitVar[DatabaseQueue]
+
+    # _interface_state: ClassVar[MongoInterfaceState]
+    # _data_queue: ClassVar[DatabaseQueue]
+    # _event_queue: ClassVar[DatabaseQueue]
+    # _message_queue: ClassVar[DatabaseQueue]
+    # _io_state_queue: ClassVar[DatabaseQueue]
+
+    # _run_thread: ClassVar[bool] = True
+
+    _interface_state: MongoInterfaceState
+    _data_queue: DatabaseQueue
+    _event_queue: DatabaseQueue
+    _message_queue: DatabaseQueue
+    _io_state_queue: DatabaseQueue
+
+    _run_thread: bool = True
+
+    def __init__(
+        self, 
+        interface_state: MongoInterfaceState, 
+        data_queue: DatabaseQueue, 
+        event_queue: DatabaseQueue, 
+        message_queue: DatabaseQueue, 
+        io_state_queue: DatabaseQueue
+    ):
+        super(DatabaseThread, self).__init__()
+        self._interface_state = interface_state
+        self._data_queue = data_queue
+        self._event_queue = event_queue
+        self._message_queue = message_queue
+        self._io_state_queue = io_state_queue
+
+    def __hash__(self) -> int:
+        return hash((self.name))
+
+    @property
+    def run_thread(self):
+        return self._run_thread
+    
+    @run_thread.setter
+    def run_thread(self, value: bool):
+        self._run_thread = value
+    
+    # @property
+    # def interface_state(self) -> MongoInterfaceState:
+    #     return self._interface_state
+    
+    # @interface_state.setter
+    # def interface_state(self, state: MongoInterfaceState):
+    #     self._interface_state = state
+
+    @property
+    def local_connection_established(self) -> bool:
+        return self._interface_state.local._client is not None
+
+    @property
+    def cloud_connection_established(self) -> bool:
+        return self._interface_state.cloud._client is not None
+    
+    @property
+    def local_connection_alive(self) -> bool:
+        return self._interface_state.local.connection_alive
+
+    @local_connection_alive.setter
+    def local_connection_alive(self, value: bool):
+        self._interface_state.local.connection_alive = value
+
+    @property
+    def database_queues(self) -> Tuple[DatabaseQueue, DatabaseQueue, Union[DatabaseQueue, None]]:
+        return (self._data_queue, self._event_queue, self._message_queue, self._io_state_queue)
+
+@dataclass
+class DatabasePusher(DatabaseThread):
+    # interface_state: MongoInterfaceState
+    # data_queue: DatabaseQueue
+    # event_queue: DatabaseQueue
+    # message_queue: DatabaseQueue
+    # io_state_queue: DatabaseQueue
+    interface_state: InitVar[MongoInterfaceState]
+    data_queue: InitVar[DatabaseQueue]
+    event_queue: InitVar[DatabaseQueue]
+    message_queue: InitVar[DatabaseQueue]
+    io_state_queue: InitVar[DatabaseQueue]
+    # _interface_state: ClassVar[MongoInterfaceState] = None
+    
+    # _data_queue: ClassVar[DatabaseQueue]
+    # _event_queue: ClassVar[DatabaseQueue]
+    # _message_queue: ClassVar[DatabaseQueue]
+    # _io_state_queue: ClassVar[DatabaseQueue]
+
+    def __post_init__(
+        self,
+        interface_state: MongoInterfaceState, 
+        data_queue: DatabaseQueue, 
+        event_queue: DatabaseQueue, 
+        message_queue: DatabaseQueue, 
+        io_state_queue: DatabaseQueue
+    ):
+        super(DatabasePusher, self).__init__(
+            interface_state=interface_state,
+            data_queue=data_queue,
+            event_queue=event_queue,
+            message_queue=message_queue,
+            io_state_queue=io_state_queue
+        )
+        # self._interface_state = interface_state
+        # self._data_queue = data_queue
+        # self._event_queue = event_queue
+        # self._message_queue = message_queue
+        # self._io_state_queue = io_state_queue
+        self.run = self._run
+
+    def __hash__(self) -> int:
+        return hash((self.name))
+
+    def _run(self):
+        while self.run_thread:
+            if self.local_connection_established and self.local_connection_alive:
+                for queue in self.database_queues:
+                    if queue == None: continue
+
+                    self._cycle_count = 0
+                    while not queue.empty:
+                        queue_entry = queue.get()
+
+                        try:
+                            queue.insert_document_locally(document=queue_entry)
+                            self.local_connection_alive = True
+
+                        except (ServerSelectionTimeoutError, MongoInterfaceException, AutoReconnect) as e:
+                            logger.error(f"Connection to mongodb instance refused, reenqueueing records in {queue.name}. Received error: {e}")
+                            queue.put(queue_entry)
+                            self.local_connection_alive = False
+                            break
+
+                        except Exception as e:
+                            a=5
+                        
+                        self._cycle_count += 1
+                        if self._cycle_count >= self._interface_state.local.configuration.cycle_count_before_yield:
+                            self._cycle_count = 0
+                            time.sleep(0)
+                            break
+            time.sleep(1)
+
+@dataclass
+class DatabasePuller(DatabaseThread):
+    command_queue: InitVar["mpQueue[DatabaseCommand]"]
+    return_pipe: InitVar[Connection]
+
+    interface_state: InitVar[MongoInterfaceState]
+    data_queue: InitVar[DatabaseQueue]
+    event_queue: InitVar[DatabaseQueue]
+    message_queue: InitVar[DatabaseQueue]
+    io_state_queue: InitVar[DatabaseQueue]
+
+
+
+    # _data_collection: Collection
+    # _event_collection: Collection
+    # _message_collection: Collection
+    # _io_state_collection: Collection
+
+    _command_queue: ClassVar["mpQueue[DatabaseCommand]"]
+    _return_pipe: ClassVar[Connection]
+    _run_thread: ClassVar[bool] = True
+
+    def __post_init__(
+        self, 
+        command_queue: "mpQueue[DatabaseCommand]",
+        return_pipe: Connection,
+        interface_state: MongoInterfaceState, 
+        data_queue: DatabaseQueue, 
+        event_queue: DatabaseQueue, 
+        message_queue: DatabaseQueue, 
+        io_state_queue: DatabaseQueue
+    ):
+        # super(DatabasePuller, self).__init__()
+        super(DatabasePuller, self).__init__(
+            interface_state=interface_state,
+            data_queue=data_queue,
+            event_queue=event_queue,
+            message_queue=message_queue,
+            io_state_queue=io_state_queue
+        )
+
+        self._command_queue = command_queue
+        self._return_pipe = return_pipe
+
+        self.run = self._run
+    
+    def __hash__(self) -> int:
+        return hash((self.name))
+
+    def _run(self):
+        while self.run_thread:
+            try:
+                command = self._command_queue.get()
+                if command.command_type == DatabaseCommandType.GET_DATA_POINTS:
+                    records = self._interface_state.local._data_collection.aggregate(
+                        [
+                            {
+                            "$sort": {
+                                "timestamp": ASCENDING
+                            }
+                            },
+                            {
+                                "$limit": command.number_of_points
+                            }
+                        ]
+                    )
+                    self._return_pipe.send(records)
+                elif command.command_type == DatabaseCommandType.GET_IO_DATA_POINTS:
+                    records = self._interface_state.local._data_collection.aggregate(
+                        [
+                            {
+                            "$sort": {
+                                "timestamp": DESCENDING
+                            }
+                            },
+                            {
+                                "$limit": command.number_of_points
+                            }
+                        ]
+                    )
+                    # z = [r for r in records]
+                    # zz = z[0]
+                    # y = MongoTimeseriesRecord.deserialize_from_dict(zz)
+                    # y = TimeseriesIOData(**zz)
+                    # self._return_pipe.send([TimeseriesIOData(**r) for r in records])
+                    self._return_pipe.send([TimeseriesIOData.deserialize_from_dict(r) for r in records])
+            except Empty:
+                pass
+            time.sleep(0)
+
+
 @dataclass
 class MongoInterface(Process):
     configuration: MongoConfiguration
@@ -348,15 +635,20 @@ class MongoInterface(Process):
     _message_queue: ClassVar[DatabaseQueue] = None
     _io_state_queue: ClassVar[DatabaseQueue] = None
 
+    _command_queue: ClassVar["mpQueue[DatabaseCommand]"] = None
+
     _last_record: ClassVar[MongoTimeseriesRecord] = None
 
     _run_process: bool = True
     _cycle_count: int = 0
     _last_synchronization_time: float = 0
+
+    _pusher_thread: DatabasePusher = None
+    _puller_thread: DatabasePuller = None
     
     def __post_init__(self):
         super(MongoInterface, self).__init__()
-        self.name = "carbonator_mongodb_interface_process"
+        self.name = "ra_mongodb_interface_process"
 
         if os.environ.get("CONTAINERIZED").lower() == "true":
             self.configuration.local.host = os.environ.get("DATABASE_CONTAINER_NAME")
@@ -385,6 +677,30 @@ class MongoInterface(Process):
             name="io_state_queue",
             timeout_secs=self.configuration.queue_get_timeout_secs
         )
+
+        self.pipe_output, self._pipe_input = Pipe()
+        self._command_queue = mpQueue()
+
+        # self._pusher_thread = DatabasePusher(
+        #     interface_state=self._interface_state,
+        #     data_queue=self._data_queue,
+        #     event_queue=self._event_queue,
+        #     message_queue=self._message_queue,
+        #     io_state_queue=self._io_state_queue
+        # )
+
+        # self._puller_thread = DatabasePuller(
+        #     interface_state=self._interface_state,
+        #     data_queue=self._data_queue,
+        #     event_queue=self._event_queue,
+        #     message_queue=self._message_queue,
+        #     io_state_queue=self._io_state_queue,
+        #     command_queue=self._command_queue,
+        #     return_pipe=self._pipe_input
+        # )
+
+        # self._pusher_thread.start()
+        # self._puller_thread.start()
 
         if not self.configuration.local.enabled:
             logger.warning(f"Local database is not enabled. No data will be committed.")
@@ -437,7 +753,48 @@ class MongoInterface(Process):
     def enqueue_io_state(self, data: MongoTimeseriesRecord):
         self._io_state_queue.put(data)
 
+    def get_data_points(self, number_of_points: int) -> TimeseriesRecordContainer:
+        self._command_queue.put(
+            DatabaseCommand(
+                command_type=DatabaseCommandType.GET_DATA_POINTS,
+                number_of_points=number_of_points
+            )
+        )
+
+        return self.pipe_output.recv()
+    
+    def get_io_data_points(self, number_of_points: int) -> List[MongoTimeseriesRecord]:
+        self._command_queue.put(
+            DatabaseCommand(
+                command_type=DatabaseCommandType.GET_IO_DATA_POINTS,
+                number_of_points=number_of_points
+            )
+        )
+
+        return self.pipe_output.recv()
+
     def _run(self):
+        self._pusher_thread = DatabasePusher(
+            interface_state=self._interface_state,
+            data_queue=self._data_queue,
+            event_queue=self._event_queue,
+            message_queue=self._message_queue,
+            io_state_queue=self._io_state_queue
+        )
+
+        self._puller_thread = DatabasePuller(
+            interface_state=self._interface_state,
+            data_queue=self._data_queue,
+            event_queue=self._event_queue,
+            message_queue=self._message_queue,
+            io_state_queue=self._io_state_queue,
+            command_queue=self._command_queue,
+            return_pipe=self._pipe_input
+        )
+
+        self._pusher_thread.start()
+        self._puller_thread.start()
+
         while self._run_process: 
 
             if self.configuration.local.enabled:
@@ -457,6 +814,8 @@ class MongoInterface(Process):
                         self._message_queue.target_local_collection = self._interface_state.local._message_collection
                         self._io_state_queue.target_local_collection = self._interface_state.local._io_state_collection
                         
+                        self._puller_thread._interface_state = self._interface_state
+                        self._pusher_thread._interface_state = self._interface_state
                     except MongoInterfaceException as e:
                         logger.error(f"{e.args[0]}. Yielding before local mongo instance connection reattempt")
                         time.sleep(0)
@@ -464,31 +823,32 @@ class MongoInterface(Process):
                     logger.error(f"Local database connection lost")
                     self.local_connection_alive = self._interface_state.local.ping_database()
                 else:
-                    for queue in self.database_queues:
-                        if queue == None: continue
+                    time.sleep(1)
+                    # for queue in self.database_queues:
+                    #     if queue == None: continue
 
-                        self._cycle_count = 0
-                        while not queue.empty:
-                            queue_entry = queue.get()
+                    #     self._cycle_count = 0
+                    #     while not queue.empty:
+                    #         queue_entry = queue.get()
 
-                            try:
-                                queue.insert_document_locally(document=queue_entry)
-                                self.local_connection_alive = True
+                    #         try:
+                    #             queue.insert_document_locally(document=queue_entry)
+                    #             self.local_connection_alive = True
 
-                            except (ServerSelectionTimeoutError, MongoInterfaceException, AutoReconnect) as e:
-                                logger.error(f"Connection to mongodb instance refused, reenqueueing records in {queue.name}. Received error: {e}")
-                                queue.put(queue_entry)
-                                self.local_connection_alive = False
-                                break
+                    #         except (ServerSelectionTimeoutError, MongoInterfaceException, AutoReconnect) as e:
+                    #             logger.error(f"Connection to mongodb instance refused, reenqueueing records in {queue.name}. Received error: {e}")
+                    #             queue.put(queue_entry)
+                    #             self.local_connection_alive = False
+                    #             break
 
-                            except Exception as e:
-                                a=5
+                    #         except Exception as e:
+                    #             a=5
                             
-                            self._cycle_count += 1
-                            if self._cycle_count >= self._interface_state.local.configuration.cycle_count_before_yield:
-                                self._cycle_count = 0
-                                time.sleep(0)
-                                break
+                    #         self._cycle_count += 1
+                    #         if self._cycle_count >= self._interface_state.local.configuration.cycle_count_before_yield:
+                    #             self._cycle_count = 0
+                    #             time.sleep(0)
+                    #             break
                     
                     if self.configuration.cloud.enabled:
                         try:

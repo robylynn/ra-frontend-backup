@@ -40,6 +40,12 @@ ui_router = APIRouter(
     ]
 )
 
+streaming_router = APIRouter(
+    tags=[
+        "Data Streams"
+    ]
+)
+
 def check_user(data: UserLoginSchema):
     return True
     # for user in system_initializer.system_controller.configuration.frontend.users:
@@ -229,3 +235,12 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
         error=False,
         data=ui_configuration.serialize()
     )
+
+@streaming_router.get("/io_timeseries_data")
+def get_io_data_points(number_of_points: int) -> APIResponse:
+    points = initializer.ra_database.get_io_data_points(number_of_points=number_of_points)
+    return APIResponse(
+        error=False,
+        data=[p.serialize_to_dict() for p in points]
+    )
+
