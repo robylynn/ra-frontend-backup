@@ -4,7 +4,10 @@
 import { getServerSession } from "next-auth";
 
 import authOptions from "@/lib/auth/auth_options";
-import { BackendAPIResponse, createAPIResponse } from "@/lib/reusable_models/api_models";
+import {
+  BackendAPIResponse,
+  createAPIResponse,
+} from "@/lib/reusable_models/api_models";
 
 export async function GET() {
   // export async function GET(request: NextRequest) {
@@ -17,6 +20,8 @@ export async function GET() {
       data: {
         clients: [],
       },
+      error: false,
+      error_string: ""
     });
   }
 
@@ -30,13 +35,16 @@ export async function GET() {
     //     method: "GET",
     //     //signal: controller.signal,
     //   }).then((res) => res.json());
-    
-    let data: BackendAPIResponse = await fetch("http://" + process.env.CONTROLLER_URI + `/state/clients`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal,
-      cache: "no-store",
-    }).then((res) => res.json());
+
+    let data: BackendAPIResponse = await fetch(
+      "http://" + process.env.CONTROLLER_URI + `/state/clients`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        cache: "no-store",
+      }
+    ).then((res) => res.json());
 
     clearTimeout(timeoutId);
 
@@ -45,6 +53,8 @@ export async function GET() {
       data: {
         clients: data.data,
       },
+      error: false,
+      error_string: ""
     });
   } catch (e) {
     console.error("Getting clients failed");
@@ -53,16 +63,18 @@ export async function GET() {
         authenticated: true,
         data: {
           error: "AbortError",
-          heartbeat: false,
         },
+        error: true,
+        error_string: (e as any).name,
       });
     else
       return createAPIResponse({
         authenticated: true,
         data: {
-          error: (e as any).name,
-          clients: []
+          clients: [],
         },
+        error: true,
+        error_string: (e as any).name,
       });
   }
 }

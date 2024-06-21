@@ -32,7 +32,8 @@ from multiprocessing import (
     Process,
     Value,
     Queue as mpQueue,
-    Pipe
+    Pipe,
+    Lock
 )
 from multiprocessing.connection import Connection
 
@@ -51,7 +52,10 @@ from database.models import (
     MongoFrontendMessage,
     DatabaseCommand,
     DatabaseCommandType,
-    TimeseriesIOData
+    IOStateRecord,
+    FrontendMessageRecord,
+    IOStateRecord
+    
 )
 
 from loguru import logger
@@ -618,7 +622,21 @@ class DatabasePuller(DatabaseThread):
                     # y = MongoTimeseriesRecord.deserialize_from_dict(zz)
                     # y = TimeseriesIOData(**zz)
                     # self._return_pipe.send([TimeseriesIOData(**r) for r in records])
-                    self._return_pipe.send([TimeseriesIOData.deserialize_from_dict(r) for r in records])
+                    self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
+                elif command.command_type == DatabaseCommandType.GET_MESSAGES:
+                    records = self._interface_state.local._message_collection.aggregate(
+                        [
+                            {
+                            "$sort": {
+                                "timestamp": DESCENDING
+                            }
+                            },
+                            {
+                                "$limit": command.number_of_messages
+                            }
+                        ]
+                    )
+                    self._return_pipe.send([FrontendMessageRecord.deserialize_from_dict(r) for r in records])
             except Empty:
                 pass
             time.sleep(0)
@@ -643,6 +661,7 @@ class MongoInterface(Process):
     _cycle_count: int = 0
     _last_synchronization_time: float = 0
 
+    _pipe_lock: Lock = None
     _pusher_thread: DatabasePusher = None
     _puller_thread: DatabasePuller = None
     
@@ -679,6 +698,7 @@ class MongoInterface(Process):
         )
 
         self.pipe_output, self._pipe_input = Pipe()
+        self._pipe_lock = Lock()
         self._command_queue = mpQueue()
 
         # self._pusher_thread = DatabasePusher(
@@ -747,10 +767,10 @@ class MongoInterface(Process):
     def enqueue_event(self, data: MongoTimeseriesRecord):
         self._event_queue.put(data)
 
-    def enqueue_message(self, data: MongoTimeseriesRecord):
+    def enqueue_message(self, data: FrontendMessageRecord):
         self._message_queue.put(data)
     
-    def enqueue_io_state(self, data: MongoTimeseriesRecord):
+    def enqueue_io_state(self, data: IOStateRecord):
         self._io_state_queue.put(data)
 
     def get_data_points(self, number_of_points: int) -> TimeseriesRecordContainer:
@@ -763,7 +783,18 @@ class MongoInterface(Process):
 
         return self.pipe_output.recv()
     
-    def get_io_data_points(self, number_of_points: int) -> List[MongoTimeseriesRecord]:
+    def _return_pipe_data(self, timeout: float) -> List:
+        try:
+            with self._pipe_lock:
+                self.pipe_output.poll(timeout=timeout)
+                return self.pipe_output.recv()
+        except TimeoutError:
+            return []
+        except Exception as e:
+            a=5
+            return []
+    
+    def get_io_data_points(self, number_of_points: int, timeout: float) -> List[MongoTimeseriesRecord]:
         self._command_queue.put(
             DatabaseCommand(
                 command_type=DatabaseCommandType.GET_IO_DATA_POINTS,
@@ -771,7 +802,28 @@ class MongoInterface(Process):
             )
         )
 
-        return self.pipe_output.recv()
+        return self._return_pipe_data(timeout=timeout)
+
+        # try:
+        #     with self.pipe_lock:
+        #         self.pipe_output.poll(timeout=timeout)
+        #         return self.pipe_output.recv()
+        # except TimeoutError:
+        #     return []
+        # except Exception as e:
+        #     a=5
+        #     return []
+    
+    def get_messages(self, number_of_messages: int) -> List[MongoTimeseriesRecord]:
+        self._command_queue.put(
+            DatabaseCommand(
+                command_type=DatabaseCommandType.GET_MESSAGES,
+                number_of_messages=number_of_messages
+            )
+        )
+
+        # return self.pipe_output.recv()
+        return self._return_pipe_data(timeout=timeout)
 
     def _run(self):
         self._pusher_thread = DatabasePusher(

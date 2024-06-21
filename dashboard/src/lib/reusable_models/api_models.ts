@@ -6,6 +6,8 @@ import { NextResponse } from "next/server";
 export interface NextAPIResponseInterface {
   authenticated: boolean;
   data: any;
+  error: boolean;
+  error_string: string
 }
 
 export interface BackendAPIResponseInterface {

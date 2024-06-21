@@ -151,19 +151,58 @@ export default function DataUpdater(props: {
   // }, [updateCounter]);
 
   useEffect(() => {
+    const fetchIOData = async () => {
+      const response: NextAPIResponseInterface = await fetch(
+        // "/api/streams/io_data?number_of_points=" + 1
+        "/api/stream/io/1"
+      ).then((res) => res.json());
+
+      if (!response.authenticated) {
+        console.log("UNAUTHENTICATED FOR IO STREAM");
+      } else if (response.data == null) {
+        console.error("Database offline");
+        setContext((context) => {
+          return { ...context, database_online: false };
+        });
+      }
+      else if (response.error) {
+        console.log("Error getting IO state: " + response.error_string)
+      
+      } else {
+        const received_documents = new DatabaseIOStateArray(response.data);
+
+        setContext((context) => {
+          return {
+            ...context,
+            database_online: true,
+            io_state: received_documents,
+          };
+        });
+      }
+    };
+  
+    try {
+      fetchIOData();
+    } catch (e) {
+      console.log("IO data update error: " + e);
+    }
+
+  }, [updateCounter]);
+
+  useEffect(() => {
     const fetchConfiguration = async () => {
       const ui_config_params = new URLSearchParams();
       if (context.configuration.client_id != undefined) {
         ui_config_params.append(
           "client_id",
-          context.configuration.client_id.toString(),
+          context.configuration.client_id.toString()
         );
       } else {
         ui_config_params.append("client_id", "-1");
       }
 
       const response: NextAPIResponseInterface = await fetch(
-        "/api/config?" + ui_config_params,
+        "/api/config?" + ui_config_params
       ).then((res) => res.json());
 
       if (response.authenticated) {
@@ -175,7 +214,7 @@ export default function DataUpdater(props: {
         ) {
           console.log(
             "updating UI configuration for client id " +
-              received_configuration.client_id,
+              received_configuration.client_id
           );
           setContext((c) => {
             return { ...c, configuration: received_configuration };
@@ -196,7 +235,7 @@ export default function DataUpdater(props: {
   useEffect(() => {
     const fetchHeartbeat = async () => {
       const heartbeat_response = await fetch("/api/state/heartbeat").then(
-        (res) => res.json(),
+        (res) => res.json()
       );
 
       setContext((c) => {

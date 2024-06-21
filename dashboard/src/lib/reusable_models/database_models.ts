@@ -1,6 +1,8 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs for Seabound Carbon
 
+import { IOPointInterface, IOPoint } from "./api_models";
+
 export interface DocumentMetadataInterface {
   commit_serial_number: number;
   document_type: string;
@@ -65,15 +67,6 @@ export interface IOModuleStateInterface {
   name: string;
   module_index: number;
   channels: Array<IOChannelStateInterface>;
-}
-
-export interface DatabaseIOStateInterface {
-  _id: string;
-  metadata: DocumentMetadataInterface;
-  record_hash: string;
-  timestamp: Date;
-  timestamp_seconds: number;
-  modules: Array<IOModuleStateInterface>;
 }
 
 export class DocumentMetadata {
@@ -254,43 +247,81 @@ export class DatabaseFrontendMessage {
   }
 }
 
-export class IOChannelState {
-  channel_index: number = -1;
-  value: number = -1;
-  point_type: string = "";
+// export class IOChannelState {
+//   channel_index: number = -1;
+//   value: number = -1;
+//   point_type: string = "";
 
-  constructor(input?: IOChannelStateInterface) {
-    Object.assign(this, input);
-  }
+//   constructor(input?: IOChannelStateInterface) {
+//     Object.assign(this, input);
+//   }
+// }
+
+// export class IOModuleState {
+//   name: string = "";
+//   module_index: number = -1;
+//   channels: Array<IOChannelState> = [];
+
+//   constructor(input?: IOModuleStateInterface) {
+//     if (input != undefined) {
+//       this.name = input.name;
+//       this.module_index = input.module_index;
+//       input.channels.forEach((channel) => {
+//         this.channels.push(new IOChannelState(channel));
+//       });
+//     }
+//   }
+
+//   get_io_point_state(channel_index: number) {
+//     return this.channels[channel_index - 1];
+//   }
+// }
+
+// export class DatabaseIOState {
+//   _id: string = "";
+//   metadata: DocumentMetadata = new DocumentMetadata();
+//   record_hash: string = "";
+//   timestamp: Date = new Date("1970");
+//   timestamp_seconds: number = 0;
+//   modules: Array<IOModuleState> = [];
+
+//   constructor(document?: DatabaseIOStateInterface) {
+//     if (document != undefined) {
+//       this._id = document._id;
+//       this.timestamp = document.timestamp;
+//       this.timestamp_seconds = document.timestamp_seconds;
+//       this.metadata = new DocumentMetadata(document.metadata);
+//       document.modules.forEach((module) => {
+//         this.modules.push(new IOModuleState(module));
+//       });
+//     }
+//   }
+
+//   get_module_state(module_index: number) {
+//     return this.modules[module_index - 1];
+//   }
+// }
+
+// export class IOPoint implements IOPointInterface
+
+export interface DatabaseIOStateInterface {
+  _id: string;
+  metadata: DocumentMetadataInterface;
+  record_hash: string;
+  timestamp: Date;
+  timestamp_seconds: number;
+  // modules: Array<IOModuleStateInterface>;
+  io_points: Array<IOPointInterface>;
 }
 
-export class IOModuleState {
-  name: string = "";
-  module_index: number = -1;
-  channels: Array<IOChannelState> = [];
-
-  constructor(input?: IOModuleStateInterface) {
-    if (input != undefined) {
-      this.name = input.name;
-      this.module_index = input.module_index;
-      input.channels.forEach((channel) => {
-        this.channels.push(new IOChannelState(channel));
-      });
-    }
-  }
-
-  get_io_point_state(channel_index: number) {
-    return this.channels[channel_index - 1];
-  }
-}
-
-export class DatabaseIOState {
+export class DatabaseIOState implements DatabaseIOStateInterface {
   _id: string = "";
   metadata: DocumentMetadata = new DocumentMetadata();
   record_hash: string = "";
   timestamp: Date = new Date("1970");
   timestamp_seconds: number = 0;
-  modules: Array<IOModuleState> = [];
+  // modules: Array<IOModuleState> = [];
+  io_points: Array<IOPoint> = [];
 
   constructor(document?: DatabaseIOStateInterface) {
     if (document != undefined) {
@@ -298,14 +329,21 @@ export class DatabaseIOState {
       this.timestamp = document.timestamp;
       this.timestamp_seconds = document.timestamp_seconds;
       this.metadata = new DocumentMetadata(document.metadata);
-      document.modules.forEach((module) => {
-        this.modules.push(new IOModuleState(module));
-      });
+      document.io_points.forEach((io_point) => {
+        this.io_points.push(new IOPoint(io_point))
+      })
+      // document.modules.forEach((module) => {
+      //   this.modules.push(new IOModuleState(module));
+      // });
     }
   }
 
-  get_module_state(module_index: number) {
-    return this.modules[module_index - 1];
+  // get_module_state(module_index: number) {
+  //   return this.modules[module_index - 1];
+  // }
+
+  get_point_state(point_index: number) {
+    return this.io_points[point_index].state;
   }
 }
 
@@ -418,10 +456,32 @@ export interface DataPointsInterface {
   y_values: Array<number>;
 }
 
-export class DatabaseIOStateArray {
-  private _documents: Array<DatabaseIOState> = [];
+//////////////////////////////////////////////////////////////
+//// DATABASE RETURN VALUES
+//////////////////////////////////////////////////////////////
+
+export class DocumentArray {
+  protected _documents: Array<any> = [];
+
+  public get latest_document() {
+    return this._documents[0];
+  }
+
+  public get documents() {
+    return this._documents;
+  }
+
+  public serialize(): string {
+    // const json_value = JSON.parse(JSON.stringify(this));
+    return JSON.parse(JSON.stringify(this._documents));
+  }
+}
+
+export class DatabaseIOStateArray extends DocumentArray {
+  protected _documents: Array<DatabaseIOState> = [];
 
   constructor(input_documents?: Array<DatabaseIOStateInterface>) {
+    super();
     if (input_documents != undefined) {
       input_documents.forEach((input_doc) => {
         this.add_document(input_doc);
@@ -433,23 +493,24 @@ export class DatabaseIOStateArray {
     return this._documents.length > 0;
   }
 
-  public get latest_document() {
-    return this._documents[0];
-  }
+  // public get latest_document() {
+  //   return this._documents[0];
+  // }
 
-  public get documents() {
-    return this._documents;
-  }
+  // public get documents() {
+  //   return this._documents;
+  // }
 
   add_document(document: DatabaseIOStateInterface) {
     this._documents.push(new DatabaseIOState(document));
   }
 }
 
-export class DatabaseMessageArray {
-  private _documents: Array<DatabaseFrontendMessage> = [];
+export class DatabaseMessageArray extends DocumentArray {
+  protected _documents: Array<DatabaseFrontendMessage> = [];
 
   constructor(input_documents?: Array<DatabaseFrontendMessageInterface>) {
+    super();
     if (input_documents != undefined) {
       input_documents.forEach((input_doc) => {
         this.add_document(input_doc);
@@ -457,23 +518,16 @@ export class DatabaseMessageArray {
     }
   }
 
-  public get latest_document() {
-    return this._documents[0];
-  }
-
-  public get documents() {
-    return this._documents;
-  }
-
   add_document(document: DatabaseFrontendMessageInterface) {
     this._documents.push(new DatabaseFrontendMessage(document));
   }
 }
 
-export class DatabaseDocumentArray {
-  private _documents: Array<DatabaseDocument> = [];
+export class DatabaseDocumentArray extends DocumentArray {
+  protected _documents: Array<DatabaseDocument> = [];
 
   constructor(input_documents?: Array<DatabaseDocumentInterface>) {
+    super();
     if (input_documents != undefined) {
       input_documents.forEach((input_doc) => {
         this.add_document(input_doc);
@@ -525,11 +579,11 @@ export class DatabaseDocumentArray {
     }
   }
 
-  public get latest_document() {
-    return this._documents[0];
-  }
+  // public get latest_document() {
+  //   return this._documents[0];
+  // }
 
-  public get documents() {
-    return this._documents;
-  }
+  // public get documents() {
+  //   return this._documents;
+  // }
 }

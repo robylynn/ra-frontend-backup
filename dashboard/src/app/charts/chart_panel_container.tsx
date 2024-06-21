@@ -114,7 +114,7 @@ export function ChartPanelContainer(props: {
         }
       };
 
-      fetchData();
+      //fetchData();
     }
   }, [updateCounter]);
 

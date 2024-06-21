@@ -236,11 +236,18 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
         data=ui_configuration.serialize()
     )
 
-@streaming_router.get("/io_timeseries_data")
+@streaming_router.get("/io_data")
 def get_io_data_points(number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_io_data_points(number_of_points=number_of_points)
+    points = initializer.ra_database.get_io_data_points(number_of_points=number_of_points, timeout=1)
     return APIResponse(
         error=False,
         data=[p.serialize_to_dict() for p in points]
     )
 
+@streaming_router.get("/messages")
+def get_io_data_points(number_of_messages: int) -> APIResponse:
+    points = initializer.ra_database.get_messages(number_of_messages=number_of_messages)
+    return APIResponse(
+        error=False,
+        data=[p.serialize_to_dict() for p in points]
+    )

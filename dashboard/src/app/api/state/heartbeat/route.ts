@@ -40,6 +40,8 @@ export async function GET() {
       data: {
         heartbeat: true,
       },
+      error: false,
+      error_string: ""
     });
   } catch (e) {
     console.error("Getting heartbeat failed");

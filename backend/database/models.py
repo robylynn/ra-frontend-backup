@@ -24,10 +24,10 @@ from enum import (
     Enum,
     auto
 )
-from dacite import (
-    from_dict, 
-    Config
-)
+# from dacite import (
+#     from_dict, 
+#     Config
+# )
 
 from frontend.models import MessageSeverity
 from utils.utils import timeseries_record_dict_factory
@@ -44,18 +44,26 @@ class MongoCloudInterfaceException(Exception):
 class DocumentType(Enum):
     DATA = auto()
     EVENT = auto()
-    OPERATOR_NOTE = auto()
+    # OPERATOR_NOTE = auto()
     FRONTEND_MESSAGE = auto()
     IO_STATE = auto()
 
 class DatabaseCommandType(Enum):
     GET_DATA_POINTS = auto()
     GET_IO_DATA_POINTS = auto()
+    GET_MESSAGES = auto()
+
+class MessageSeverity(Enum):
+    DEBUG = auto()
+    INFO = auto()
+    WARNING = auto()
+    ERROR = auto()
 
 @dataclass
 class DatabaseCommand:
     command_type: DatabaseCommandType
-    number_of_points: int
+    number_of_points: int = None
+    number_of_messages: int = None
 
 @dataclass
 class MongoInstanceConfiguration:
@@ -182,30 +190,52 @@ class MongoFrontendMessage:
         return asdict(self, dict_factory=timeseries_record_dict_factory)
 
 @dataclass
-class IOPointData:
+class DatabaseRecordDataContainer:
+    def serialize(self) -> Dict[str, Any]:
+        return asdict(self, dict_factory=timeseries_record_dict_factory)
+
+##########################################################
+#################### DATA POINT TYPES ####################
+##########################################################
+
+# @dataclass
+# class DatabaseDataPoint:
+#     def serialize(self) -> Dict:
+#         return asdict(self)
+
+@dataclass
+class IOPointData(DatabaseRecordDataContainer):
     point_index: int
     state: Union[bool, float]
 
-    def serialize(self) -> Dict:
-        return asdict(self)
+    # def serialize(self) -> Dict:
+    #     return asdict(self)
 
 @dataclass
-class IOPointDataContainer:
+class FrontendMessage(DatabaseRecordDataContainer):
+    message: str
+    severity: MessageSeverity
+
+
+@dataclass
+class IOPointDataContainer(DatabaseRecordDataContainer):
     io_points: List[IOPointData]
 
-    def serialize(self) -> Dict:
-        return asdict(self)
+    # def serialize(self) -> Dict:
+    #     return asdict(self)
 
-    # def serialize_to_database_record(self) -> Dict:
-    #     return {
-    #         "io_points": [
-    #             point.serialize() for point in self.io_points
-    #         ]
-    #         # "system_signals": self.system_signals.serialize(),
-    #         # "component_signals": self.component_signals.serialize(),
-    #         # "control_loops": self.control_loops.serialize()
-    #     }
+# @dataclass
+# class FrontendMessagesContainer(DatabaseRecordDataContainer):
+#     messages: List[FrontendMessage]
+
+##########################################################
+###################### RECORD TYPES ######################
+##########################################################
 
 @dataclass
-class TimeseriesIOData(MongoTimeseriesRecord):
+class IOStateRecord(MongoTimeseriesRecord):
     data: InitVar[IOPointDataContainer]
+
+@dataclass
+class FrontendMessageRecord(MongoTimeseriesRecord):
+    data: InitVar[FrontendMessage]

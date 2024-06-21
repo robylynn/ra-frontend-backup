@@ -11,12 +11,15 @@ from typing import (
 )
 
 from database.interface import MongoInterface
+# import database.models as database_models
 from database.models import (
     MongoTimeseriesRecord,
     DocumentType,
     TimeseriesMetadata,
     IOPointDataContainer,
-    IOPointData
+    IOPointData,
+    FrontendMessage,
+    MessageSeverity
 )
 
 @dataclass
@@ -47,7 +50,7 @@ class RAInterface(Thread):
         while True:
             time.sleep(2)
             logger.info(f"Writing demo database record")
-            self.database.enqueue_record(
+            self.database.enqueue_io_state(
                 self._create_database_document(
                     document_type=DocumentType.IO_STATE,
                     data=IOPointDataContainer(
@@ -64,3 +67,26 @@ class RAInterface(Thread):
                     ).serialize()
                 )
             )
+
+            logger.info(f"Writing demo database message")
+            self.database.enqueue_message(
+                self._create_database_document(
+                    document_type=DocumentType.FRONTEND_MESSAGE,
+                    data=FrontendMessage(
+                        message="test message",
+                        severity=MessageSeverity.ERROR
+                    ).serialize()
+                )
+                    # IOPointDataContainer(
+                    #     io_points=[
+                    #         IOPointData(
+                    #             point_index=0,
+                    #             state=False
+                    #         ),
+                    #         IOPointData(
+                    #             point_index=1,
+                    #             state=False
+                    #         )
+                    #     ]
+            )
+            
