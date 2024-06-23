@@ -26,17 +26,20 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { stream_name: string; count: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  if (!process.env.DISABLE_AUTHENTICATION) {
+    const session = await getServerSession(authOptions);
 
-  // if (session == null) {
-  //   console.log(
-  //     `Attempted ${params.stream_name} stream access without authentication`
-  //   );
-  //   return createAPIResponse({
-  //     data: null,
-  //     authenticated: false,
-  //   });
-  // }
+    if (session == null) {
+      console.log(
+        `Attempted ${params.stream_name} stream access without authentication`
+      );
+      return createAPIResponse({
+        data: null,
+        authenticated: false,
+      });
+    }
+  }
+  
 
   let db_data:
     | DatabaseDocumentArray

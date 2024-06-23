@@ -6,7 +6,8 @@ from typing import Tuple
 from enum import Enum
 from typing import (
     Dict,
-    List
+    List,
+    Callable
 )
 
 from config.models import (
@@ -83,6 +84,21 @@ def timeseries_record_dict_factory(dataclass):
         elif field[0] == '_id':
             pass
         elif field[1] == None:
+            pass
+        else:
+            d[field[0]] = field[1]
+    return d
+
+def io_record_dict_factory(dataclass):
+    d = {}
+    for field in dataclass:
+        if isinstance(field[1], Enum):
+            d[field[0]] = field[1].name
+        elif field[0] == '_id':
+            pass
+        elif field[1] == None:
+            pass
+        elif isinstance(field[1], Callable):
             pass
         else:
             d[field[0]] = field[1]

@@ -46,7 +46,6 @@ from database.models import (
     MongoLocalInterfaceException,
     MongoTimeseriesRecord,
     TimeseriesRecordContainer,
-    IOPointDataContainer,
     MongoInterfaceException,
     MongoInstanceConfiguration,
     MongoFrontendMessage,
@@ -588,57 +587,59 @@ class DatabasePuller(DatabaseThread):
 
     def _run(self):
         while self.run_thread:
-            try:
-                command = self._command_queue.get()
-                if command.command_type == DatabaseCommandType.GET_DATA_POINTS:
-                    records = self._interface_state.local._data_collection.aggregate(
-                        [
-                            {
-                            "$sort": {
-                                "timestamp": ASCENDING
-                            }
-                            },
-                            {
-                                "$limit": command.number_of_points
-                            }
-                        ]
-                    )
-                    self._return_pipe.send(records)
-                elif command.command_type == DatabaseCommandType.GET_IO_DATA_POINTS:
-                    records = self._interface_state.local._data_collection.aggregate(
-                        [
-                            {
-                            "$sort": {
-                                "timestamp": DESCENDING
-                            }
-                            },
-                            {
-                                "$limit": command.number_of_points
-                            }
-                        ]
-                    )
-                    # z = [r for r in records]
-                    # zz = z[0]
-                    # y = MongoTimeseriesRecord.deserialize_from_dict(zz)
-                    # y = TimeseriesIOData(**zz)
-                    # self._return_pipe.send([TimeseriesIOData(**r) for r in records])
-                    self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
-                elif command.command_type == DatabaseCommandType.GET_MESSAGES:
-                    records = self._interface_state.local._message_collection.aggregate(
-                        [
-                            {
-                            "$sort": {
-                                "timestamp": DESCENDING
-                            }
-                            },
-                            {
-                                "$limit": command.number_of_messages
-                            }
-                        ]
-                    )
-                    self._return_pipe.send([FrontendMessageRecord.deserialize_from_dict(r) for r in records])
-            except Empty:
-                pass
+            if self._interface_state.local.collections_initialized:
+                try:
+                    command = self._command_queue.get()
+                    if command.command_type == DatabaseCommandType.GET_DATA_POINTS:
+                        records = self._interface_state.local._data_collection.aggregate(
+                            [
+                                {
+                                    "$sort": {
+                                        "timestamp": ASCENDING
+                                    }
+                                },
+                                {
+                                    "$limit": command.number_of_points
+                                }
+                            ]
+                        )
+                        self._return_pipe.send(records)
+                    elif command.command_type == DatabaseCommandType.GET_IO_DATA_POINTS:
+                        records = self._interface_state.local._io_state_collection.aggregate(
+                            [
+                                {
+                                    "$sort": {
+                                        "timestamp": DESCENDING
+                                    }
+                                },
+                                {
+                                    "$limit": command.number_of_points
+                                }
+                            ]
+                        )
+                        # z = [r for r in records]
+                        # zz = z[0]
+                        # y = MongoTimeseriesRecord.deserialize_from_dict(zz)
+                        # y = TimeseriesIOData(**zz)
+                        # self._return_pipe.send([TimeseriesIOData(**r) for r in records])
+                        # self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
+                        self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
+                    elif command.command_type == DatabaseCommandType.GET_MESSAGES:
+                        records = self._interface_state.local._message_collection.aggregate(
+                            [
+                                {
+                                "$sort": {
+                                    "timestamp": DESCENDING
+                                }
+                                },
+                                {
+                                    "$limit": command.number_of_messages
+                                }
+                            ]
+                        )
+                        self._return_pipe.send([FrontendMessageRecord.deserialize_from_dict(r) for r in records])
+                except Empty:
+                    pass
             time.sleep(0)
 
 
@@ -794,7 +795,7 @@ class MongoInterface(Process):
             a=5
             return []
     
-    def get_io_data_points(self, number_of_points: int, timeout: float) -> List[MongoTimeseriesRecord]:
+    def get_io_data_points(self, number_of_points: int, timeout: float) -> List[IOStateRecord]:
         self._command_queue.put(
             DatabaseCommand(
                 command_type=DatabaseCommandType.GET_IO_DATA_POINTS,
@@ -814,7 +815,7 @@ class MongoInterface(Process):
         #     a=5
         #     return []
     
-    def get_messages(self, number_of_messages: int) -> List[MongoTimeseriesRecord]:
+    def get_messages(self, number_of_messages: int, timeout: float) -> List[MongoTimeseriesRecord]:
         self._command_queue.put(
             DatabaseCommand(
                 command_type=DatabaseCommandType.GET_MESSAGES,

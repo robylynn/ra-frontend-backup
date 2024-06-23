@@ -1,7 +1,8 @@
-import secrets, os, subprocess, shlex, re, warnings
+import secrets
 
 from fastapi import WebSocket, APIRouter, Body
 from typing import List
+from loguru import logger
 
 import system_initializer as initializer
 
@@ -18,8 +19,11 @@ from api.models import (
     # TransmittedFrontendConfiguration,
     FrontendChartTraceConfiguration,
 )
-from config.models import (
-    NetworkDevice
+# from config.models import (
+#     NetworkDevice
+# )
+from ra_hardware_interface.models import (
+    IOPort
 )
 
 auth_router=APIRouter(
@@ -43,6 +47,12 @@ ui_router = APIRouter(
 streaming_router = APIRouter(
     tags=[
         "Data Streams"
+    ]
+)
+
+config_router = APIRouter(
+    tags=[
+        "Configuration"
     ]
 )
 
@@ -79,31 +89,31 @@ def user_login(user: UserLoginSchema = Body(default=None)) -> AuthenticationResp
 async def heartbeat() -> APIResponse:
     return APIResponse(error=False, data=f"ACK")
 
-@state_router.get("/clients")
-def get_wireguard_clients() -> APIResponse:
-    output = subprocess.Popen(shlex.split("docker exec -it wireguard wg"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out = [l for l in output.stdout]
-    err = [l for l in output.stderr]
+# @state_router.get("/clients")
+# def get_wireguard_clients() -> APIResponse:
+#     output = subprocess.Popen(shlex.split("docker exec -it wireguard wg"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     out = [l for l in output.stdout]
+#     err = [l for l in output.stderr]
 
-    IPs = []
-    ip_matcher = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+#     IPs = []
+#     ip_matcher = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 
-    for line in out:
-        ip =  re.findall(ip_matcher, line.decode())
-        if len(ip) > 0:
-            IPs.append(ip[0])
+#     for line in out:
+#         ip =  re.findall(ip_matcher, line.decode())
+#         if len(ip) > 0:
+#             IPs.append(ip[0])
     
-    connected_devices: List[NetworkDevice] = []
-    for ip in IPs:
-        for device in initializer.telemetry_configuration.devices:
-            if device.IP == ip:
-                connected_devices.append(device.dump_json())
+#     connected_devices: List[NetworkDevice] = []
+#     for ip in IPs:
+#         for device in initializer.telemetry_configuration.devices:
+#             if device.IP == ip:
+#                 connected_devices.append(device.dump_json())
 
-    if output.returncode == 1:
-        # Error
-        return APIResponse(error=True, data=err)
-    else:
-        return APIResponse(error=False, data=connected_devices)
+#     if output.returncode == 1:
+#         # Error
+#         return APIResponse(error=True, data=err)
+#     else:
+#         return APIResponse(error=False, data=connected_devices)
 
 @ui_router.get("/configuration")
 async def get_ui_configuration(client_id: int = None) -> APIResponse:
@@ -246,8 +256,37 @@ def get_io_data_points(number_of_points: int) -> APIResponse:
 
 @streaming_router.get("/messages")
 def get_io_data_points(number_of_messages: int) -> APIResponse:
-    points = initializer.ra_database.get_messages(number_of_messages=number_of_messages)
+    messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages)
     return APIResponse(
         error=False,
-        data=[p.serialize_to_dict() for p in points]
+        data=[m.serialize_to_dict() for m in messages]
+    )
+
+@config_router.post("/io/configure_point")
+def configure_io_point(port: str, point_type: str, name: str, index: int) -> APIResponse:
+    try:
+        io_port: IOPort = getattr(initializer.ra_interface.io_system, port.lower())
+        io_port.add_point(
+            point_type=getattr(IOPointType, point_type.upper()),
+            name=name,
+            index=int(index)
+        )
+        # initializer.ra_interface.io_system.digital_outputs.add_point(
+        #     point_type=IOPointType.DIGITAL_OUTPUT,
+        #     name="dio_1",
+        #     index=1,
+        # )
+    except Exception as e:
+        error_str = f"Error adding \"{name}\" IO point {index} with type {point_type.upper()} to port {port}: {e}"
+        logger.error(error_str)
+        return APIResponse(
+            error=True,
+            data=error_str
+        )
+
+    success_str = f"Added \"{name}\" IO point {index} with type {point_type.upper()} to port {port}"
+    logger.success(success_str)
+    return APIResponse(
+        error=False,
+        data=success_str
     )

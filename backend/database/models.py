@@ -10,7 +10,8 @@ from dataclasses import (
     dataclass,
     asdict,
     InitVar,
-    fields
+    fields,
+    is_dataclass
 )
 from datetime import datetime
 from typing import (
@@ -18,7 +19,9 @@ from typing import (
     Dict, 
     Any, 
     Union, 
-    List
+    List,
+    Optional,
+    TypeVar
 )
 from enum import (
     Enum,
@@ -28,7 +31,9 @@ from enum import (
 #     from_dict, 
 #     Config
 # )
-
+from ra_hardware_interface.models import (
+    IOSystem
+)
 from frontend.models import MessageSeverity
 from utils.utils import timeseries_record_dict_factory
 
@@ -122,14 +127,19 @@ class TimeseriesMetadata:
 class MongoTimeseriesRecord:
     metadata: TimeseriesMetadata
     timestamp: datetime
-    data: InitVar[Dict[str, Any]]
+    data: InitVar[Dict[str, Any] | "DataRecordContainerType"]
 
-    timestamp_seconds: float = None
+    _id: Optional[str] = None
+    timestamp_seconds: Optional[float] = None
     # record_hash: ClassVar[str] = None
-    record_hash: str = None
-    _id: str = None
+    record_hash: Optional[str] = None
+    
 
     def __post_init__(self, data: Dict[str, Any]):
+        if is_dataclass(data):
+            # self._data_dict = {k: v for k, v in data.serialize().items()}    
+            data = data.serialize()
+        
         self._data_dict = {k: v for k, v in data.items()}
         self.timestamp_seconds = self.timestamp.timestamp()
         self.record_hash = self.create_hash(self.attribute_dictionary)
@@ -137,6 +147,10 @@ class MongoTimeseriesRecord:
     @property
     def attribute_dictionary(self) -> Dict[str, Any]:
         return {**asdict(self), **self._data_dict}
+
+    @property
+    def data_dictionary(self) -> Dict[str, Any]:
+        return self._data_dict
 
     def create_hash(self, attrs: Dict) -> str:
         hash = hashlib.md5(
@@ -217,16 +231,26 @@ class FrontendMessage(DatabaseRecordDataContainer):
     severity: MessageSeverity
 
 
-@dataclass
-class IOPointDataContainer(DatabaseRecordDataContainer):
-    io_points: List[IOPointData]
+# @dataclass
+# class IOPointDataContainer(DatabaseRecordDataContainer):
+#     io_points: List[IOPointData]
 
+@dataclass
+class IOSystemDataContainer(DatabaseRecordDataContainer):
+    io_system: IOSystem
+    # io_system_state: InitVar[IOSystem]
+
+    # io_system: Dict = None
+
+    # def __post_init__(self, io_system: IOSystem):
+    #     self.io_system = io_system.serialize()
     # def serialize(self) -> Dict:
     #     return asdict(self)
 
 # @dataclass
 # class FrontendMessagesContainer(DatabaseRecordDataContainer):
 #     messages: List[FrontendMessage]
+DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataContainer)
 
 ##########################################################
 ###################### RECORD TYPES ######################
@@ -234,7 +258,12 @@ class IOPointDataContainer(DatabaseRecordDataContainer):
 
 @dataclass
 class IOStateRecord(MongoTimeseriesRecord):
-    data: InitVar[IOPointDataContainer]
+    # data: InitVar["IOSystem"]
+    # io_system: Dict
+    pass
+    # @property
+    # def data_dictionary(self) -> Dict:
+    #     return self._data_dict
 
 @dataclass
 class FrontendMessageRecord(MongoTimeseriesRecord):

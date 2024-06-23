@@ -1,7 +1,7 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs for Seabound Carbon
 
-import { IOPointInterface, IOPoint } from "./api_models";
+import { IOPointInterface, IOPoint, IOSystemInterface, IOSystem } from "./api_models";
 
 export interface DocumentMetadataInterface {
   commit_serial_number: number;
@@ -32,20 +32,20 @@ export interface ParameterDataInterface {
   interlocks: { [key: number]: InterlockDataInterface };
 }
 
-export interface DatabaseDocumentInterface {
-  _id: string;
-  metadata: DocumentMetadataInterface;
-  record_hash: string;
-  timestamp: Date;
-  timestamp_seconds: number;
-  system_signals: SystemSignalsInterface;
-  component_signals: {
-    [key: string]: HardwareComponentInterface;
-  };
-  control_loops: {
-    [key: string]: ControlLoopInterface;
-  };
-}
+// export interface DatabaseDocumentInterface {
+//   _id: string;
+//   metadata: DocumentMetadataInterface;
+//   record_hash: string;
+//   timestamp: Date;
+//   timestamp_seconds: number;
+//   system_signals: SystemSignalsInterface;
+//   component_signals: {
+//     [key: string]: HardwareComponentInterface;
+//   };
+//   control_loops: {
+//     [key: string]: ControlLoopInterface;
+//   };
+// }
 
 export interface DatabaseFrontendMessageInterface {
   _id: string;
@@ -304,34 +304,82 @@ export class DatabaseFrontendMessage {
 
 // export class IOPoint implements IOPointInterface
 
-export interface DatabaseIOStateInterface {
+export interface DatabaseDocumentInterface {
   _id: string;
   metadata: DocumentMetadataInterface;
   record_hash: string;
   timestamp: Date;
   timestamp_seconds: number;
-  // modules: Array<IOModuleStateInterface>;
-  io_points: Array<IOPointInterface>;
+  // system_signals: SystemSignalsInterface;
+  // component_signals: {
+  //   [key: string]: HardwareComponentInterface;
+  // };
+  // control_loops: {
+  //   [key: string]: ControlLoopInterface;
+  // };
 }
 
-export class DatabaseIOState implements DatabaseIOStateInterface {
+export class DatabaseDocument implements DatabaseDocumentInterface {
   _id: string = "";
   metadata: DocumentMetadata = new DocumentMetadata();
   record_hash: string = "";
   timestamp: Date = new Date("1970");
   timestamp_seconds: number = 0;
-  // modules: Array<IOModuleState> = [];
-  io_points: Array<IOPoint> = [];
 
-  constructor(document?: DatabaseIOStateInterface) {
+  constructor(document?: DatabaseDocumentInterface) {
     if (document != undefined) {
       this._id = document._id;
+      this.metadata = new DocumentMetadata(document.metadata);
+      // this.component_signals = new ComponentSignals(document.component_signals);
+      // this.control_loops = new ControlLoops(document.control_loops);
+      // this.system_signals = new SystemSignals(document.system_signals);
+      this.record_hash = document.record_hash;
       this.timestamp = document.timestamp;
       this.timestamp_seconds = document.timestamp_seconds;
-      this.metadata = new DocumentMetadata(document.metadata);
-      document.io_points.forEach((io_point) => {
-        this.io_points.push(new IOPoint(io_point))
-      })
+    }
+  }
+
+}
+
+export interface DatabaseIOStateInterface extends DatabaseDocumentInterface {
+  // _id: string;
+  // metadata: DocumentMetadataInterface;
+  // record_hash: string;
+  // timestamp: Date;
+  // timestamp_seconds: number;
+  // modules: Array<IOModuleStateInterface>;
+  // io_points: Array<IOPointInterface>;
+  io_system: IOSystemInterface | null;
+}
+
+export class DatabaseIOState extends DatabaseDocument implements DatabaseIOStateInterface {
+  // _id: string = "";
+  // metadata: DocumentMetadata = new DocumentMetadata();
+  // record_hash: string = "";
+  // timestamp: Date = new Date("1970");
+  // timestamp_seconds: number = 0;
+  // modules: Array<IOModuleState> = [];
+  // io_points: Array<IOPoint> = [];
+  // digital_inputs: IOPort = new IOPointControl();
+  //{[key: string]: value}: IOSystemInterface;
+  io_system: IOSystemInterface | null = null;
+
+  // state_variables: { [key: string]: string | number | boolean };
+
+  constructor(document?: DatabaseIOStateInterface) {
+    super(document);
+    if (document != undefined) {
+      // this._id = document._id;
+      // this.timestamp = document.timestamp;
+      // this.timestamp_seconds = document.timestamp_seconds;
+      // this.metadata = new DocumentMetadata(document.metadata);
+      if (document.io_system != null) {
+        this.io_system = new IOSystem(document.io_system);
+      }
+      
+      // document.io_points.forEach((io_point) => {
+      //   this.io_points.push(new IOPoint(io_point))
+      // })
       // document.modules.forEach((module) => {
       //   this.modules.push(new IOModuleState(module));
       // });
@@ -342,114 +390,114 @@ export class DatabaseIOState implements DatabaseIOStateInterface {
   //   return this.modules[module_index - 1];
   // }
 
-  get_point_state(point_index: number) {
-    return this.io_points[point_index].state;
-  }
+  // get_point_state(point_index: number) {
+  //   return this.io_points[point_index].state;
+  // }
 }
 
-export class DatabaseDocument {
-  _id: string = "";
-  metadata: DocumentMetadata = new DocumentMetadata();
-  record_hash: string = "";
-  timestamp: Date = new Date("1970");
-  timestamp_seconds: number = 0;
-  component_signals: ComponentSignals = new ComponentSignals();
-  control_loops: ControlLoops = new ControlLoops();
-  system_signals: SystemSignals = new SystemSignals();
+// export class DatabaseDocument {
+//   _id: string = "";
+//   metadata: DocumentMetadata = new DocumentMetadata();
+//   record_hash: string = "";
+//   timestamp: Date = new Date("1970");
+//   timestamp_seconds: number = 0;
+//   component_signals: ComponentSignals = new ComponentSignals();
+//   control_loops: ControlLoops = new ControlLoops();
+//   system_signals: SystemSignals = new SystemSignals();
 
-  constructor(document?: DatabaseDocumentInterface) {
-    if (document != undefined) {
-      this._id = document._id;
-      this.metadata = new DocumentMetadata(document.metadata);
-      this.component_signals = new ComponentSignals(document.component_signals);
-      this.control_loops = new ControlLoops(document.control_loops);
-      this.system_signals = new SystemSignals(document.system_signals);
-      this.record_hash = document.record_hash;
-      this.timestamp = document.timestamp;
-      this.timestamp_seconds = document.timestamp_seconds;
-    }
-  }
+//   constructor(document?: DatabaseDocumentInterface) {
+//     if (document != undefined) {
+//       this._id = document._id;
+//       this.metadata = new DocumentMetadata(document.metadata);
+//       this.component_signals = new ComponentSignals(document.component_signals);
+//       this.control_loops = new ControlLoops(document.control_loops);
+//       this.system_signals = new SystemSignals(document.system_signals);
+//       this.record_hash = document.record_hash;
+//       this.timestamp = document.timestamp;
+//       this.timestamp_seconds = document.timestamp_seconds;
+//     }
+//   }
 
-  GetComponentParameterState(
-    component_name: string,
-    parameter_name: string,
-  ): number | boolean {
-    let state: number | boolean;
-    try {
-      state = this.component_signals[component_name][parameter_name].value;
-    } catch (e) {
-      console.log(
-        `Parameter ${parameter_name} not found on component ${component_name}`,
-      );
-      state = 0;
-    }
+//   GetComponentParameterState(
+//     component_name: string,
+//     parameter_name: string,
+//   ): number | boolean {
+//     let state: number | boolean;
+//     try {
+//       state = this.component_signals[component_name][parameter_name].value;
+//     } catch (e) {
+//       console.log(
+//         `Parameter ${parameter_name} not found on component ${component_name}`,
+//       );
+//       state = 0;
+//     }
 
-    return state;
-  }
+//     return state;
+//   }
 
-  GetComponentParameters(
-    component_name: string,
-  ): HardwareComponent | undefined {
-    return this.component_signals[component_name];
-  }
+//   GetComponentParameters(
+//     component_name: string,
+//   ): HardwareComponent | undefined {
+//     return this.component_signals[component_name];
+//   }
 
-  public get hardware_components(): string[] {
-    return Object.keys(this.component_signals);
-  }
+//   public get hardware_components(): string[] {
+//     return Object.keys(this.component_signals);
+//   }
 
-  public get document_valid(): boolean {
-    return Object.keys(this.component_signals).length != 0;
-  }
+//   public get document_valid(): boolean {
+//     return Object.keys(this.component_signals).length != 0;
+//   }
 
-  public get machine_state(): string {
-    if (this.document_valid) {
-      return this.system_signals.system_state;
-    } else {
-      return "UNAVAILABLE";
-    }
-    // this.document_valid ? return this.system_signals.system_state : return "NONE";
-  }
+//   public get machine_state(): string {
+//     if (this.document_valid) {
+//       return this.system_signals.system_state;
+//     } else {
+//       return "UNAVAILABLE";
+//     }
+//     // this.document_valid ? return this.system_signals.system_state : return "NONE";
+//   }
 
-  public get estop_active(): boolean {
-    if (this.document_valid) {
-      return this.system_signals.estop_active;
-    } else {
-      return false;
-    }
-  }
+//   public get estop_active(): boolean {
+//     if (this.document_valid) {
+//       return this.system_signals.estop_active;
+//     } else {
+//       return false;
+//     }
+//   }
 
-  public get alarm_active(): boolean {
-    if (this.document_valid) {
-      return this.system_signals.alarm_active;
-    } else {
-      return false;
-    }
-  }
+//   public get alarm_active(): boolean {
+//     if (this.document_valid) {
+//       return this.system_signals.alarm_active;
+//     } else {
+//       return false;
+//     }
+//   }
 
-  public get alarms_overridden(): boolean {
-    if (this.document_valid) {
-      return this.system_signals.alarms_overridden;
-    } else {
-      return false;
-    }
-  }
+//   public get alarms_overridden(): boolean {
+//     if (this.document_valid) {
+//       return this.system_signals.alarms_overridden;
+//     } else {
+//       return false;
+//     }
+//   }
 
-  public get plan_id(): string | undefined {
-    if (!this.document_valid) {
-      return undefined;
-    } else {
-      return this.metadata.plan_id;
-    }
-  }
+//   public get plan_id(): string | undefined {
+//     if (!this.document_valid) {
+//       return undefined;
+//     } else {
+//       return this.metadata.plan_id;
+//     }
+//   }
 
-  public get experiment_id(): string | undefined {
-    if (!this.document_valid) {
-      return undefined;
-    } else {
-      return this.metadata.experiment_id;
-    }
-  }
-}
+//   public get experiment_id(): string | undefined {
+//     if (!this.document_valid) {
+//       return undefined;
+//     } else {
+//       return this.metadata.experiment_id;
+//     }
+//   }
+// }
 
 export interface DataPointsInterface {
   x_values: Array<number>;
@@ -539,45 +587,45 @@ export class DatabaseDocumentArray extends DocumentArray {
     this._documents.push(new DatabaseDocument(document));
   }
 
-  get_data_points(
-    component_name: string,
-    parameter_name: string,
-    number_of_points: number,
-    reverse_order: boolean = false,
-  ): DataPointsInterface {
-    const x_values: Array<number> = [];
-    const y_values: Array<number> = [];
+  // get_data_points(
+  //   component_name: string,
+  //   parameter_name: string,
+  //   number_of_points: number,
+  //   reverse_order: boolean = false,
+  // ): DataPointsInterface {
+  //   const x_values: Array<number> = [];
+  //   const y_values: Array<number> = [];
 
-    if (number_of_points > this._documents.length)
-      number_of_points = this._documents.length;
+  //   if (number_of_points > this._documents.length)
+  //     number_of_points = this._documents.length;
 
-    for (let i = 0; i < number_of_points; i++) {
-      x_values.push(this._documents[i].timestamp_seconds);
-      try {
-        y_values.push(
-          this._documents[i].component_signals[component_name][parameter_name]
-            .value as number,
-        );
-      } catch (e) {
-        console.log(
-          `Unknown parameter ${parameter_name} for component ${component_name}`,
-        );
-        y_values.push(0);
-      }
-    }
+  //   for (let i = 0; i < number_of_points; i++) {
+  //     x_values.push(this._documents[i].timestamp_seconds);
+  //     try {
+  //       y_values.push(
+  //         this._documents[i].component_signals[component_name][parameter_name]
+  //           .value as number,
+  //       );
+  //     } catch (e) {
+  //       console.log(
+  //         `Unknown parameter ${parameter_name} for component ${component_name}`,
+  //       );
+  //       y_values.push(0);
+  //     }
+  //   }
 
-    if (reverse_order) {
-      return {
-        x_values: x_values.reverse(),
-        y_values: y_values.reverse(),
-      };
-    } else {
-      return {
-        x_values: x_values,
-        y_values: y_values,
-      };
-    }
-  }
+  //   if (reverse_order) {
+  //     return {
+  //       x_values: x_values.reverse(),
+  //       y_values: y_values.reverse(),
+  //     };
+  //   } else {
+  //     return {
+  //       x_values: x_values,
+  //       y_values: y_values,
+  //     };
+  //   }
+  // }
 
   // public get latest_document() {
   //   return this._documents[0];

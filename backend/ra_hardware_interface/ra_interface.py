@@ -7,7 +7,8 @@ from threading import Thread
 from typing import (
     Union,
     Any,
-    Dict
+    Dict,
+    ClassVar
 )
 
 from database.interface import MongoInterface
@@ -16,18 +17,25 @@ from database.models import (
     MongoTimeseriesRecord,
     DocumentType,
     TimeseriesMetadata,
-    IOPointDataContainer,
+    IOSystemDataContainer,
     IOPointData,
     FrontendMessage,
     MessageSeverity
+)
+from ra_hardware_interface.models import (
+    IOSystem
 )
 
 @dataclass
 class RAInterface(Thread):
     database: MongoInterface
+    io_system: ClassVar[IOSystem]
+
+    _io_configuration_loaded: ClassVar[bool] = False
 
     def __post_init__(self):
         super(RAInterface, self).__init__()
+        self.io_system = IOSystem()
 
     def __hash__(self) -> int:
         return hash((self.name))
@@ -46,24 +54,28 @@ class RAInterface(Thread):
             data=data
         )
 
+    def load_io_system_configuration(self):
+        try:
+            # io_points = self.database.get_io_data_points(number_of_points=1, timeout=1)
+            # io_system = IOSystem.load_configuration(self.database.get_io_data_points(number_of_points=1, timeout=1)[0].data_dictionary)
+            self.io_system = IOSystem.load_configuration(self.database.get_io_data_points(number_of_points=1, timeout=1)[0].data_dictionary)
+            self._io_configuration_loaded = True
+            logger.info(f"Loaded new IO configuration.")
+        except Exception as e:
+            logger.error(f"Error loading IO system configuration: {e}. Defaulting to base configuration.")
+    
     def run(self):
         while True:
+            if not self._io_configuration_loaded:
+                self.load_io_system_configuration()
+
             time.sleep(2)
-            logger.info(f"Writing demo database record")
+            logger.info(f"Writing demo database IO record")
             self.database.enqueue_io_state(
                 self._create_database_document(
                     document_type=DocumentType.IO_STATE,
-                    data=IOPointDataContainer(
-                        io_points=[
-                            IOPointData(
-                                point_index=0,
-                                state=False
-                            ),
-                            IOPointData(
-                                point_index=1,
-                                state=False
-                            )
-                        ]
+                    data=IOSystemDataContainer(
+                        io_system=self.io_system
                     ).serialize()
                 )
             )

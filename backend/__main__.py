@@ -12,7 +12,8 @@ from api.routers import (
     auth_router,
     state_router,
     ui_router,
-    streaming_router
+    streaming_router,
+    config_router
 )
 
 # from utils.utils import (
@@ -87,6 +88,11 @@ if __name__ == "__main__":
     ra_backend_server.include_router(
         streaming_router,
         prefix="/streams"
+    )
+
+    ra_backend_server.include_router(
+        config_router,
+        prefix="/configuration"
     )
     # )
 

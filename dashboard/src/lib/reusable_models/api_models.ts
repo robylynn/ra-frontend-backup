@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 
 export interface NextAPIResponseInterface {
   authenticated: boolean;
-  data: any;
-  error: boolean;
-  error_string: string
+  data?: any;
+  error?: boolean;
+  error_string?: string
 }
 
 export interface BackendAPIResponseInterface {
@@ -15,11 +15,11 @@ export interface BackendAPIResponseInterface {
   data: string | Array<any> | any
 }
 
-export interface ConnectedDeviceInterface {
-  name: string;
-  customer: string;
-  IP: string;
-}
+// export interface ConnectedDeviceInterface {
+//   name: string;
+//   customer: string;
+//   IP: string;
+// }
 
 export function createAPIResponse(res: NextAPIResponseInterface) {
   return NextResponse.json(res);
@@ -321,6 +321,56 @@ export class IOPoint implements IOPointInterface {
       point_index: this.point_index,
       point_type: this.point_type,
     };
+  }
+}
+
+// export interface IOPort {
+//   name: string
+// }
+
+export interface IOPortInterface {
+  name: string
+  number_of_points: number
+  points: Array<IOPointInterface | null>
+}
+
+export class IOPort {
+  name: string
+  number_of_points: number
+  points: Array<IOPoint | null> = new Array<IOPoint>();
+
+  constructor(input: IOPortInterface) {
+    this.name = input.name;
+    this.number_of_points = input.number_of_points;
+    input.points.forEach((point) => {
+      this.points.push(
+        point != undefined ? new IOPoint(point) : null
+      );
+    })
+  }
+}
+
+export interface IOSystemInterface {
+  digital_inputs: IOPortInterface
+  digital_outputs: IOPortInterface
+  programmable_digital_io: IOPortInterface
+  analog_inputs: IOPortInterface
+  analog_outputs: IOPortInterface
+}
+
+export class IOSystem implements IOSystemInterface {
+  digital_inputs: IOPort
+  digital_outputs: IOPort
+  programmable_digital_io: IOPort
+  analog_inputs: IOPort
+  analog_outputs: IOPort
+
+  constructor(input: IOSystemInterface) {
+    this.digital_inputs = new IOPort(input.digital_inputs);
+    this.digital_outputs = new IOPort(input.digital_outputs);
+    this.programmable_digital_io = new IOPort(input.programmable_digital_io);
+    this.analog_inputs = new IOPort(input.analog_inputs);
+    this.analog_outputs = new IOPort(input.analog_outputs);
   }
 }
 

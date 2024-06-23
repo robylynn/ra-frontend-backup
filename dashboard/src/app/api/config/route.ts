@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   if (session == null) {
     return createAPIResponse({
       data: null,
-      authenticated: false,
+      authenticated: false
     });
   }
 
@@ -52,6 +52,6 @@ export async function GET(request: NextRequest) {
 
   return createAPIResponse({
     authenticated: true,
-    data: ui_configuration.serialize(),
+    data: ui_configuration.serialize()
   });
 }
