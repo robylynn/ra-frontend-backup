@@ -288,7 +288,7 @@ export interface IOPointInterface {
 export class IOPoint implements IOPointInterface {
   point_index: number = -1;
   point_type: IOPointType = IOPointType.NULL;
-  state: number | boolean | undefined = undefined;
+  state: number | boolean | null = null;
 
   constructor(input: IOPointInterface) {
     this.point_type =
@@ -311,7 +311,7 @@ export class IOPoint implements IOPointInterface {
         this.state = false;
         break;
       default:
-        this.state = undefined;
+        this.state = null;
         break;
     }
   }

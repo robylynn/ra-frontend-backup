@@ -18,6 +18,13 @@ const nextConfig = {
         basePath: false
       },
       // {
+      //   source: '/api/socket2/',
+      //   destination: 'http://127.0.0.1:8000/streams/socket'
+      // }
+      // {
+      //   source: "/api/socket'
+      // }
+      // {
       //   source: '/devices/1:slug',
       //   destination: 'http://10.252.1.10/:slug'
       //   //destination: 'http://www.google.com'

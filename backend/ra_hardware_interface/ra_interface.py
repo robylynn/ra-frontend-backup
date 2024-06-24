@@ -69,6 +69,12 @@ class RAInterface(Thread):
             if not self._io_configuration_loaded:
                 self.load_io_system_configuration()
 
+            for point in self.io_system.digital_outputs.points:
+                if point is not None:
+                    logger.info(f"Toggling digital output {point.index}")
+                    point.state = not point.state
+
+
             time.sleep(2)
             logger.info(f"Writing demo database IO record")
             self.database.enqueue_io_state(

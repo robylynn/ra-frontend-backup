@@ -1,4 +1,4 @@
-import secrets
+import secrets, time, asyncio
 
 from fastapi import WebSocket, APIRouter, Body
 from typing import List
@@ -290,3 +290,24 @@ def configure_io_point(port: str, point_type: str, name: str, index: int) -> API
         error=False,
         data=success_str
     )
+
+@streaming_router.websocket("/socket")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    # with websocket:
+    logger.info(f"Websocket connected")
+    while True:
+        #z = await websocket.receive_text()
+        try:
+            logger.info(f"Websocket streaming")
+            await websocket.send_json({'message': 'test_message'})
+            # await websocket.send_json({'message': 'test_message'})
+            await asyncio.sleep(1)
+            #z = await websocket.receive_text()
+            
+        except Exception as e:
+            logger.error(f"Websocket error: {e}")
+            break
+            # if websocket.
+        # data = await websocket.receive_text()
+        # await websocket.send_text(f"Message text was: {data}")

@@ -66,9 +66,9 @@ export async function GET(
       console.log("STREAMING IO");
       // db_data = await getDatabaseIOState(parseInt(params.count));
       try {
-        let db_data_1 = await getBackendAPIResponse(
-          `/streams/io_data?number_of_points=${parseInt(params.count)}`
-        ).then((db_data) => db_data);
+        // let db_data_1 = await getBackendAPIResponse(
+        //   `/streams/io_data?number_of_points=${parseInt(params.count)}`
+        // ).then((db_data) => db_data);
 
         db_data = await getBackendAPIResponse(
           `/streams/io_data?number_of_points=${parseInt(params.count)}`

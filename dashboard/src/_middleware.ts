@@ -85,4 +85,9 @@ export async function middleware(request: NextRequest) {
 // //   return NextResponse.rewrite(url, {
 // //     headers: requestHeaders,
 // //   })
+  return NextResponse.next();
 }
+
+export const config = {
+    matcher: '/((?!/api/socket$).*)', // match all paths except /ws
+  }

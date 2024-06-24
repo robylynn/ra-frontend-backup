@@ -66,7 +66,7 @@ class IOPort:
     name: str
     number_of_points: int
     
-    points: List[IOPoint] = None
+    points: List[IOPoint | None] = None
 
     def __post_init__(self):
         self.points = self.number_of_points*[None]
