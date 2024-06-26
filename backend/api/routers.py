@@ -292,7 +292,8 @@ def configure_io_point(port: str, point_type: str, name: str, index: int) -> API
     )
 
 @streaming_router.websocket("/socket")
-async def websocket_endpoint(websocket: WebSocket):
+# async def websocket_endpoint(websocket: WebSocket, *args, **kwargs):
+async def websocket_endpoint(websocket: WebSocket):#, *args, **kwargs):
     await websocket.accept()
     # with websocket:
     logger.info(f"Websocket connected")
@@ -300,9 +301,13 @@ async def websocket_endpoint(websocket: WebSocket):
         #z = await websocket.receive_text()
         try:
             logger.info(f"Websocket streaming")
-            await websocket.send_json({'message': 'test_message'})
-            # await websocket.send_json({'message': 'test_message'})
+            
             await asyncio.sleep(1)
+            await websocket.send_json({'message': 'test_message'})
+            # break
+            
+            # await websocket.send_json({'message': 'test_message'})
+            # await asyncio.sleep(1)
             #z = await websocket.receive_text()
             
         except Exception as e:
