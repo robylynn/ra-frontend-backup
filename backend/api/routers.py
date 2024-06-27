@@ -1,4 +1,4 @@
-import secrets, time, asyncio
+import secrets, time, asyncio, random
 
 from fastapi import WebSocket, APIRouter, Body
 from typing import List
@@ -303,7 +303,7 @@ async def websocket_endpoint(websocket: WebSocket):#, *args, **kwargs):
             logger.info(f"Websocket streaming")
             
             await asyncio.sleep(1)
-            await websocket.send_json({'message': 'test_message'})
+            await websocket.send_json({'message': 'test_message ' + str(random.randint(0, 100))})
             # break
             
             # await websocket.send_json({'message': 'test_message'})

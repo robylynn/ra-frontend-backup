@@ -12,8 +12,10 @@ import { MeasurementsContainer } from "@/app/measurement/measurements_container"
 import { SafetyContainer } from "@/app/safety/safety_container";
 import { SetupContainer } from "@/app/setup/setup_container";
 import { PagePanel } from "@/lib/reusable_components/client_components/dashboard_header_container";
-import DeviceContainer from "../devices/devices_container";
+import DeviceContainer from "@/app/devices/devices_container";
 import DiagnosticsContainer from "../diagnostics/diagnostics_container";
+import RAWebSocket from "./websocket_client";
+import { WebSocketProvider } from 'next-ws/client';
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
@@ -25,6 +27,9 @@ export default function DashboardMainPanel(props: { className?: string }) {
     fillTile != tile_name && fillTile != "" ? "hidden" : "";
 
   return (
+    <WebSocketProvider
+          url="ws://127.0.0.1:3000/api/ws_stream"
+    >
     <PagePanel
       className={`
         ${grid_state()}
@@ -40,6 +45,7 @@ export default function DashboardMainPanel(props: { className?: string }) {
         )}`}
         fill_tile_callback={setFillTile}
       /> */}
+      <RAWebSocket/>
       <ChartPanelContainer
         id="charts"
         update_period_seconds={2}
@@ -88,5 +94,6 @@ export default function DashboardMainPanel(props: { className?: string }) {
         fill_tile_callback={setFillTile}
       /> */}
     </PagePanel>
+    </WebSocketProvider>
   );
 }

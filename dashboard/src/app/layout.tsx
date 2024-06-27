@@ -12,6 +12,7 @@ import DashboardContextProvider from "@/lib/reusable_components/client_component
 import DataUpdater from "@/lib/reusable_components/client_components/data_updater";
 import LinksColumn from "@/lib/reusable_components/server_components/links_column";
 
+
 const inter = Inter({ subsets: ["latin"] });
 // const roboto = Roboto({ subsets: ['latin'] })
 
@@ -28,6 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <NextAuthProvider>
+        {/* <WebSocketProvider
+          url="ws://127.0.0.1:3000/api/ws_stream"
+        > */}
+        
         <DashboardContextProvider>
           <DataUpdater
             update_period_seconds={1}
@@ -45,6 +50,7 @@ export default function RootLayout({
             </div>
           </body>
         </DashboardContextProvider>
+        {/* </WebSocketProvider> */}
       </NextAuthProvider>
     </html>
   );

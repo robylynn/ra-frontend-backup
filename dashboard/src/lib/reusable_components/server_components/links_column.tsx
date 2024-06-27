@@ -60,7 +60,7 @@ export default async function LinksColumn(props: {
   className?: string;
 }) {
   let username: string;
-  const session = await getServerSession(authOptions); //.then(res => res)
+  const session = await getServerSession(authOptions).then((session => session)); //.then(res => res)
   if (session == null) {
     username = "NONE";
   } else {
