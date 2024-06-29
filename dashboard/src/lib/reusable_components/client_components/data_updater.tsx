@@ -187,12 +187,13 @@ export default function DataUpdater(props: {
       console.log("IO data update error: " + e);
     }
 
-  }, [updateCounter]);
+  // }, [updateCounter]);
+  }, []);
 
   useEffect(() => {
     const fetchConfiguration = async () => {
       const ui_config_params = new URLSearchParams();
-      if (context.configuration.client_id != undefined) {
+      if (context.configuration?.client_id != undefined) {
         ui_config_params.append(
           "client_id",
           context.configuration.client_id.toString()
@@ -251,7 +252,8 @@ export default function DataUpdater(props: {
         return { ...c, heartbeat: false };
       });
     }
-  }, [updateCounter]);
+  // }, [updateCounter]);
+  }, []);
 
   // useEffect(() => {
   //   const fetchClients = async () => {

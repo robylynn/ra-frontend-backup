@@ -14,7 +14,7 @@ import { SetupContainer } from "@/app/setup/setup_container";
 import { PagePanel } from "@/lib/reusable_components/client_components/dashboard_header_container";
 import DeviceContainer from "@/app/devices/devices_container";
 import DiagnosticsContainer from "../diagnostics/diagnostics_container";
-import RAWebSocket from "./websocket_client";
+import RAWebSocket from "../../lib/reusable_components/client_components/websocket_client";
 import { WebSocketProvider } from 'next-ws/client';
 
 export default function DashboardMainPanel(props: { className?: string }) {
@@ -27,9 +27,9 @@ export default function DashboardMainPanel(props: { className?: string }) {
     fillTile != tile_name && fillTile != "" ? "hidden" : "";
 
   return (
-    <WebSocketProvider
-          url="ws://127.0.0.1:3000/api/ws_stream"
-    >
+    // <WebSocketProvider
+    //       url="ws://127.0.0.1:3000/api/ws_stream"
+    // >
     <PagePanel
       className={`
         ${grid_state()}
@@ -94,6 +94,6 @@ export default function DashboardMainPanel(props: { className?: string }) {
         fill_tile_callback={setFillTile}
       /> */}
     </PagePanel>
-    </WebSocketProvider>
+    // </WebSocketProvider>
   );
 }

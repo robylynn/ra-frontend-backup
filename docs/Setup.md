@@ -24,3 +24,6 @@ db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"carbonator_da
 
 Another example connection string
 `mongodb://r2:password@ra_database:27017/ra_data`
+
+## Websockets in Next.JS
+Use the NEXT ws patch: https://github.com/apteryxxyz/next-ws

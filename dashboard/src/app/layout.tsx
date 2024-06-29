@@ -1,5 +1,5 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 import "./globals.css";
 import type { Metadata } from "next";
@@ -11,6 +11,7 @@ import { ConnectionStateIndicator } from "@/lib/reusable_components/client_compo
 import DashboardContextProvider from "@/lib/reusable_components/client_components/dashboard_context_wrapper";
 import DataUpdater from "@/lib/reusable_components/client_components/data_updater";
 import LinksColumn from "@/lib/reusable_components/server_components/links_column";
+import RAWebSocket from "@/lib/reusable_components/client_components/websocket_client";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,15 +29,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <NextAuthProvider>
-        {/* <WebSocketProvider
-          url="ws://127.0.0.1:3000/api/ws_stream"
-        > */}
-        
+      <NextAuthProvider>        
         <DashboardContextProvider>
           <DataUpdater
             update_period_seconds={1}
             configuration_update_period_seconds={5}
+          />
+          <RAWebSocket
+            websocket_path="/api/socket"
+            reconnect_period_seconds={1}
           />
           <body className={inter.className}>
             <div className="flex flex-col w-screen h-screen bg-no-repeat bg-cover dark:bg-dark-background-image/50 dark:bg-zinc-700 dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-sky-900/50 overflow-clip">

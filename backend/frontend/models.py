@@ -31,6 +31,7 @@ class FrontendClient:
 @dataclass
 class RAFrontend:
     _clients: ClassVar[Dict[int, FrontendClient]] = {}
+    _websocket_clients: ClassVar[Dict[int, str]] = {}
     _last_client_id: ClassVar[int] = 0
 
     def add_client(self) -> int:
@@ -39,3 +40,11 @@ class RAFrontend:
             client_id=self._last_client_id
         )
         return self._last_client_id
+    
+    def add_websocket_client(self) -> int:
+        client_id = len(self._websocket_clients.keys()) + 1
+        self._websocket_clients[client_id] = client_id
+        return client_id
+    
+    def remove_websocket_client(self, id: int):
+        del self._websocket_clients[id]

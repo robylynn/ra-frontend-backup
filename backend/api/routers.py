@@ -255,7 +255,7 @@ def get_io_data_points(number_of_points: int) -> APIResponse:
     )
 
 @streaming_router.get("/messages")
-def get_io_data_points(number_of_messages: int) -> APIResponse:
+def get_messages(number_of_messages: int) -> APIResponse:
     messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages)
     return APIResponse(
         error=False,
@@ -292,27 +292,23 @@ def configure_io_point(port: str, point_type: str, name: str, index: int) -> API
     )
 
 @streaming_router.websocket("/socket")
-# async def websocket_endpoint(websocket: WebSocket, *args, **kwargs):
-async def websocket_endpoint(websocket: WebSocket):#, *args, **kwargs):
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    # with websocket:
-    logger.info(f"Websocket connected")
+    client_id = initializer.ra_frontend.add_websocket_client()
+    logger.info(f"Websocket client {client_id} connected")
     while True:
-        #z = await websocket.receive_text()
+        
         try:
-            logger.info(f"Websocket streaming")
+            logger.info(f"Websocket streaming to client {client_id}")
             
             await asyncio.sleep(1)
-            await websocket.send_json({'message': 'test_message ' + str(random.randint(0, 100))})
-            # break
+            await websocket.send_json({'id': client_id, 'message': 'test_message ' + str(random.randint(0, 100))})
             
-            # await websocket.send_json({'message': 'test_message'})
-            # await asyncio.sleep(1)
-            #z = await websocket.receive_text()
             
         except Exception as e:
             logger.error(f"Websocket error: {e}")
+            initializer.ra_frontend.remove_websocket_client(id=client_id)
             break
-            # if websocket.
-        # data = await websocket.receive_text()
-        # await websocket.send_text(f"Message text was: {data}")
+
+# Endpoint for storing IO configuration, IO per point config is a service call instead
+# JSON payload for GETs
