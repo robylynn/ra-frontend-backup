@@ -69,9 +69,6 @@ class RAInterface(Thread):
             if not self._io_configuration_loaded:
                 self.load_io_system_configuration()
 
-            
-
-
             time.sleep(2)
 
             if False:

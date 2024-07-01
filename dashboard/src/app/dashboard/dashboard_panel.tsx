@@ -45,7 +45,6 @@ export default function DashboardMainPanel(props: { className?: string }) {
         )}`}
         fill_tile_callback={setFillTile}
       /> */}
-      <RAWebSocket/>
       <ChartPanelContainer
         id="charts"
         update_period_seconds={2}

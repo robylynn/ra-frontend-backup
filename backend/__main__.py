@@ -1,5 +1,5 @@
 import uvicorn, os, time
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 # from backend import telemetry_configuration as telemetry_configuration
 
@@ -31,6 +31,23 @@ ra_backend_server.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# @ra_backend_server.middleware('http')
+# async def some_middleware(request, call_next):
+#     req_body = await request.body()
+#     a=5
+
+# @ra_backend_server.middleware('http')
+# async def some_middleware(request: Request, call_next):
+    
+#     try:
+#         req_body = await request.body()
+#         if 'point' in request.url.path:
+#             a=6
+#     except:
+#         pass
+#     # await set_body(request, req_body)  # not needed when using FastAPI>=0.108.0.
+#     response = await call_next(request)
 
 if __name__ == "__main__":
     # global system_controller

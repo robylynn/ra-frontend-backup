@@ -19,6 +19,10 @@ class APIResponse(BaseModel):
     error: bool
     data: str | List | Dict
 
+class IOConfigurationRequestData(BaseModel):
+    index: int
+    point_type: str
+
 class IOPointType(Enum):
     NULL_POINT = auto()
     DIGITAL_INPUT = auto()
