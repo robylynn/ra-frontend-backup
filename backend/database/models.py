@@ -32,7 +32,9 @@ from enum import (
 #     Config
 # )
 from ra_hardware_interface.models import (
-    IOSystem
+    IOSystem,
+    IOPointType,
+    TransferFunctionType
 )
 from frontend.models import MessageSeverity
 from utils.utils import timeseries_record_dict_factory
@@ -268,3 +270,21 @@ class IOStateRecord(MongoTimeseriesRecord):
 @dataclass
 class FrontendMessageRecord(MongoTimeseriesRecord):
     data: InitVar[FrontendMessage]
+
+##########################################################
+######################## ROS TYPES #######################
+##########################################################
+
+@dataclass
+class ROSIOPointConfiguration:
+    label: str
+    channel: int
+    type: IOPointType
+    transfer_function_type: TransferFunctionType
+    measurement_unit: str
+    min_value: float
+    min_signal_v: float
+    max_value: float
+    max_signal_v: float
+
+    transfer_function_callback: str = None

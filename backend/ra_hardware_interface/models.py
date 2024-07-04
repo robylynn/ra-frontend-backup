@@ -28,6 +28,10 @@ class IOPointType(Enum):
     ANALOG_CURRENT_INPUT = auto()
     ANALOG_CURRENT_OUTPUT = auto()
 
+class TransferFunctionType(Enum):
+    LINEAR = auto()
+    CUSTOM = auto()
+
 @dataclass
 class IOPoint:
     point_type: IOPointType
