@@ -1,10 +1,8 @@
-import { WebSocket, WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer, ErrorEvent } from "ws";
 import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
 import authOptions from "@/lib/auth/auth_options";
-import {
-  createAPIResponse,
-} from "@/lib/reusable_models/api_models";
+import { createAPIResponse } from "@/lib/reusable_models/api_models";
 import { getSession } from "next-auth/react";
 
 export async function SOCKET(
@@ -15,13 +13,18 @@ export async function SOCKET(
   console.log("Websocket client connected.");
 
   const session = await getSession({ req: request });
-  
-  if (session != null || process.env.DISABLE_AUTHENTICATION) {
+  // const session2 = await getServerSession();
+
+  if (session != null && session.user.name != undefined) {//} || process.env.DISABLE_AUTHENTICATION) {
     console.log(
       `User \'${
-        session?.user ?? "UNKNOWN"
+        session?.user.name ?? "UNKNOWN"
       }\' authenticated for websocket connection.`
     );
+
+    if (session.user.name == null || session.user.name == undefined) {
+      var a = 5;
+    }
 
     let backend_socket = new WebSocket("ws://127.0.0.1:8000/streams/socket");
     console.log("websocket created");
@@ -29,6 +32,7 @@ export async function SOCKET(
     const onBackendWebsocketClose = () => {
       console.log("Backend websocket closed");
       backend_socket.close();
+      client.close();
     };
 
     const onBackendWebsocketMessage = (message: string) => {
@@ -36,16 +40,25 @@ export async function SOCKET(
       client.send(message);
     };
 
+    const onBackendWebsocketError = (event: ErrorEvent) => {
+      console.log("Got backend websocket error: " + event.message);
+      client.close();
+    };
+
     backend_socket.on("message", onBackendWebsocketMessage);
     backend_socket.on("close", onBackendWebsocketClose);
+    // backend_socket.on("error", onBackendWebsocketError)
+    backend_socket.onerror = onBackendWebsocketError;
 
     const onClientWebsocketClose = () => {
-      console.log(`Client ${session?.user} closed the websocket`);
+      console.log(`Client ${session?.user.name} closed the websocket`);
+      client.close();
       backend_socket.close();
     };
 
     const onClientWebsocketMessage = (message: string) => {
       console.log(`Got message from client: ${message}`);
+      backend_socket.send(message.toString());
     };
 
     client.on("message", onClientWebsocketMessage);
@@ -76,7 +89,6 @@ export async function GET(
     authenticated: true,
   });
 }
-
 
 // import { createProxyMiddleware } from "http-proxy-middleware";
 // import { NextApiRequest, NextApiResponse } from "next";

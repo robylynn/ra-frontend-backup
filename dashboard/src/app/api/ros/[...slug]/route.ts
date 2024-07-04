@@ -73,28 +73,54 @@ function handleError(e: any, request: NextRequest, slug: string[]) {
   });
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string[] } }
-) {
-  console.log(
-    `Received ${request.method} request to /ros/${params.slug.join("/")}`
-  );
+// export async function GET(
+//   request: NextRequest,
+//   { params }: { params: { slug: string[] } }
+// ) {
+//   console.log(
+//     `Received ${request.method} request to /ros/${params.slug.join("/")}`
+//   );
 
-  if (!(await validateAuthentication())) {
-    return createAPIResponse({
-      authenticated: false,
-    });
-  }
+//   if (!(await validateAuthentication())) {
+//     return createAPIResponse({
+//       authenticated: false,
+//     });
+//   }
 
-  try {
-    return proxyBackendRequest({ request: request, slug: params.slug });
-  } catch (e) {
-    return handleError(e, request, params.slug);
-  }
-}
+//   try {
+//     return proxyBackendRequest({ request: request, slug: params.slug });
+//   } catch (e) {
+//     return handleError(e, request, params.slug);
+//   }
+// }
 
-export async function POST(
+// export async function POST(
+//   request: NextRequest,
+//   { params }: { params: { slug: string[] } }
+// ) {
+//   console.log(
+//     `Received ${request.method} request to /ros/${params.slug.join("/")}`
+//   );
+
+//   if (!(await validateAuthentication())) {
+//     console.error(
+//       `Unauthenicated ${request.method} request on /ros/${params.slug.join(
+//         "/"
+//       )}`
+//     );
+//     return createAPIResponse({
+//       authenticated: false,
+//     });
+//   }
+
+//   try {
+//     return proxyBackendRequest({ request: request, slug: params.slug });
+//   } catch (e) {
+//     return handleError(e, request, params.slug);
+//   }
+// }
+
+async function handler(
   request: NextRequest,
   { params }: { params: { slug: string[] } }
 ) {
@@ -119,3 +145,5 @@ export async function POST(
     return handleError(e, request, params.slug);
   }
 }
+
+export {handler as GET, handler as POST}

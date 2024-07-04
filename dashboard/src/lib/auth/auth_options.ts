@@ -21,7 +21,8 @@ const authOptions = {
         },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: Record<"username" | "pasword", string>) {
+      // async authorize (credentials: Record<keyof C, string> | undefined, req: Pick<RequestInternal, "body" | "query" | "headers" | "method">) => Awaitable<User | null> {
         // async authorize(credentials, req) {
         // You need to provide your own logic here that takes the credentials
         // submitted and returns either a object representing a user or value
@@ -38,7 +39,7 @@ const authOptions = {
         // Short circuit backend auth for now
 
         const res = await fetch(
-          "http://" + process.env.CONTROLLER_URI + `/user/login/`,
+          "http://" + process.env.CONTROLLER_URI + `/user/login`,
           {
             method: "POST",
             body: JSON.stringify(credentials),
@@ -51,7 +52,12 @@ const authOptions = {
         // If no error and we have user data, return it
         if (res.ok && auth_response.authenticated) {
           // return auth_response.user;
-          return credentials?.username;
+          // return credentials?.username;
+          return {
+            id: 1,
+            name: credentials?.username,
+            email: null
+          }
         }
 
         // Return null if user data could not be retrieved

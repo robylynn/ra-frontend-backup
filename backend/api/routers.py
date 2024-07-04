@@ -61,11 +61,15 @@ config_router = APIRouter(
 ###############################################################################
 
 def check_user(data: UserLoginSchema):
-    return True
+    # return True
     # for user in system_initializer.system_controller.configuration.frontend.users:
     #     if user.username == data.username and user.password == data.password:
     #         return True
     # return False
+    if data.username in ['r2', 'roby', 'lucas'] and data.password == 'password':
+        return True
+    
+    return False
 
 @auth_router.post("/login", tags=["user"])
 def user_login(user: UserLoginSchema = Body(default=None)) -> AuthenticationResponse:
@@ -220,6 +224,13 @@ async def websocket_endpoint(websocket: WebSocket):
             
             await asyncio.sleep(1)
             await websocket.send_json({'id': client_id, 'message': 'test_message ' + str(random.randint(0, 100))})
+            # await websocket.receive()
+            try:
+                msg = await asyncio.wait_for(websocket.receive_text(), timeout=0.5)
+                logger.info(f"Got websocket message: " + msg)
+            except Exception as e:
+                a=5
+                pass
             
             
         except Exception as e:
@@ -229,3 +240,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # Endpoint for storing IO configuration, IO per point config is a service call instead
 # JSON payload for GETs
+
+# Configuration in database
+# IO state data structure
+# Clean up unused stuff
+# figure out multiple websockets
+# how to get rosbridge websocket into context manager

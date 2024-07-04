@@ -2,7 +2,7 @@
 
 ## Carbonator Control System
 ### Authentication Models
-### Developed by R2 Labs for Seabound Carbon
+### Developed by R2 Labs
 
 from pydantic import BaseModel, Field, EmailStr
     
