@@ -17,20 +17,12 @@ from utils.utils import (
     io_record_dict_factory
 )
 
+from config.models import (
+    IOPointType
+)
+
 class IOConfigurationException(Exception):
     pass
-
-class IOPointType(Enum):
-    DIGITAL_INPUT = auto()
-    DIGITAL_OUTPUT = auto()
-    ANALOG_VOLTAGE_INPUT = auto()
-    ANALOG_VOLTAGE_OUTPUT = auto()
-    ANALOG_CURRENT_INPUT = auto()
-    ANALOG_CURRENT_OUTPUT = auto()
-
-class TransferFunctionType(Enum):
-    LINEAR = auto()
-    CUSTOM = auto()
 
 @dataclass
 class IOPoint:

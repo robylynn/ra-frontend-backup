@@ -33,11 +33,18 @@ from enum import (
 # )
 from ra_hardware_interface.models import (
     IOSystem,
-    IOPointType,
-    TransferFunctionType
+    # IOPointType,
+    # TransferFunctionType
 )
-from frontend.models import MessageSeverity
-from utils.utils import timeseries_record_dict_factory
+from frontend.models import (
+    MessageSeverity
+)
+from utils.utils import (
+    timeseries_record_dict_factory
+)
+from config.models import (
+    DocumentType
+)
 
 class MongoInterfaceException(Exception):
     pass
@@ -47,13 +54,6 @@ class MongoLocalInterfaceException(Exception):
 
 class MongoCloudInterfaceException(Exception):
     pass
-
-class DocumentType(Enum):
-    DATA = auto()
-    EVENT = auto()
-    # OPERATOR_NOTE = auto()
-    FRONTEND_MESSAGE = auto()
-    IO_STATE = auto()
 
 class DatabaseCommandType(Enum):
     GET_DATA_POINTS = auto()
@@ -72,37 +72,37 @@ class DatabaseCommand:
     number_of_points: int = None
     number_of_messages: int = None
 
-@dataclass
-class MongoInstanceConfiguration:
-    enabled: bool
-    connection_timeout_ms: int
-    server_selection_timeout_ms: int
-    socket_timeout_ms: int
-    cycle_count_before_yield: int
-    host: str
-    port: int
-    username: str
-    password: str
-    database_name: str
-    data_timeseries_collection: str
-    event_timeseries_collection: str
-    frontend_message_collection: str = None
-    io_state_collection: str = None
-    drop_database_on_start: bool = False
-    drop_collection_on_start: bool = False
-    # use_frontend_message_collection: bool = False
-    frontend_message_collection_size_bytes: int = 1000
-    io_state_collection_size_bytes: int = 1000
+# @dataclass
+# class MongoInstanceConfiguration:
+#     enabled: bool
+#     connection_timeout_ms: int
+#     server_selection_timeout_ms: int
+#     socket_timeout_ms: int
+#     cycle_count_before_yield: int
+#     host: str
+#     port: int
+#     username: str
+#     password: str
+#     database_name: str
+#     data_timeseries_collection: str
+#     event_timeseries_collection: str
+#     frontend_message_collection: str = None
+#     io_state_collection: str = None
+#     drop_database_on_start: bool = False
+#     drop_collection_on_start: bool = False
+#     # use_frontend_message_collection: bool = False
+#     frontend_message_collection_size_bytes: int = 1000
+#     io_state_collection_size_bytes: int = 1000
 
-@dataclass
-class MongoConfiguration:
-    database_synchronization_period_sec: int
-    synchronization_batch_size: int
-    queue_length_warning_threshold: int
-    queue_get_timeout_secs: float
+# @dataclass
+# class MongoConfiguration:
+#     database_synchronization_period_sec: int
+#     synchronization_batch_size: int
+#     queue_length_warning_threshold: int
+#     queue_get_timeout_secs: float
 
-    local: MongoInstanceConfiguration
-    cloud: MongoInstanceConfiguration
+#     local: MongoInstanceConfiguration
+#     cloud: MongoInstanceConfiguration
 
 @dataclass
 class TimeseriesMetadata:
@@ -250,6 +250,20 @@ class IOSystemDataContainer(DatabaseRecordDataContainer):
     #     return asdict(self)
 
 # @dataclass
+# class ROSIOPointConfiguration:
+#     label: str
+#     channel: int
+#     type: IOPointType
+#     transfer_function_type: TransferFunctionType
+#     measurement_unit: str
+#     min_value: float
+#     min_signal_v: float
+#     max_value: float
+#     max_signal_v: float
+
+#     transfer_function_callback: str = None
+
+# @dataclass
 # class FrontendMessagesContainer(DatabaseRecordDataContainer):
 #     messages: List[FrontendMessage]
 DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataContainer)
@@ -275,16 +289,4 @@ class FrontendMessageRecord(MongoTimeseriesRecord):
 ######################## ROS TYPES #######################
 ##########################################################
 
-@dataclass
-class ROSIOPointConfiguration:
-    label: str
-    channel: int
-    type: IOPointType
-    transfer_function_type: TransferFunctionType
-    measurement_unit: str
-    min_value: float
-    min_signal_v: float
-    max_value: float
-    max_signal_v: float
 
-    transfer_function_callback: str = None

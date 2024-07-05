@@ -68,9 +68,11 @@ export default function RAWebSocket(props: {
   }, []);
 
   useEffect(() => {
-    getSession().then((session) => {
-      if (session != null) {
-        if (ra_websocket.current == null && !websocket_connecting.current) {
+    // getSession().then((session) => {
+    //   if (session != null) {
+    if (ra_websocket.current == null && !websocket_connecting.current) {
+      getSession().then((session) => {
+        if (session != null) {
           websocket_connecting.current = true;
           connectWebSocket(props.websocket_path, 1000)
             .then((socket) => {
@@ -105,14 +107,14 @@ export default function RAWebSocket(props: {
                 return c;
               });
             });
+        } else {
+          if (ra_websocket != null) {
+            console.log("Session does not exist, closing socket");
+            close_websocket();
+          }
         }
-      } else {
-        if (ra_websocket != null) {
-          console.log("Session does not exist, closing socket");
-          close_websocket();
-        }
-      }
-    });
+      });
+    }
   }, [reconnectCounter]);
 
   useEffect(() => {

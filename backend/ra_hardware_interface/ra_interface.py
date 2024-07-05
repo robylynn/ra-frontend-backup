@@ -71,6 +71,16 @@ class RAInterface(Thread):
 
             time.sleep(2)
 
+            self.database.enqueue_record(
+                data=self._create_database_document(
+                    document_type=DocumentType.SENSOR_DATA,
+                    data={
+                        'a':5,
+                        'b':5
+                    }
+                )
+            )
+            
             if False:
                 for point in self.io_system.digital_outputs.points:
                     if point is not None:
