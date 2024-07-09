@@ -43,7 +43,8 @@ from utils.utils import (
     timeseries_record_dict_factory
 )
 from config.models import (
-    DocumentType
+    DocumentType,
+    HardwareConfiguration
 )
 
 class MongoInterfaceException(Exception):
@@ -56,6 +57,7 @@ class MongoCloudInterfaceException(Exception):
     pass
 
 class DatabaseCommandType(Enum):
+    GET_DOCUMENTS = auto()
     GET_DATA_POINTS = auto()
     GET_IO_DATA_POINTS = auto()
     GET_MESSAGES = auto()
@@ -69,8 +71,10 @@ class MessageSeverity(Enum):
 @dataclass
 class DatabaseCommand:
     command_type: DatabaseCommandType
-    number_of_points: int = None
-    number_of_messages: int = None
+    document_type: DocumentType
+    number_of_documents: int
+    # number_of_points: int = None
+    # number_of_messages: int = None
 
 # @dataclass
 # class MongoInstanceConfiguration:
@@ -103,6 +107,22 @@ class DatabaseCommand:
 
 #     local: MongoInstanceConfiguration
 #     cloud: MongoInstanceConfiguration
+
+RecordType = TypeVar("RecordType")
+
+def mongo_record_deserializer(record: Dict, record_class: RecordType) -> RecordType:
+    input = {'data': {}}
+    for k, v in record.items():
+        if k == 'metadata':
+            input[k] = TimeseriesMetadata.deserialize_from_dict(v)
+        # elif k == 'timestamp':
+        #     input[k] = datetime.fromisoformat(v)
+        # elif k not in ['timestamp', 'timestamp_seconds', 'record_hash', '_id']:
+        elif k not in [f.name for f in fields(record_class)]:
+            input['data'][k] = v
+        else:
+            input[k] = v
+    return record_class(**input)
 
 @dataclass
 class TimeseriesMetadata:
@@ -167,20 +187,20 @@ class MongoTimeseriesRecord:
 
     @staticmethod
     def deserialize_from_dict(record: Dict) -> "MongoTimeseriesRecord":
-        input = {'data': {}}
-        for k, v in record.items():
-            if k == 'metadata':
-                input[k] = TimeseriesMetadata.deserialize_from_dict(v)
-            # elif k == 'timestamp':
-            #     input[k] = datetime.fromisoformat(v)
-            # elif k not in ['timestamp', 'timestamp_seconds', 'record_hash', '_id']:
-            elif k not in [f.name for f in fields(MongoTimeseriesRecord)]:
-                input['data'][k] = v
-
-            else:
-                input[k] = v
-        return MongoTimeseriesRecord(**input)
-        # return from_dict(data_class=MongoTimeseriesRecord, data=record, config=Config(cast=[DocumentType]))
+        return mongo_record_deserializer(record=record, record_class=MongoTimeseriesRecord)
+        # input = {'data': {}}
+        # for k, v in record.items():
+        #     if k == 'metadata':
+        #         input[k] = TimeseriesMetadata.deserialize_from_dict(v)
+        #     # elif k == 'timestamp':
+        #     #     input[k] = datetime.fromisoformat(v)
+        #     # elif k not in ['timestamp', 'timestamp_seconds', 'record_hash', '_id']:
+        #     elif k not in [f.name for f in fields(MongoTimeseriesRecord)]:
+        #         input['data'][k] = v
+        #     else:
+        #         input[k] = v
+        # return MongoTimeseriesRecord(**input)
+        # # return from_dict(data_class=MongoTimeseriesRecord, data=record, config=Config(cast=[DocumentType]))
 
     def serialize_to_dict(self) -> Dict[str, Any]:
         sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
@@ -284,6 +304,19 @@ class IOStateRecord(MongoTimeseriesRecord):
 @dataclass
 class FrontendMessageRecord(MongoTimeseriesRecord):
     data: InitVar[FrontendMessage]
+
+@dataclass
+class HardwareConfigurationRecord(MongoTimeseriesRecord):
+    data: InitVar[HardwareConfiguration]
+
+    @staticmethod
+    def deserialize_from_dict(record: Dict) -> "HardwareConfigurationRecord":
+        return mongo_record_deserializer(record=record, record_class=HardwareConfigurationRecord)
+        # return MongoTimeseriesRecord.deserialize_from_dict(record)
+
+    @property
+    def hardware_configuration(self) -> HardwareConfiguration:
+        return HardwareConfiguration.parse(self.data_dictionary)
 
 ##########################################################
 ######################## ROS TYPES #######################

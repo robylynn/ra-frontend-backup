@@ -6,25 +6,31 @@ database:
 
   collections:
     sensor_data:
-      name: ra_timeseries_sensor_data
+      # name: ra_timeseries_sensor_data
       document_type: SENSOR_DATA
       drop_on_start: False
     events:
-      name: ra_events
+      # name: ra_events
       document_type: EVENT
       drop_on_start: False
     frontend_messages:
-      name: ra_frontend_messages
+      # name: ra_frontend_messages
       document_type: FRONTEND_MESSAGE
       drop_on_start: False
       capped: True
       collection_size_bytes: 1000
     io_state:
-      name: ra_io_state
+      # name: ra_io_state
       document_type: IO_STATE
       drop_on_start: False
       capped: True
       collection_size_bytes: 1000
+    hardware_configuration:
+      # name: ra_system_configuration
+      document_type: SYSTEM_CONFIGURATION
+      drop_on_start: False
+      # capped: True
+      # collection_size_bytes: 1000
 
   local:
     enabled: True

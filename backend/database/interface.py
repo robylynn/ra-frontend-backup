@@ -4,7 +4,7 @@
 ### MongoDB Database Interface
 ### Developed by R2 Labs for Seabound Carbon
 
-import time, os
+import time, os, traceback
 
 from typing import (
     ClassVar,
@@ -56,6 +56,7 @@ from database.models import (
     DatabaseCommandType,
     IOStateRecord,
     FrontendMessageRecord,
+    HardwareConfigurationRecord,
     IOStateRecord,
     DocumentType
 )
@@ -63,7 +64,8 @@ from database.models import (
 from config.models import (
     MongoConfiguration,
     MongoInstanceConfiguration,
-    DatabaseCollectionsConfiguration
+    DatabaseCollectionsConfiguration,
+    HardwareConfiguration
 )
 
 from loguru import logger
@@ -150,7 +152,7 @@ class DatabaseInstance:
             raise MongoInterfaceException(f"Timed out connecting to mongoDB instance {self.configuration.host}, received error: {e}")
         except Exception as e:
             self._client = None
-            raise MongoInterfaceException(f"Timed out connecting to mongoDB instance {self.configuration.host}, received error: {e}")
+            raise MongoInterfaceException(f"Exception connecting to mongoDB instance {self.configuration.host}, received error: {e}. Traceback: {traceback.format_exc()}")
     
     def ping_database(self) -> bool:
         try:
@@ -199,15 +201,18 @@ class DatabaseInstance:
 
             if stored_collection_name not in self._database.list_collection_names():
                 logger.info(f"Timeseries collection {stored_collection_name} does not exist, creating...")
-                collection = self._database.create_collection(
-                    stored_collection_name,
+                kwargs = dict(
+                    name=stored_collection_name,
                     timeseries={
                         'timeField': 'timestamp',
                         'metaField': 'metadata',
                         'granularity': 'seconds'
-                    },
+                    } if not collection_configuration.capped else None,
                     capped=collection_configuration.capped,
                     size=collection_configuration.collection_size_bytes
+                )
+                collection = self._database.create_collection(
+                    **{k:v for k, v in kwargs.items() if v is not None}
                 )
             else:
                 collection = getattr(self._database, stored_collection_name)
@@ -215,7 +220,7 @@ class DatabaseInstance:
             setattr(self, self.collection_attribute_name(collection_name), collection)
 
     def get_collection(self, document_type: DocumentType) -> Collection:
-        for collection_name, collection_configuration in self.collections_configuration.items():
+        for collection_name, collection_configuration in self.collections_configuration.database_collection_generator:
             if collection_configuration.document_type == document_type:
                 return getattr(self, self.collection_attribute_name(collection_name=collection_name))
         # if document_type == DocumentType.SENSOR_DATA:
@@ -467,8 +472,9 @@ class RADatabaseQueues:
                 self.queue_attribute_name(collection_name=collection_name),
                 DatabaseQueue(
                     name=collection_name,
+                    document_type=collection_configuration.document_type,
                     timeout_secs=self.configuration.queue_get_timeout_secs,
-                    parent=self
+                    parent_container=self
                 )
             )
 
@@ -493,18 +499,19 @@ class RADatabaseQueues:
             #     timeout_secs=self.get_timeout_sec
             # )
 
-    @property
-    def queues(self) -> List[DatabaseQueue]:
-        # return [f[1] for f in fields(self) if isinstance(f[1], DatabaseQueue)]
-        return [getattr(self, f.name) for f in fields(self) if isinstance(getattr(self, f.name), DatabaseQueue)]
+    # @property
+    # def queues(self) -> List[DatabaseQueue]:
+    #     # return [f[1] for f in fields(self) if isinstance(f[1], DatabaseQueue)]
+    #     # return [getattr(self, f.name) for f in fields(self) if isinstance(getattr(self, f.name), DatabaseQueue)]
+    #     return [getattr(self, f.name) for f in dir(self) if isinstance(getattr(self, f.name), DatabaseQueue)]
 
     @property
     def queues_generator(self) -> Generator[Tuple[str, DatabaseQueue], None, None]:
         # return [f[1] for f in fields(self) if isinstance(f[1], DatabaseQueue)]
         # return [getattr(self, f.name) for f in fields(self) if isinstance(getattr(self, f.name), DatabaseQueue)]
-        for f in fields(self):
-            if isinstance(getattr(self, f.name), DatabaseQueue):
-                yield f.name, getattr(self, f.name)
+        for attr in dir(self):
+            if isinstance(getattr(self, attr), DatabaseQueue):
+                yield attr, getattr(self, attr)
 
     @property
     def interface_state(self) -> MongoInterfaceState:
@@ -526,7 +533,7 @@ class RADatabaseQueues:
         return collection_name + "_queue"
 
     def get_queue(self, document_type: DocumentType) -> DatabaseQueue:
-        for collection_name, collection_configuration in self.configuration.collections.items():
+        for collection_name, collection_configuration in self.configuration.collections.database_collection_generator:
             if collection_configuration.document_type == document_type:
                 return getattr(self, self.queue_attribute_name(collection_name=collection_name))
 
@@ -681,7 +688,7 @@ class DatabasePusher(DatabaseThread):
     def _run(self):
         while self.run_thread:
             if self.local_connection_established and self.local_connection_alive:
-                for queue in self.database_queues:
+                for queue_name, queue in self._database_queues_container.queues_generator:
                     if queue == None: continue
 
                     self._cycle_count = 0
@@ -693,12 +700,13 @@ class DatabasePusher(DatabaseThread):
                             self.local_connection_alive = True
 
                         except (ServerSelectionTimeoutError, MongoInterfaceException, AutoReconnect) as e:
-                            logger.error(f"Connection to mongodb instance refused, reenqueueing records in {queue.name}. Received error: {e}")
+                            logger.error(f"Connection to mongodb instance refused, reenqueueing records in {queue_name}. Received error: {e}")
                             queue.put(queue_entry)
                             self.local_connection_alive = False
                             break
 
                         except Exception as e:
+                            logger.error(f"Error inserting document: {e}. Traceback: {traceback.format_exc()}")
                             a=5
                         
                         self._cycle_count += 1
@@ -765,7 +773,22 @@ class DatabasePuller(DatabaseThread):
             if self._interface_state.local.collections_initialized:
                 try:
                     command = self._command_queue.get()
-                    if command.command_type == DatabaseCommandType.GET_DATA_POINTS:
+                    if command.command_type == DatabaseCommandType.GET_DOCUMENTS:
+                        collection = self._interface_state.local.get_collection(document_type=command.document_type)
+                        records = collection.aggregate(
+                            [
+                                {
+                                    "$sort": {
+                                        "timestamp": ASCENDING
+                                    }
+                                },
+                                {
+                                    "$limit": command.number_of_documents
+                                }
+                            ]
+                        )
+                        self._return_pipe.send([r for r in records])
+                    elif command.command_type == DatabaseCommandType.GET_DATA_POINTS:
                         records = self._interface_state.local._data_collection.aggregate(
                             [
                                 {
@@ -813,6 +836,9 @@ class DatabasePuller(DatabaseThread):
                             ]
                         )
                         self._return_pipe.send([FrontendMessageRecord.deserialize_from_dict(r) for r in records])
+                    else:
+                        logger.error(f"Unrecognized database command {command}")
+                        self._return_pipe.send(None)
                 except Empty:
                     pass
             time.sleep(0)
@@ -993,15 +1019,26 @@ class MongoInterface(Process):
     # def enqueue_io_state(self, data: IOStateRecord):
     #     self._database_queues_container.io_state_queue.put(data)
 
-    def get_data_points(self, number_of_points: int) -> TimeseriesRecordContainer:
+    def get_documents_from_collection(self, document_type: DocumentType, number_of_documents: int, timeout: float = 10) -> TimeseriesRecordContainer:
         self._command_queue.put(
             DatabaseCommand(
-                command_type=DatabaseCommandType.GET_DATA_POINTS,
-                number_of_points=number_of_points
+                command_type=DatabaseCommandType.GET_DOCUMENTS,
+                number_of_documents=number_of_documents,
+                document_type=document_type
             )
         )
 
-        return self.pipe_output.recv()
+        return self._return_pipe_data(timeout=timeout)
+    
+    # def get_data_points(self, number_of_points: int) -> TimeseriesRecordContainer:
+    #     self._command_queue.put(
+    #         DatabaseCommand(
+    #             command_type=DatabaseCommandType.GET_DATA_POINTS,
+    #             number_of_points=number_of_points
+    #         )
+    #     )
+
+    #     return self.pipe_output.recv()
     
     def _return_pipe_data(self, timeout: float) -> List:
         try:
@@ -1014,15 +1051,24 @@ class MongoInterface(Process):
             a=5
             return []
     
-    def get_io_data_points(self, number_of_points: int, timeout: float) -> List[IOStateRecord]:
-        self._command_queue.put(
-            DatabaseCommand(
-                command_type=DatabaseCommandType.GET_IO_DATA_POINTS,
-                number_of_points=number_of_points
-            )
-        )
+    # def get_io_data_points(self, number_of_points: int, timeout: float) -> List[IOStateRecord]:
+    #     self._command_queue.put(
+    #         DatabaseCommand(
+    #             command_type=DatabaseCommandType.GET_IO_DATA_POINTS,
+    #             number_of_points=number_of_points
+    #         )
+    #     )
 
-        return self._return_pipe_data(timeout=timeout)
+    #     return self._return_pipe_data(timeout=timeout)
+
+    def get_latest_system_configuration(self, timeout: float = 10) -> HardwareConfiguration | None:
+        configuration = self.get_documents_from_collection(document_type=DocumentType.SYSTEM_CONFIGURATION, number_of_documents=1)
+        if len(configuration) > 0:
+            record = HardwareConfigurationRecord.deserialize_from_dict(configuration[0])
+            return record.hardware_configuration
+        else:
+            return None
+
 
         # try:
         #     with self.pipe_lock:
@@ -1035,15 +1081,32 @@ class MongoInterface(Process):
         #     return []
     
     def get_messages(self, number_of_messages: int, timeout: float) -> List[MongoTimeseriesRecord]:
-        self._command_queue.put(
-            DatabaseCommand(
-                command_type=DatabaseCommandType.GET_MESSAGES,
-                number_of_messages=number_of_messages
-            )
-        )
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.FRONTEND_MESSAGE, number_of_documents=number_of_messages)
+            return [FrontendMessageRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_messages} messages from database")
+            return []
+
+    def get_sensor_data(self, number_of_data_points: int, timeout: float) -> List[MongoTimeseriesRecord]:
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.SENSOR_DATA, number_of_documents=number_of_data_points)
+            return [SensorDataRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_data_points} sensor data points from database")
+            return []
+        
+
+
+        # self._command_queue.put(
+        #     DatabaseCommand(
+        #         command_type=DatabaseCommandType.GET_MESSAGES,
+        #         number_of_messages=number_of_messages
+        #     )
+        # )
 
         # return self.pipe_output.recv()
-        return self._return_pipe_data(timeout=timeout)
+        # return self._return_pipe_data(timeout=timeout)
 
     def _run(self):
         self._pusher_thread = DatabasePusher(

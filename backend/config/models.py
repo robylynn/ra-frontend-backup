@@ -8,7 +8,10 @@ from typing import (
     List,
     Dict,
     Generator,
-    Tuple
+    Tuple,
+    Annotated,
+    ClassVar,
+    Callable
 )
 
 from enum import (
@@ -20,16 +23,31 @@ from enum import (
 #     DocumentType
 # )
 
-
 class DocumentType(Enum):
     SENSOR_DATA = auto()
     EVENT = auto()
     # OPERATOR_NOTE = auto()
     FRONTEND_MESSAGE = auto()
     IO_STATE = auto()
+    SYSTEM_CONFIGURATION = auto()
 # from ra_hardware_interface.models import (
 #     IOPointType
 # )
+
+def hardware_configurationo_dict_factory(dataclass):
+    d = {}
+    for field in dataclass:
+        if isinstance(field[1], Enum):
+            d[field[0]] = field[1].name
+        elif field[0] == '_id':
+            pass
+        elif field[1] == None:
+            pass
+        elif isinstance(field[1], Callable):
+            pass
+        else:
+            d[field[0]] = field[1]
+    return d
 
 # @dataclass
 # class NetworkDevice:
@@ -42,7 +60,7 @@ class DocumentType(Enum):
 
 @dataclass
 class CollectionConfiguration:
-    name: str
+    # name: str
     drop_on_start: bool
     document_type: DocumentType
     capped: bool = False
@@ -58,6 +76,7 @@ class DatabaseCollectionsConfiguration:
     events: CollectionConfiguration
     frontend_messages: CollectionConfiguration
     io_state: CollectionConfiguration
+    hardware_configuration: CollectionConfiguration
 
     @property
     def database_collections(self) -> Dict[str, CollectionConfiguration]:
@@ -128,18 +147,65 @@ class TransferFunctionType(Enum):
 
 @dataclass
 class ROSIOPointConfiguration:
-    label: str
     channel: int
-    type: IOPointType
-    transfer_function_type: TransferFunctionType
-    measurement_unit: str
-    min_value: float
-    min_signal_v: float
-    max_value: float
-    max_signal_v: float
+    label: str = None
+    enabled: bool = False
+    type: IOPointType = None
+    transfer_function_type: TransferFunctionType = None
+    measurement_unit: str = None
+    min_value: float = None
+    min_signal_v: float = None
+    max_value: float = None
+    max_signal_v: float = None
 
     transfer_function_callback: str = None
 
+    @staticmethod
+    def default() -> "ROSIOPointConfiguration":
+        return ROSIOPointConfiguration(channel=-1)
+
 @dataclass
 class IOSystemConfiguration:
-    digital_inputs: List[ROSIOPointConfiguration]
+    digital_inputs: Annotated[List[ROSIOPointConfiguration], 8]
+    digital_outputs: Annotated[List[ROSIOPointConfiguration], 8]
+
+@dataclass
+class HardwareConfiguration:
+    io_system: IOSystemConfiguration
+
+    number_of_digital_inputs: ClassVar[int] = 8
+    number_of_digital_outputs: ClassVar[int] = 8
+
+    @staticmethod
+    def parse(serialized_configuration: Dict) -> "HardwareConfiguration":
+        digital_inputs = serialized_configuration['io_system']['digital_inputs']
+        digital_outputs = serialized_configuration['io_system']['digital_outputs']
+        return HardwareConfiguration(
+            io_system=IOSystemConfiguration(
+                digital_inputs=[ROSIOPointConfiguration(**di) for di in digital_inputs],
+                digital_outputs=[ROSIOPointConfiguration(**do) for do in digital_outputs]
+            )
+            
+        )
+    
+    @staticmethod
+    def default_configuration() -> "HardwareConfiguration":
+        digital_inputs = [
+            ROSIOPointConfiguration(channel=x, type=IOPointType.DIGITAL_INPUT)
+            for x in range(HardwareConfiguration.number_of_digital_inputs)
+        ]
+
+        digital_outputs = [
+            ROSIOPointConfiguration(channel=x, type=IOPointType.DIGITAL_OUTPUT)
+            for x in range(HardwareConfiguration.number_of_digital_outputs)
+        ]
+
+        return HardwareConfiguration(
+            io_system=IOSystemConfiguration(
+                digital_inputs=digital_inputs,
+                digital_outputs=digital_outputs
+            )
+        )
+    
+    def serialize(self) -> Dict:
+        return asdict(self, dict_factory=hardware_configurationo_dict_factory)

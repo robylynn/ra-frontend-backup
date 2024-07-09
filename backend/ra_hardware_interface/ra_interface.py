@@ -25,17 +25,22 @@ from database.models import (
 from ra_hardware_interface.models import (
     IOSystem
 )
+from config.models import (
+    HardwareConfiguration
+)
 
 @dataclass
 class RAInterface(Thread):
     database: MongoInterface
-    io_system: ClassVar[IOSystem]
+    # io_system: ClassVar[IOSystem]
+    hardware_configuration: ClassVar[HardwareConfiguration] = None
 
-    _io_configuration_loaded: ClassVar[bool] = False
+    # _io_configuration_loaded: ClassVar[bool] = False
+    _hardware_configuration_loaded: ClassVar[bool] = False
 
     def __post_init__(self):
         super(RAInterface, self).__init__()
-        self.io_system = IOSystem()
+        # self.io_system = IOSystem()
 
     def __hash__(self) -> int:
         return hash((self.name))
@@ -66,21 +71,38 @@ class RAInterface(Thread):
     
     def run(self):
         while True:
-            if not self._io_configuration_loaded:
-                self.load_io_system_configuration()
+            # if not self._io_configuration_loaded:
+            #     self.load_io_system_configuration()
+
+            if not self._hardware_configuration_loaded:
+                configuration = self.database.get_latest_system_configuration()
+                if configuration is None:
+                    self.hardware_configuration = HardwareConfiguration.default_configuration()
+                else:
+                    self.hardware_configuration = configuration
+                self._hardware_configuration_loaded = True
+
+                self.io_system = IOSystem(configuration=self.hardware_configuration.io_system)
+            
+            # self.database.enqueue_record(
+            #     data=self._create_database_document(
+            #         document_type=DocumentType.SYSTEM_CONFIGURATION,
+            #         data=self.hardware_configuration.serialize()
+            #     )
+            # )
+
 
             time.sleep(2)
 
             self.database.enqueue_record(
                 data=self._create_database_document(
-                    document_type=DocumentType.SENSOR_DATA,
-                    data={
-                        'a':5,
-                        'b':5
-                    }
+                    document_type=DocumentType.IO_STATE,
+                    data=self.io_system.serialize()
                 )
             )
             
+            self.io_system.digital_inputs.points[4].state = True
+
             if False:
                 for point in self.io_system.digital_outputs.points:
                     if point is not None:
