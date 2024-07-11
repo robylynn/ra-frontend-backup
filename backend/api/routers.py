@@ -175,6 +175,14 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
         data=ui_configuration.serialize()
     )
 
+@ui_router.get("/io_configuration")
+def get_ui_io_configuration():
+    config = initializer.ra_database.get_latest_system_configuration(timeout=1)
+    return APIResponse(
+        error=False,
+        data=config.serialize()
+    )
+
 ###############################################################################
 ############################## DATABASE REQUESTS ##############################
 ###############################################################################
@@ -196,7 +204,7 @@ def get_messages(number_of_messages: int) -> APIResponse:
     )
 
 @historian_router.get("/sensor_data")
-def get_messages(number_of_data_points: int) -> APIResponse:
+def get_sensor_data(number_of_data_points: int) -> APIResponse:
     data = initializer.ra_database.get_sensor_data(number_of_data_points=number_of_data_points, timeout=1)
     return APIResponse(
         error=False,

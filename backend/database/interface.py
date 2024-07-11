@@ -210,7 +210,7 @@ class DatabaseInstance:
                         'granularity': 'seconds'
                     } if not collection_configuration.capped else None,
                     capped=collection_configuration.capped,
-                    size=collection_configuration.collection_size_bytes
+                    size=collection_configuration.collection_size_bytes if collection_configuration.capped else None
                 )
                 collection = self._database.create_collection(
                     **{k:v for k, v in kwargs.items() if v is not None}
@@ -780,12 +780,13 @@ class DatabasePuller(DatabaseThread):
                             [
                                 {
                                     "$sort": {
-                                        "timestamp": ASCENDING
+                                        "timestamp": DESCENDING
                                     }
                                 },
                                 {
                                     "$limit": command.number_of_documents
-                                }
+                                },
+
                             ]
                         )
                         self._return_pipe.send([r for r in records])

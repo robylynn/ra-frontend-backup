@@ -69,56 +69,41 @@ class RAInterface(Thread):
         configuration = self.database.get_latest_system_configuration()
         if configuration is None:
             self.hardware_configuration = HardwareConfiguration.default_configuration()
+            self.save_system_configuration()
         else:
             self.hardware_configuration = configuration
         self._hardware_configuration_loaded = True
 
         self.io_system = IOSystem(configuration=self.hardware_configuration.io_system)
         self.sensors = Sensors(sensors=[])
+
+        # self.save_system_configuration()
     
+    def save_system_configuration(self):
+        self.database.enqueue_record(
+            data=self._create_database_document(
+                document_type=DocumentType.SYSTEM_CONFIGURATION,
+                data=self.hardware_configuration.serialize()
+            )
+        )
+
     def add_sensor(self, sensor_name: str):
         self.sensors.add_sensor(
             sensor_name=sensor_name
         )
-        # self._sensors[sensor_name] = Sensor(
-        #     name=sensor_name
-        # )
-        # try:
-        #     # io_points = self.database.get_io_data_points(number_of_points=1, timeout=1)
-        #     # io_system = IOSystem.load_configuration(self.database.get_io_data_points(number_of_points=1, timeout=1)[0].data_dictionary)
-        #     self.io_system = IOSystem.load_configuration(self.database.get_io_data_points(number_of_points=1, timeout=1)[0].data_dictionary)
-        #     self._io_configuration_loaded = True
-        #     logger.info(f"Loaded new IO configuration.")
-        # except Exception as e:
-        #     logger.error(f"Error loading IO system configuration: {e}. Defaulting to base configuration.")
     
     def run(self):
         while True:
-            # if not self._io_configuration_loaded:
-            #     self.load_io_system_configuration()
 
             if not self._hardware_configuration_loaded:
                 self.load_io_system_configuration()
                 self.add_sensor('temperature_sensor')
                 self.sensors._sensors['temperature_sensor'].state = 5
-                # configuration = self.database.get_latest_system_configuration()
-                # if configuration is None:
-                #     self.hardware_configuration = HardwareConfiguration.default_configuration()
-                # else:
-                #     self.hardware_configuration = configuration
-                # self._hardware_configuration_loaded = True
-
-                # self.io_system = IOSystem(configuration=self.hardware_configuration.io_system)
             
-            # self.database.enqueue_record(
-            #     data=self._create_database_document(
-            #         document_type=DocumentType.SYSTEM_CONFIGURATION,
-            #         data=self.hardware_configuration.serialize()
-            #     )
-            # )
-
-
             time.sleep(2)
+
+            # self.hardware_configuration.io_system.digital_inputs[0].max_signal_v = 5
+            # self.save_system_configuration()
 
             self.database.enqueue_record(
                 data=self._create_database_document(
@@ -156,41 +141,41 @@ class RAInterface(Thread):
 
             self.sensors._sensors['temperature_sensor'].state += 1
 
-            if False:
-                for point in self.io_system.digital_outputs.points:
-                    if point is not None:
-                        logger.info(f"Toggling digital output {point.index}")
-                        point.state = not point.state
+            # if False:
+            #     for point in self.io_system.digital_outputs.points:
+            #         if point is not None:
+            #             logger.info(f"Toggling digital output {point.index}")
+            #             point.state = not point.state
 
-                logger.info(f"Writing demo database IO record")
-                self.database.enqueue_io_state(
-                    self._create_database_document(
-                        document_type=DocumentType.IO_STATE,
-                        data=IOSystemDataContainer(
-                            io_system=self.io_system
-                        ).serialize()
-                    )
-                )
+            #     logger.info(f"Writing demo database IO record")
+            #     self.database.enqueue_io_state(
+            #         self._create_database_document(
+            #             document_type=DocumentType.IO_STATE,
+            #             data=IOSystemDataContainer(
+            #                 io_system=self.io_system
+            #             ).serialize()
+            #         )
+            #     )
 
-                logger.info(f"Writing demo database message")
-                self.database.enqueue_message(
-                    self._create_database_document(
-                        document_type=DocumentType.FRONTEND_MESSAGE,
-                        data=FrontendMessage(
-                            message="test message",
-                            severity=MessageSeverity.ERROR
-                        ).serialize()
-                    )
-                    # IOPointDataContainer(
-                    #     io_points=[
-                    #         IOPointData(
-                    #             point_index=0,
-                    #             state=False
-                    #         ),
-                    #         IOPointData(
-                    #             point_index=1,
-                    #             state=False
-                    #         )
-                    #     ]
-            )
+            #     logger.info(f"Writing demo database message")
+            #     self.database.enqueue_message(
+            #         self._create_database_document(
+            #             document_type=DocumentType.FRONTEND_MESSAGE,
+            #             data=FrontendMessage(
+            #                 message="test message",
+            #                 severity=MessageSeverity.ERROR
+            #             ).serialize()
+            #         )
+            #         # IOPointDataContainer(
+            #         #     io_points=[
+            #         #         IOPointData(
+            #         #             point_index=0,
+            #         #             state=False
+            #         #         ),
+            #         #         IOPointData(
+            #         #             point_index=1,
+            #         #             state=False
+            #         #         )
+            #         #     ]
+            # )
             

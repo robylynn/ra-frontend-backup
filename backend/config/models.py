@@ -34,15 +34,15 @@ class DocumentType(Enum):
 #     IOPointType
 # )
 
-def hardware_configurationo_dict_factory(dataclass):
+def hardware_configuration_dict_factory(dataclass):
     d = {}
     for field in dataclass:
         if isinstance(field[1], Enum):
             d[field[0]] = field[1].name
-        elif field[0] == '_id':
-            pass
-        elif field[1] == None:
-            pass
+        # elif field[0] == '_id':
+        #     pass
+        # elif field[1] == None:
+        #     pass
         elif isinstance(field[1], Callable):
             pass
         else:
@@ -208,4 +208,4 @@ class HardwareConfiguration:
         )
     
     def serialize(self) -> Dict:
-        return asdict(self, dict_factory=hardware_configurationo_dict_factory)
+        return asdict(self, dict_factory=hardware_configuration_dict_factory)

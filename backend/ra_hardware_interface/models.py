@@ -95,6 +95,10 @@ class IOPoint:
         for field_name, field in attrs:
             if isinstance(field, (float, bool, int)):
                 d[field_name] = field
+            # elif isinstance(field, Enum):
+            #     d[field_name] = field.name
+            # else:
+            #     d[field_name] = field
             else:
                 pass
             # if isinstance(field[1], Enum):
@@ -125,6 +129,7 @@ class IOPoint:
     #         raise IOConfigurationException("Invalid configuration!")
     
     def serialize(self):
+        # serialized = asdict(self, dict_factory=IOPoint.dict_factory)
         serialized = asdict(self, dict_factory=IOPoint.dict_factory)
         # if serialized == {}:
         #     return None
