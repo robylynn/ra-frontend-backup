@@ -12,7 +12,7 @@ from api.routers import (
     auth_router,
     state_router,
     ui_router,
-    streaming_router,
+    historian_router,
     config_router
 )
 
@@ -103,8 +103,8 @@ if __name__ == "__main__":
     )
 
     ra_backend_server.include_router(
-        streaming_router,
-        prefix="/streams"
+        historian_router,
+        prefix="/historian"
     )
 
     ra_backend_server.include_router(

@@ -1,7 +1,8 @@
 from dataclasses import (
     dataclass,
     asdict,
-    fields
+    fields,
+    InitVar
 )
 from loguru import logger
 from enum import (
@@ -16,9 +17,9 @@ from typing import (
     Tuple,
     Any
 )
-from utils.utils import (
-    io_record_dict_factory
-)
+# from utils.utils import (
+#     io_record_dict_factory
+# )
 
 from config.models import (
     IOPointType,
@@ -28,6 +29,12 @@ from config.models import (
 
 class IOConfigurationException(Exception):
     pass
+
+# class MessageSeverity(Enum):
+#     DEBUG = auto()
+#     INFO = auto()
+#     WARNING = auto()
+#     ERROR = auto()
 
 # @dataclass
 # class IOPoint:
@@ -364,4 +371,35 @@ class IOSystem:
         return d
 
         # return asdict(self, dict_factory=IOSystem.dict_factory)
+
+@dataclass
+class Sensor:
+    name: str
+    state: float | bool | None = None
+
+    def serialize(self) -> Dict:
+        return asdict(self)
+
+@dataclass
+class Sensors:
+    # configuration: SensorConfiguration
+    sensors: InitVar[List[Sensor]]
+
+    _sensors: ClassVar[Dict[str, Sensor]] = {}
+
+    def __post_init__(self, sensors: List[Sensor]):
+        self._sensors = {sensor.name: sensor for sensor in sensors}
+
+    def add_sensor(self, sensor_name: str):
+        self._sensors[sensor_name] = Sensor(
+            name=sensor_name
+        )
+    #     )
+    # self.sensors.add_sensor(
+    #     name=sensor_name
+    # )
+
+    def serialize(self) -> Dict:
+        return {sensor_name: sensor.serialize() for sensor_name, sensor in self._sensors.items()}
+
 

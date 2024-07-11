@@ -51,13 +51,14 @@ from database.models import (
     TimeseriesRecordContainer,
     MongoInterfaceException,
     # MongoInstanceConfiguration,
-    MongoFrontendMessage,
+    # MongoFrontendMessage,
     DatabaseCommand,
     DatabaseCommandType,
     IOStateRecord,
     FrontendMessageRecord,
     HardwareConfigurationRecord,
     IOStateRecord,
+    SensorDataRecord,
     DocumentType
 )
 
@@ -788,54 +789,54 @@ class DatabasePuller(DatabaseThread):
                             ]
                         )
                         self._return_pipe.send([r for r in records])
-                    elif command.command_type == DatabaseCommandType.GET_DATA_POINTS:
-                        records = self._interface_state.local._data_collection.aggregate(
-                            [
-                                {
-                                    "$sort": {
-                                        "timestamp": ASCENDING
-                                    }
-                                },
-                                {
-                                    "$limit": command.number_of_points
-                                }
-                            ]
-                        )
-                        self._return_pipe.send(records)
-                    elif command.command_type == DatabaseCommandType.GET_IO_DATA_POINTS:
-                        records = self._interface_state.local._io_state_collection.aggregate(
-                            [
-                                {
-                                    "$sort": {
-                                        "timestamp": DESCENDING
-                                    }
-                                },
-                                {
-                                    "$limit": command.number_of_points
-                                }
-                            ]
-                        )
-                        # z = [r for r in records]
-                        # zz = z[0]
-                        # y = MongoTimeseriesRecord.deserialize_from_dict(zz)
-                        # y = TimeseriesIOData(**zz)
-                        # self._return_pipe.send([TimeseriesIOData(**r) for r in records])
-                        # self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
-                        self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
-                    elif command.command_type == DatabaseCommandType.GET_MESSAGES:
-                        records = self._interface_state.local._message_collection.aggregate(
-                            [
-                                {
-                                "$sort": {
-                                    "timestamp": DESCENDING
-                                }
-                                },
-                                {
-                                    "$limit": command.number_of_messages
-                                }
-                            ]
-                        )
-                        self._return_pipe.send([FrontendMessageRecord.deserialize_from_dict(r) for r in records])
+                    # elif command.command_type == DatabaseCommandType.GET_DATA_POINTS:
+                    #     records = self._interface_state.local._data_collection.aggregate(
+                    #         [
+                    #             {
+                    #                 "$sort": {
+                    #                     "timestamp": ASCENDING
+                    #                 }
+                    #             },
+                    #             {
+                    #                 "$limit": command.number_of_points
+                    #             }
+                    #         ]
+                    #     )
+                    #     self._return_pipe.send(records)
+                    # elif command.command_type == DatabaseCommandType.GET_IO_DATA_POINTS:
+                    #     records = self._interface_state.local._io_state_collection.aggregate(
+                    #         [
+                    #             {
+                    #                 "$sort": {
+                    #                     "timestamp": DESCENDING
+                    #                 }
+                    #             },
+                    #             {
+                    #                 "$limit": command.number_of_points
+                    #             }
+                    #         ]
+                    #     )
+                    #     # z = [r for r in records]
+                    #     # zz = z[0]
+                    #     # y = MongoTimeseriesRecord.deserialize_from_dict(zz)
+                    #     # y = TimeseriesIOData(**zz)
+                    #     # self._return_pipe.send([TimeseriesIOData(**r) for r in records])
+                    #     # self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
+                    #     self._return_pipe.send([IOStateRecord.deserialize_from_dict(r) for r in records])
+                    # elif command.command_type == DatabaseCommandType.GET_MESSAGES:
+                    #     records = self._interface_state.local._message_collection.aggregate(
+                    #         [
+                    #             {
+                    #             "$sort": {
+                    #                 "timestamp": DESCENDING
+                    #             }
+                    #             },
+                    #             {
+                    #                 "$limit": command.number_of_messages
+                    #             }
+                    #         ]
+                    #     )
+                    #     self._return_pipe.send([FrontendMessageRecord.deserialize_from_dict(r) for r in records])
                     else:
                         logger.error(f"Unrecognized database command {command}")
                         self._return_pipe.send(None)
@@ -1062,12 +1063,20 @@ class MongoInterface(Process):
     #     return self._return_pipe_data(timeout=timeout)
 
     def get_latest_system_configuration(self, timeout: float = 10) -> HardwareConfiguration | None:
-        configuration = self.get_documents_from_collection(document_type=DocumentType.SYSTEM_CONFIGURATION, number_of_documents=1)
+        configuration = self.get_documents_from_collection(document_type=DocumentType.SYSTEM_CONFIGURATION, number_of_documents=1, timeout=timeout)
         if len(configuration) > 0:
             record = HardwareConfigurationRecord.deserialize_from_dict(configuration[0])
             return record.hardware_configuration
         else:
             return None
+
+    def get_io_state(self, number_of_points: int, timeout: float = 10) -> List[IOStateRecord]:
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.IO_STATE, number_of_documents=number_of_points, timeout=timeout)
+            return [IOStateRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_points} IO state records from database")
+            return []
 
 
         # try:
@@ -1080,7 +1089,7 @@ class MongoInterface(Process):
         #     a=5
         #     return []
     
-    def get_messages(self, number_of_messages: int, timeout: float) -> List[MongoTimeseriesRecord]:
+    def get_messages(self, number_of_messages: int, timeout: float = 10) -> List[FrontendMessageRecord]:
         try:
             message_documents = self.get_documents_from_collection(document_type=DocumentType.FRONTEND_MESSAGE, number_of_documents=number_of_messages)
             return [FrontendMessageRecord.deserialize_from_dict(d) for d in message_documents]
@@ -1088,7 +1097,7 @@ class MongoInterface(Process):
             logger.error(f"Timed out getting {number_of_messages} messages from database")
             return []
 
-    def get_sensor_data(self, number_of_data_points: int, timeout: float) -> List[MongoTimeseriesRecord]:
+    def get_sensor_data(self, number_of_data_points: int, timeout: float) -> List[SensorDataRecord]:
         try:
             message_documents = self.get_documents_from_collection(document_type=DocumentType.SENSOR_DATA, number_of_documents=number_of_data_points)
             return [SensorDataRecord.deserialize_from_dict(d) for d in message_documents]
@@ -1189,7 +1198,8 @@ class MongoInterface(Process):
                     #             time.sleep(0)
                     #             break
                     
-                    if self.configuration.cloud.enabled:
+                    # TODO implement later
+                    if self.configuration.cloud.enabled and False:
                         try:
                             if not self.cloud_connection_established:
                                 try:
@@ -1222,6 +1232,6 @@ class MongoInterface(Process):
                             logger.error(f"Synchronization error {e}")
             else:
                 # Local database is not enabled
-                for queue in self._database_queues_container.queues:
+                for _, queue in self._database_queues_container.queues_generator:
                     while not queue.empty:
                         queue.get_nowait()

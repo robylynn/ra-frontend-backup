@@ -103,3 +103,16 @@ def io_record_dict_factory(dataclass):
         else:
             d[field[0]] = field[1]
     return d
+
+def database_record_dict_factory(dataclass):
+    d = {}
+    for field in dataclass:
+        if isinstance(field[1], Enum):
+            d[field[0]] = field[1].name
+        elif field[0] == '_id':
+            pass
+        elif field[1] == None:
+            pass
+        else:
+            d[field[0]] = field[1]
+    return d

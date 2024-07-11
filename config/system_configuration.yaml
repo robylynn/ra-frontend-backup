@@ -23,8 +23,8 @@ database:
       # name: ra_io_state
       document_type: IO_STATE
       drop_on_start: False
-      capped: True
-      collection_size_bytes: 1000
+      capped: False
+      collection_size_bytes: 10000
     hardware_configuration:
       # name: ra_system_configuration
       document_type: SYSTEM_CONFIGURATION
@@ -49,10 +49,10 @@ database:
     # frontend_message_collection: ra_frontend_messages
     # io_state_collection: ra_io_state
     drop_database_on_start: False
-    drop_collection_on_start: False
+    # drop_collection_on_start: False
     # use_frontend_message_collection: true
-    frontend_message_collection_size_bytes: 10000000
-    io_state_collection_size_bytes: 10000000
+    # frontend_message_collection_size_bytes: 10000000
+    # io_state_collection_size_bytes: 10000000
   
   cloud:
     enabled: False
@@ -68,4 +68,4 @@ database:
     # data_timeseries_collection: ra_timeseries_data
     # event_timeseries_collection: ra_timeseries_events
     drop_database_on_start: False
-    drop_collection_on_start: False
+    # drop_collection_on_start: False

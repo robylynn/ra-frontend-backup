@@ -1,4 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import (
+    dataclass,
+    asdict
+)
+
 from typing import (
     ClassVar,
     Dict
@@ -9,10 +13,20 @@ from enum import (
     auto
 )
 
+from utils.utils import database_record_dict_factory
+
 class MessageSeverity(Enum):
     INFO = auto()
     WARNING = auto()
     ERROR = auto()
+
+@dataclass
+class FrontendMessage:
+    message: str
+    severity: MessageSeverity
+
+    def serialize(self) -> Dict:
+        return asdict(self, dict_factory=database_record_dict_factory)
 
 @dataclass
 class FrontendClient:

@@ -33,11 +33,12 @@ from enum import (
 # )
 from ra_hardware_interface.models import (
     IOSystem,
+    Sensors
     # IOPointType,
     # TransferFunctionType
 )
 from frontend.models import (
-    MessageSeverity
+    FrontendMessage
 )
 from utils.utils import (
     timeseries_record_dict_factory
@@ -61,12 +62,6 @@ class DatabaseCommandType(Enum):
     GET_DATA_POINTS = auto()
     GET_IO_DATA_POINTS = auto()
     GET_MESSAGES = auto()
-
-class MessageSeverity(Enum):
-    DEBUG = auto()
-    INFO = auto()
-    WARNING = auto()
-    ERROR = auto()
 
 @dataclass
 class DatabaseCommand:
@@ -217,13 +212,13 @@ class TimeseriesRecordContainer:
             r.serialize_to_dict() for r in self.records
         ]
 
-@dataclass
-class MongoFrontendMessage:
-    severity: MessageSeverity
-    message: str
+# @dataclass
+# class MongoFrontendMessage:
+#     severity: MessageSeverity
+#     message: str
 
-    def serialize_to_database_record(self) -> Dict[str, Any]:
-        return asdict(self, dict_factory=timeseries_record_dict_factory)
+#     def serialize_to_database_record(self) -> Dict[str, Any]:
+#         return asdict(self, dict_factory=timeseries_record_dict_factory)
 
 @dataclass
 class DatabaseRecordDataContainer:
@@ -239,18 +234,18 @@ class DatabaseRecordDataContainer:
 #     def serialize(self) -> Dict:
 #         return asdict(self)
 
-@dataclass
-class IOPointData(DatabaseRecordDataContainer):
-    point_index: int
-    state: Union[bool, float]
+# @dataclass
+# class IOPointData(DatabaseRecordDataContainer):
+#     point_index: int
+#     state: Union[bool, float]
 
     # def serialize(self) -> Dict:
     #     return asdict(self)
 
-@dataclass
-class FrontendMessage(DatabaseRecordDataContainer):
-    message: str
-    severity: MessageSeverity
+# @dataclass
+# class FrontendMessage:
+#     message: str
+#     severity: MessageSeverity
 
 
 # @dataclass
@@ -296,7 +291,8 @@ DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataC
 class IOStateRecord(MongoTimeseriesRecord):
     # data: InitVar["IOSystem"]
     # io_system: Dict
-    pass
+    # pass
+    data: InitVar[IOSystem]
     # @property
     # def data_dictionary(self) -> Dict:
     #     return self._data_dict
@@ -317,6 +313,10 @@ class HardwareConfigurationRecord(MongoTimeseriesRecord):
     @property
     def hardware_configuration(self) -> HardwareConfiguration:
         return HardwareConfiguration.parse(self.data_dictionary)
+
+@dataclass
+class SensorDataRecord(MongoTimeseriesRecord):
+    data: InitVar[Sensors]
 
 ##########################################################
 ######################## ROS TYPES #######################

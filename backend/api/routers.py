@@ -44,7 +44,7 @@ ui_router = APIRouter(
     ]
 )
 
-streaming_router = APIRouter(
+historian_router = APIRouter(
     tags=[
         "Data Streams"
     ]
@@ -179,20 +179,28 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
 ############################## DATABASE REQUESTS ##############################
 ###############################################################################
 
-@streaming_router.get("/io_data")
+@historian_router.get("/io_data")
 def get_io_data_points(number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_io_data_points(number_of_points=number_of_points, timeout=1)
+    points = initializer.ra_database.get_io_state(number_of_points=number_of_points, timeout=1)
     return APIResponse(
         error=False,
         data=[p.serialize_to_dict() for p in points]
     )
 
-@streaming_router.get("/messages")
+@historian_router.get("/messages")
 def get_messages(number_of_messages: int) -> APIResponse:
-    messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages)
+    messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages, timeout=1)
     return APIResponse(
         error=False,
         data=[m.serialize_to_dict() for m in messages]
+    )
+
+@historian_router.get("/sensor_data")
+def get_messages(number_of_data_points: int) -> APIResponse:
+    data = initializer.ra_database.get_sensor_data(number_of_data_points=number_of_data_points, timeout=1)
+    return APIResponse(
+        error=False,
+        data=[d.serialize_to_dict() for d in data]
     )
 
 ###############################################################################
@@ -212,7 +220,7 @@ def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
 ################################## STREAMING ##################################
 ###############################################################################
 
-@streaming_router.websocket("/socket")
+@historian_router.websocket("/socket")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     client_id = initializer.ra_frontend.add_websocket_client()
