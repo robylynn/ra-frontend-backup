@@ -46,6 +46,12 @@ ui_router = APIRouter(
 
 historian_router = APIRouter(
     tags=[
+        "Data Historian"
+    ]
+)
+
+streams_router = APIRouter(
+    tags=[
         "Data Streams"
     ]
 )
@@ -173,6 +179,7 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
     return APIResponse(
         error=False,
         data=ui_configuration.serialize()
+        # data=None
     )
 
 @ui_router.get("/io_configuration")
@@ -228,7 +235,7 @@ def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
 ################################## STREAMING ##################################
 ###############################################################################
 
-@historian_router.websocket("/socket")
+@streams_router.websocket("/socket")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     client_id = initializer.ra_frontend.add_websocket_client()

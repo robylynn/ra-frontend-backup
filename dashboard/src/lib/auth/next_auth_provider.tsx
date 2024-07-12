@@ -1,5 +1,5 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 "use client";
 

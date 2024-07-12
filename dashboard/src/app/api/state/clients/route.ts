@@ -7,7 +7,7 @@ import authOptions from "@/lib/auth/auth_options";
 import {
   BackendAPIResponse,
   createAPIResponse,
-} from "@/lib/reusable_models/api_models";
+} from "@/lib/models/api_models";
 
 export async function GET() {
   // export async function GET(request: NextRequest) {

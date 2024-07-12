@@ -1,5 +1,5 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -22,8 +22,6 @@ const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials: Record<"username" | "pasword", string>) {
-      // async authorize (credentials: Record<keyof C, string> | undefined, req: Pick<RequestInternal, "body" | "query" | "headers" | "method">) => Awaitable<User | null> {
-        // async authorize(credentials, req) {
         // You need to provide your own logic here that takes the credentials
         // submitted and returns either a object representing a user or value
         // that is false/null if the credentials are invalid.
@@ -31,12 +29,6 @@ const authOptions = {
         // You can also use the `req` object to obtain additional parameters
         // (i.e., the request IP address)
         console.log("LOGGING IN");
-        // return {
-        //   "user": credentials?.username
-        // };
-        // return credentials?.username;
-
-        // Short circuit backend auth for now
 
         const res = await fetch(
           "http://" + process.env.CONTROLLER_URI + `/user/login`,
@@ -44,20 +36,18 @@ const authOptions = {
             method: "POST",
             body: JSON.stringify(credentials),
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
 
         const auth_response = await res.json();
 
         // If no error and we have user data, return it
         if (res.ok && auth_response.authenticated) {
-          // return auth_response.user;
-          // return credentials?.username;
           return {
             id: 1,
             name: credentials?.username,
-            email: null
-          }
+            email: null,
+          };
         }
 
         // Return null if user data could not be retrieved

@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import authOptions from "@/lib/auth/auth_options";
-import { createAPIResponse } from "@/lib/reusable_models/api_models";
+import { createAPIResponse } from "@/lib/models/api_models";
 
 interface alarm_global_command_interface {
   params: {

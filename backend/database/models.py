@@ -27,15 +27,9 @@ from enum import (
     Enum,
     auto
 )
-# from dacite import (
-#     from_dict, 
-#     Config
-# )
 from ra_hardware_interface.models import (
     IOSystem,
     Sensors
-    # IOPointType,
-    # TransferFunctionType
 )
 from frontend.models import (
     FrontendMessage
@@ -68,40 +62,6 @@ class DatabaseCommand:
     command_type: DatabaseCommandType
     document_type: DocumentType
     number_of_documents: int
-    # number_of_points: int = None
-    # number_of_messages: int = None
-
-# @dataclass
-# class MongoInstanceConfiguration:
-#     enabled: bool
-#     connection_timeout_ms: int
-#     server_selection_timeout_ms: int
-#     socket_timeout_ms: int
-#     cycle_count_before_yield: int
-#     host: str
-#     port: int
-#     username: str
-#     password: str
-#     database_name: str
-#     data_timeseries_collection: str
-#     event_timeseries_collection: str
-#     frontend_message_collection: str = None
-#     io_state_collection: str = None
-#     drop_database_on_start: bool = False
-#     drop_collection_on_start: bool = False
-#     # use_frontend_message_collection: bool = False
-#     frontend_message_collection_size_bytes: int = 1000
-#     io_state_collection_size_bytes: int = 1000
-
-# @dataclass
-# class MongoConfiguration:
-#     database_synchronization_period_sec: int
-#     synchronization_batch_size: int
-#     queue_length_warning_threshold: int
-#     queue_get_timeout_secs: float
-
-#     local: MongoInstanceConfiguration
-#     cloud: MongoInstanceConfiguration
 
 RecordType = TypeVar("RecordType")
 
@@ -110,9 +70,6 @@ def mongo_record_deserializer(record: Dict, record_class: RecordType) -> RecordT
     for k, v in record.items():
         if k == 'metadata':
             input[k] = TimeseriesMetadata.deserialize_from_dict(v)
-        # elif k == 'timestamp':
-        #     input[k] = datetime.fromisoformat(v)
-        # elif k not in ['timestamp', 'timestamp_seconds', 'record_hash', '_id']:
         elif k not in [f.name for f in fields(record_class)]:
             input['data'][k] = v
         else:
@@ -132,13 +89,9 @@ class TimeseriesMetadata:
         for k, v in metadata.items():
             if k == 'document_type':
                 input[k] = getattr(DocumentType, v)
-            # elif k == 'machine_startup_time':
-            #     input[k] = datetime.fromisoformat(v)
             else:
                 input[k] = v
         return TimeseriesMetadata(**input)
-    # experiment_id: str = None
-    # plan_id: str = None
 
 @dataclass
 class MongoTimeseriesRecord:
@@ -148,13 +101,11 @@ class MongoTimeseriesRecord:
 
     _id: Optional[str] = None
     timestamp_seconds: Optional[float] = None
-    # record_hash: ClassVar[str] = None
     record_hash: Optional[str] = None
     
 
     def __post_init__(self, data: Dict[str, Any]):
         if is_dataclass(data):
-            # self._data_dict = {k: v for k, v in data.serialize().items()}    
             data = data.serialize()
         
         self._data_dict = {k: v for k, v in data.items()}
@@ -176,26 +127,9 @@ class MongoTimeseriesRecord:
         
         return hash
 
-    # @classmethod
-    # def construct_from_database_record(record: Dict):
-    #     return 
-
     @staticmethod
     def deserialize_from_dict(record: Dict) -> "MongoTimeseriesRecord":
         return mongo_record_deserializer(record=record, record_class=MongoTimeseriesRecord)
-        # input = {'data': {}}
-        # for k, v in record.items():
-        #     if k == 'metadata':
-        #         input[k] = TimeseriesMetadata.deserialize_from_dict(v)
-        #     # elif k == 'timestamp':
-        #     #     input[k] = datetime.fromisoformat(v)
-        #     # elif k not in ['timestamp', 'timestamp_seconds', 'record_hash', '_id']:
-        #     elif k not in [f.name for f in fields(MongoTimeseriesRecord)]:
-        #         input['data'][k] = v
-        #     else:
-        #         input[k] = v
-        # return MongoTimeseriesRecord(**input)
-        # # return from_dict(data_class=MongoTimeseriesRecord, data=record, config=Config(cast=[DocumentType]))
 
     def serialize_to_dict(self) -> Dict[str, Any]:
         sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
@@ -211,14 +145,6 @@ class TimeseriesRecordContainer:
         return [
             r.serialize_to_dict() for r in self.records
         ]
-
-# @dataclass
-# class MongoFrontendMessage:
-#     severity: MessageSeverity
-#     message: str
-
-#     def serialize_to_database_record(self) -> Dict[str, Any]:
-#         return asdict(self, dict_factory=timeseries_record_dict_factory)
 
 @dataclass
 class DatabaseRecordDataContainer:
@@ -289,13 +215,7 @@ DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataC
 
 @dataclass
 class IOStateRecord(MongoTimeseriesRecord):
-    # data: InitVar["IOSystem"]
-    # io_system: Dict
-    # pass
     data: InitVar[IOSystem]
-    # @property
-    # def data_dictionary(self) -> Dict:
-    #     return self._data_dict
 
 @dataclass
 class FrontendMessageRecord(MongoTimeseriesRecord):

@@ -2,7 +2,7 @@ import { WebSocket, WebSocketServer, ErrorEvent } from "ws";
 import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
 import authOptions from "@/lib/auth/auth_options";
-import { createAPIResponse } from "@/lib/reusable_models/api_models";
+import { createAPIResponse } from "@/lib/models/api_models";
 import { getSession } from "next-auth/react";
 
 export async function SOCKET(

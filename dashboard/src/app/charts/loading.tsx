@@ -1,7 +1,7 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
-import LoadingIndicator from "@/lib/reusable_components/server_components/loading_indicator";
+import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 
 export default function Loading() {
   return <LoadingIndicator />;

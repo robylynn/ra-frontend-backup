@@ -4,18 +4,16 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-// import { Roboto } from "next/font/google";
 
 import NextAuthProvider from "@/lib/auth/next_auth_provider";
-import { ConnectionStateIndicator } from "@/lib/reusable_components/client_components/connection_state_container";
-import DashboardContextProvider from "@/lib/reusable_components/client_components/dashboard_context_wrapper";
-import DataUpdater from "@/lib/reusable_components/client_components/data_updater";
-import LinksColumn from "@/lib/reusable_components/server_components/links_column";
-import RAWebSocket from "@/lib/reusable_components/client_components/websocket_client";
+import ConnectionStateIndicator from "@/lib/components/client_components/connection_state_container";
+import DashboardContextProvider from "@/lib/components/client_components/dashboard_context_wrapper";
+import DataUpdater from "@/lib/components/client_components/data_updater";
+import LinksColumn from "@/lib/components/server_components/links_column";
+import RAWebSocket from "@/lib/components/client_components/websocket_client";
 
 
 const inter = Inter({ subsets: ["latin"] });
-// const roboto = Roboto({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: "R2 Controller Frontend",
@@ -51,7 +49,6 @@ export default function RootLayout({
             </div>
           </body>
         </DashboardContextProvider>
-        {/* </WebSocketProvider> */}
       </NextAuthProvider>
     </html>
   );

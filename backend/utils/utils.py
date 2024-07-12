@@ -47,21 +47,9 @@ def safe_load_system_configuration() -> SystemConfiguration:
     return system_configuration
 
 def safe_load_configuration_files() -> Tuple[SystemConfiguration]:
-    network_configuration = safe_load_system_configuration()
-    # control_loop_configuration = safe_load_control_loop_configuration()
-
-    # Verify user control loop matching configurations
-    # for loop_name, loop_configuration in asdict(control_loop_configuration.loop_configurations).items():
-    #     if loop_name not in system_configuration.control_loops.keys():
-    #         logger.error(f"Control loop configuration {loop_name} has no matching control loop on system_controller")
-    #         sys.exit()
+    system_configuration = safe_load_system_configuration()
     
-    # for control_loop_name, control_loop in system_configuration.control_loops.items():
-    #     if control_loop_name not in asdict(control_loop_configuration.loop_configurations).keys():
-    #         logger.error(f"Missing control loop configuration for {control_loop_name}")
-    #         sys.exit()
-    
-    return network_configuration#, control_loop_configuration
+    return system_configuration
 
 def websocket_message_dict_factory(dataclass):
     d = {}

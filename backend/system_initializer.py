@@ -38,4 +38,3 @@ def initialize():
         database=ra_database
     )
     ra_interface.start()
-    #a=5

@@ -3,16 +3,12 @@
 
 "use client";
 
-import { ReactElement, useContext } from "react";
-import { Dispatch } from "react";
-import { SetStateAction } from "react";
+import { useContext, Dispatch, SetStateAction } from "react";
 
-import { DashboardHeaderContainer } from "@/lib/reusable_components/client_components/dashboard_header_container";
-import IOModuleControl from "@/lib/reusable_components/server_components/io_system_control";
-import LoadingIndicator from "@/lib/reusable_components/server_components/loading_indicator";
-import DashboardContext from "@/lib/reusable_models/dashboard_context";
-import IOSystemControl from "@/lib/reusable_components/server_components/io_system_control";
-import { NextAPIResponseInterface } from "@/lib/reusable_models/api_models";
+import { DashboardHeaderContainer } from "@/lib/components/client_components/dashboard_header_container";
+import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
+import DashboardContext from "@/lib/models/dashboard_context";
+import { NextAPIResponseInterface } from "@/lib/models/api_models";
 
 export default function DiagnosticsContainer(props: {
   id: string;

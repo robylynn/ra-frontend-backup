@@ -9,7 +9,7 @@ import authOptions from "@/lib/auth/auth_options";
 import {
   createAPIResponse,
   BackendAPIResponse,
-} from "@/lib/reusable_models/api_models";
+} from "@/lib/models/api_models";
 import {
   getDatabaseDocuments,
   getDatabaseIOState,
@@ -20,7 +20,7 @@ import {
   DatabaseIOState,
   DatabaseIOStateArray,
   DatabaseMessageArray,
-} from "@/lib/reusable_models/database_models";
+} from "@/lib/models/database_models";
 
 export async function GET(
   req: NextRequest,
