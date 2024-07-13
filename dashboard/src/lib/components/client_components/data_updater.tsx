@@ -6,6 +6,8 @@
 import { useContext, useEffect, useState } from "react";
 
 import {
+  HardwareConfiguration,
+  HardwareConfigurationInterface,
   NextAPIResponseInterface,
   UIConfiguration,
 } from "@/lib/models/api_models";
@@ -19,6 +21,38 @@ export default function DataUpdater(props: {
   const [configurationUpdateCounter, setConfigurationUpdateCounter] =
     useState(0);
   const { context, setContext } = useContext(DashboardContext);
+
+  // const fetcher= async (path: string) : Promise<any> => {
+  async function fetcher<Type>(path: string, timeout: number) : Promise<Type> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeout);
+    
+    let request_params: RequestInit = {
+      method: 'GET',
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      cache: "no-store",
+    }
+
+    let ret: any;
+    try {
+      const fetch_response: NextAPIResponseInterface = await fetch(path, request_params).then(
+        (res) => res.json()
+      );
+      
+      ret = fetch_response.data.data;
+    } catch (e) {
+      console.log("fetcher error: " + e)
+      
+      ret = null;
+    }
+
+    clearTimeout(timeoutId);
+    return ret;
+    
+  }
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -76,6 +110,26 @@ export default function DataUpdater(props: {
       console.log("UI configuration error " + e);
     }
   }, [configurationUpdateCounter]);
+
+  useEffect(() => {
+    const fetch_io_configuration = async () => {
+      let config: HardwareConfigurationInterface;
+      try {
+        config = await fetcher<HardwareConfiguration>("/api/backend/ui/io_configuration", 750);
+        if (config != undefined) {
+          console.log("Got hardware configuration")
+          setContext((c) => {
+            c.hardware_configuration = new HardwareConfiguration(config);
+            return c;
+          })
+        }
+      } catch (e) {
+        console.error("Error getting hardware configuration: " + e)
+      }
+    }
+
+    fetch_io_configuration();
+  }, [configurationUpdateCounter])
 
   useEffect(() => {
     const fetchHeartbeat = async () => {

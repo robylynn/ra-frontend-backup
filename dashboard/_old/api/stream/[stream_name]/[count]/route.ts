@@ -8,7 +8,7 @@ import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth/auth_options";
 import {
   createAPIResponse,
-  BackendAPIResponse,
+  ServerAPIResponse,
 } from "@/lib/models/api_models";
 import {
   getDatabaseDocuments,
@@ -110,7 +110,7 @@ async function getBackendAPIResponse(path: string) {
     //     //signal: controller.signal,
     //   }).then((res) => res.json());
 
-    let res: BackendAPIResponse = await fetch(
+    let res: ServerAPIResponse = await fetch(
       "http://" + process.env.CONTROLLER_URI + path,
       {
         method: "GET",

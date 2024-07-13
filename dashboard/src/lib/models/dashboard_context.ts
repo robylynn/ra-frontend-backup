@@ -11,10 +11,11 @@ import {
   DatabaseMessageArray,
 } from "@/lib/models/database_models";
 
-import { 
-  UIConfiguration, 
+import {
+  HardwareConfiguration,
+  UIConfiguration,
   // ConnectedDeviceInterface
-} from "./api_models";
+} from "@/lib/models/api_models";
 
 // export type DashboardContextInterface = {
 //   latest_document: DatabaseDocument;
@@ -32,7 +33,8 @@ export class ApplicationContext {
   messages: DatabaseMessageArray | null = null;
   configuration: UIConfiguration | null = null;
   io_state: DatabaseIOStateArray | null = null;
-  heartbeat: boolean = false
+  hardware_configuration: HardwareConfiguration | null = null;
+  heartbeat: boolean = false;
   database_online: boolean = false;
   ra_websocket: WebSocket | null = null;
 
@@ -43,7 +45,6 @@ export class ApplicationContext {
     this.messages = new DatabaseMessageArray();
     this.io_state = new DatabaseIOStateArray();
   }
-
 }
 
 // export type ContextType = {
@@ -54,7 +55,7 @@ export class ApplicationContext {
 //   heartbeat: boolean;
 //   database_online: boolean;
 //   ra_websocket: WebSocket | null;// | undefined;
-// } 
+// }
 
 // const document: DatabaseDocument = new DatabaseDocument();
 // const ui_configuration: UIConfiguration = new UIConfiguration();

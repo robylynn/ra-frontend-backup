@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 
 import authOptions from "@/lib/auth/auth_options";
 import {
-  BackendAPIResponse,
+  ServerAPIResponse,
   createAPIResponse,
 } from "@/lib/models/api_models";
 
@@ -36,7 +36,7 @@ export async function GET() {
     //     //signal: controller.signal,
     //   }).then((res) => res.json());
 
-    let data: BackendAPIResponse = await fetch(
+    let data: ServerAPIResponse = await fetch(
       "http://" + process.env.CONTROLLER_URI + `/state/clients`,
       {
         method: "GET",
