@@ -64,12 +64,15 @@ class FrontendChartConfiguration:
 @dataclass
 class FrontendConfiguration:
     client_id: int
-    io_points: FrontendIOPointConfiguration
-    charts: List[FrontendChartConfiguration]
+    # io_points: FrontendIOPointConfiguration
+    # charts: List[FrontendChartConfiguration]
 
-    def serialize(self) -> Dict:
-        serialized_message = asdict(self, dict_factory=websocket_message_dict_factory)
-        return serialized_message
+    def serialize(self):
+        return asdict(self)
+
+    # def serialize(self) -> Dict:
+    #     serialized_message = asdict(self, dict_factory=websocket_message_dict_factory)
+    #     return serialized_message
 
 
 

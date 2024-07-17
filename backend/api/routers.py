@@ -117,70 +117,78 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
     if client_id == None or int(client_id) == -1:
         client_id = initializer.ra_frontend.add_client()
 
-    ui_configuration = FrontendConfiguration(
-        client_id=client_id,
-        charts=[
-            FrontendChartConfiguration(
-                chart_id="chart_1",
-                width_px=400,
-                height_px=300,
-                max_length=200,
-                title="cahrt1",
-                x_data_value_name="time",
-                y_axis_decimal_places=1,
-                trace_configuration=[
-                    FrontendChartTraceConfiguration(
-                        color="red",
-                        label="output",
-                        # y_component_name="component1",
-                        y_parameter_name="parameter1"
-                    )
-                ]
-
-
-            )
-        ],
-        io_points=[
-            FrontendIOPointConfiguration(
-                point_index=0,
-                point_type=IOPointType.DIGITAL_INPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=1,
-                point_type=IOPointType.DIGITAL_INPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=2,
-                point_type=IOPointType.DIGITAL_OUTPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=3,
-                point_type=IOPointType.DIGITAL_OUTPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=4,
-                point_type=IOPointType.ANALOG_VOLTAGE_OUTPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=5,
-                point_type=IOPointType.ANALOG_VOLTAGE_OUTPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=6,
-                point_type=IOPointType.ANALOG_VOLTAGE_INPUT
-            ),
-            FrontendIOPointConfiguration(
-                point_index=7,
-                point_type=IOPointType.ANALOG_VOLTAGE_INPUT
-            )
-        ]
-    )
-
     return APIResponse(
         error=False,
-        data=ui_configuration.serialize()
+        data=FrontendConfiguration(
+            client_id=client_id
+        ).serialize()
         # data=None
     )
+
+    # ui_configuration = FrontendConfiguration(
+    #     client_id=client_id,
+    #     charts=[
+    #         FrontendChartConfiguration(
+    #             chart_id="chart_1",
+    #             width_px=400,
+    #             height_px=300,
+    #             max_length=200,
+    #             title="cahrt1",
+    #             x_data_value_name="time",
+    #             y_axis_decimal_places=1,
+    #             trace_configuration=[
+    #                 FrontendChartTraceConfiguration(
+    #                     color="red",
+    #                     label="output",
+    #                     # y_component_name="component1",
+    #                     y_parameter_name="parameter1"
+    #                 )
+    #             ]
+
+
+    #         )
+    #     ],
+    #     io_points=[
+    #         FrontendIOPointConfiguration(
+    #             point_index=0,
+    #             point_type=IOPointType.DIGITAL_INPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=1,
+    #             point_type=IOPointType.DIGITAL_INPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=2,
+    #             point_type=IOPointType.DIGITAL_OUTPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=3,
+    #             point_type=IOPointType.DIGITAL_OUTPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=4,
+    #             point_type=IOPointType.ANALOG_VOLTAGE_OUTPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=5,
+    #             point_type=IOPointType.ANALOG_VOLTAGE_OUTPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=6,
+    #             point_type=IOPointType.ANALOG_VOLTAGE_INPUT
+    #         ),
+    #         FrontendIOPointConfiguration(
+    #             point_index=7,
+    #             point_type=IOPointType.ANALOG_VOLTAGE_INPUT
+    #         )
+    #     ]
+    # )
+
+    # return APIResponse(
+    #     error=False,
+    #     data=ui_configuration.serialize()
+    #     # data=None
+    # )
 
 @ui_router.get("/io_configuration")
 def get_ui_io_configuration():

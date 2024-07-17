@@ -1,7 +1,7 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs for Seabound Carbon
 
-import { IOPointInterface, IOPoint, IOSystemInterface, IOSystem } from "./api_models";
+// import { IOPointInterface, IOPoint, IOSystemInterface, IOSystem } from "./api_models";
 
 export interface DocumentMetadataInterface {
   commit_serial_number: number;
@@ -57,19 +57,19 @@ export interface DatabaseFrontendMessageInterface {
   message: string;
 }
 
-export interface IOChannelStateInterface {
-  channel_index: number;
-  value: number;
-  point_type: string;
-}
+// export interface IOChannelStateInterface {
+//   channel_index: number;
+//   value: number;
+//   point_type: string;
+// }
 
-export interface IOModuleStateInterface {
-  name: string;
-  module_index: number;
-  channels: Array<IOChannelStateInterface>;
-}
+// export interface IOModuleStateInterface {
+//   name: string;
+//   module_index: number;
+//   channels: Array<IOChannelStateInterface>;
+// }
 
-export class DocumentMetadata {
+export class DocumentMetadata implements DocumentMetadataInterface {
   commit_serial_number: number = -1;
   document_type: string = "";
   machine_startup_time: Date = new Date("1970");
@@ -341,6 +341,37 @@ export class DatabaseDocument implements DatabaseDocumentInterface {
 
 }
 
+export interface DatabaseDocumentIOPointInterface {
+  configured: boolean
+  state?: number | boolean
+}
+
+export class DatabaseDocumentIOPoint implements DatabaseDocumentIOPointInterface {
+  configured: boolean
+  state?: number | boolean
+
+  constructor(input: DatabaseDocumentIOPointInterface) {
+    this.configured = input.configured;
+    this.state = input.state;
+  }
+}
+
+export interface DatabaseDocumentIOPortInterface {
+  points: DatabaseDocumentIOPointInterface[]
+}
+
+export class DatabaseDocumentIOPort implements DatabaseDocumentIOPortInterface {
+  points: DatabaseDocumentIOPoint[]
+
+  constructor(input: DatabaseDocumentIOPortInterface) {
+    this.points = new Array<DatabaseDocumentIOPoint>;
+
+    input.points.forEach((p) => {
+      this.points.push(new DatabaseDocumentIOPoint(p))
+    })
+  }
+}
+
 export interface DatabaseIOStateInterface extends DatabaseDocumentInterface {
   // _id: string;
   // metadata: DocumentMetadataInterface;
@@ -349,7 +380,10 @@ export interface DatabaseIOStateInterface extends DatabaseDocumentInterface {
   // timestamp_seconds: number;
   // modules: Array<IOModuleStateInterface>;
   // io_points: Array<IOPointInterface>;
-  io_system: IOSystemInterface | null;
+  // io_system: IOSystemInterface | null;
+  // digital_inputs: Array<DatabaseDocumentIOPointInterface>
+  digital_inputs: DatabaseDocumentIOPortInterface
+  digital_outputs: DatabaseDocumentIOPortInterface
 }
 
 export class DatabaseIOState extends DatabaseDocument implements DatabaseIOStateInterface {
@@ -362,7 +396,9 @@ export class DatabaseIOState extends DatabaseDocument implements DatabaseIOState
   // io_points: Array<IOPoint> = [];
   // digital_inputs: IOPort = new IOPointControl();
   //{[key: string]: value}: IOSystemInterface;
-  io_system: IOSystemInterface | null = null;
+  // io_system: IOSystemInterface | null = null;
+  digital_inputs: DatabaseDocumentIOPort;
+  digital_outputs: DatabaseDocumentIOPort;
 
   // state_variables: { [key: string]: string | number | boolean };
 
@@ -373,9 +409,20 @@ export class DatabaseIOState extends DatabaseDocument implements DatabaseIOState
       // this.timestamp = document.timestamp;
       // this.timestamp_seconds = document.timestamp_seconds;
       // this.metadata = new DocumentMetadata(document.metadata);
-      if (document.io_system != null) {
-        this.io_system = new IOSystem(document.io_system);
-      }
+      // if (document.io_system != null) {
+      //   this.io_system = new IOSystem(document.io_system);
+      // }
+
+      this.digital_inputs = new DatabaseDocumentIOPort(document.digital_inputs);
+      this.digital_outputs = new DatabaseDocumentIOPort(document.digital_outputs);
+
+      // document.digital_inputs.points.forEach((p) => {
+      //   this.digital_inputs.push(new DatabaseDocumentIOPoint(p))
+      // })
+
+      // document.digital_outputs.points.forEach((p) => {
+      //   this.digital_inputs.push(new DatabaseDocumentIOPoint(p))
+      // })
       
       // document.io_points.forEach((io_point) => {
       //   this.io_points.push(new IOPoint(io_point))
@@ -499,10 +546,10 @@ export class DatabaseIOState extends DatabaseDocument implements DatabaseIOState
 //   }
 // }
 
-export interface DataPointsInterface {
-  x_values: Array<number>;
-  y_values: Array<number>;
-}
+// export interface DataPointsInterface {
+//   x_values: Array<number>;
+//   y_values: Array<number>;
+// }
 
 //////////////////////////////////////////////////////////////
 //// DATABASE RETURN VALUES
@@ -525,7 +572,7 @@ export class DocumentArray {
   }
 }
 
-export class DatabaseIOStateArray extends DocumentArray {
+export class DatabaseIOStateDocumentArray extends DocumentArray {
   protected _documents: Array<DatabaseIOState> = [];
 
   constructor(input_documents?: Array<DatabaseIOStateInterface>) {

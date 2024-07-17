@@ -139,24 +139,24 @@ export type LogMessage = {
 
 export interface UIConfigurationInterface {
   client_id: number | undefined;
-  charts: { [chart_name: string]: any };
+  // charts?: { [chart_name: string]: any };
   // hardware_configuration: {
   //   [component_name: string]: HardwareComponentConfigurationInterface;
   // };
   // io_modules: Array<IOModuleInterface>; //IOSystemInterface
-  io_points: Array<IOPointInterface>;
+  // io_points?: Array<IOPointInterface>;
   // gauges: { [gauge_name: string]: GaugeConfigurationInterface };
 }
 
 export class UIConfiguration implements UIConfigurationInterface {
   client_id: number | undefined;
   configured: boolean = false;
-  charts: { [chart_name: string]: any } = {};
+  // charts: { [chart_name: string]: any } = {};
   // hardware_configuration: {
   //   [component_name: string]: HardwareComponentConfiguration;
   // } = {};
   // io_modules: IOSystem | undefined;
-  io_points: Array<IOPoint> = [];
+  // io_points: Array<IOPoint> = [];
   // gauges: { [gauge_name: string]: GaugeConfiguration } = {}; // | undefined
 
   constructor(input?: UIConfigurationInterface) {
@@ -176,14 +176,14 @@ export class UIConfiguration implements UIConfigurationInterface {
       // }
 
       // this.io_modules = new IOSystem(input.io_modules);
-      for (const io_point of input.io_points) {
-        this.io_points.push(
-          new IOPoint({
-            point_index: io_point.point_index,
-            point_type: io_point.point_type,
-          })
-        );
-      }
+      // for (const io_point of input.io_points) {
+      //   this.io_points.push(
+      //     new IOPoint({
+      //       point_index: io_point.point_index,
+      //       point_type: io_point.point_type,
+      //     })
+      //   );
+      // }
 
       // for (const gauge_name in input.gauges) {
       //   this.gauges[gauge_name] = new GaugeConfiguration(
@@ -360,99 +360,108 @@ export class HardwareConfiguration implements HardwareConfigurationInterface {
   }
 }
 
-///////////////////////////////////
-//////////// IO SYSTEM ////////////
-///////////////////////////////////
+// ///////////////////////////////////
+// //////////// IO SYSTEM ////////////
+// ///////////////////////////////////
 
-export interface IOPointInterface {
-  point_index: number;
-  point_type: string | IOPointType;
-}
-
-export class IOPoint implements IOPointInterface {
-  point_index: number = -1;
-  point_type: IOPointType = IOPointType.NULL;
-  state: number | boolean | null = null;
-
-  constructor(input: IOPointInterface) {
-    this.point_type =
-      typeof input?.point_type === "string"
-        ? IOPointType[(input?.point_type ?? "NULL") as keyof typeof IOPointType]
-        : (input?.point_type as IOPointType);
-    this.point_index = input?.point_index ?? -1;
-
-    switch (this.point_type) {
-      case IOPointType.ANALOG_VOLTAGE_INPUT:
-      case IOPointType.ANALOG_CURRENT_INPUT:
-      case IOPointType.ANALOG_VOLTAGE_OUTPUT:
-      case IOPointType.ANALOG_CURRENT_OUTPUT:
-        this.state = 0;
-        break;
-      case IOPointType.DIGITAL_OUTPUT:
-      case IOPointType.DIGITAL_INPUT:
-        this.state = false;
-        break;
-      default:
-        this.state = null;
-        break;
-    }
-  }
-
-  serialize(): IOPointInterface {
-    return {
-      point_index: this.point_index,
-      point_type: this.point_type,
-    };
-  }
-}
-
-// export interface IOPort {
-//   name: string
+// export interface IOPointInterface {
+//   point_index: number;
+//   point_type: string | IOPointType;
 // }
 
-export interface IOPortInterface {
-  name: string;
-  number_of_points: number;
-  points: Array<IOPointInterface | null>;
-}
+// export class IOPoint implements IOPointInterface {
+//   point_index: number = -1;
+//   point_type: IOPointType = IOPointType.NULL;
+//   state: number | boolean | null = null;
 
-export class IOPort {
-  name: string;
-  number_of_points: number;
-  points: Array<IOPoint | null> = new Array<IOPoint>();
+//   constructor(input: IOPointInterface) {
+//     this.point_type =
+//       typeof input?.point_type === "string"
+//         ? IOPointType[(input?.point_type ?? "NULL") as keyof typeof IOPointType]
+//         : (input?.point_type as IOPointType);
+//     this.point_index = input?.point_index ?? -1;
 
-  constructor(input: IOPortInterface) {
-    this.name = input.name;
-    this.number_of_points = input.number_of_points;
-    input.points.forEach((point) => {
-      this.points.push(point != undefined ? new IOPoint(point) : null);
-    });
-  }
-}
+//     switch (this.point_type) {
+//       case IOPointType.ANALOG_VOLTAGE_INPUT:
+//       case IOPointType.ANALOG_CURRENT_INPUT:
+//       case IOPointType.ANALOG_VOLTAGE_OUTPUT:
+//       case IOPointType.ANALOG_CURRENT_OUTPUT:
+//         this.state = 0;
+//         break;
+//       case IOPointType.DIGITAL_OUTPUT:
+//       case IOPointType.DIGITAL_INPUT:
+//         this.state = false;
+//         break;
+//       default:
+//         this.state = null;
+//         break;
+//     }
+//   }
 
-export interface IOSystemInterface {
-  digital_inputs: IOPortInterface;
-  digital_outputs: IOPortInterface;
-  programmable_digital_io: IOPortInterface;
-  analog_inputs: IOPortInterface;
-  analog_outputs: IOPortInterface;
-}
+//   serialize(): IOPointInterface {
+//     return {
+//       point_index: this.point_index,
+//       point_type: this.point_type,
+//     };
+//   }
+// }
 
-export class IOSystem implements IOSystemInterface {
-  digital_inputs: IOPort;
-  digital_outputs: IOPort;
-  programmable_digital_io: IOPort;
-  analog_inputs: IOPort;
-  analog_outputs: IOPort;
+// // export interface IOPort {
+// //   name: string
+// // }
 
-  constructor(input: IOSystemInterface) {
-    this.digital_inputs = new IOPort(input.digital_inputs);
-    this.digital_outputs = new IOPort(input.digital_outputs);
-    this.programmable_digital_io = new IOPort(input.programmable_digital_io);
-    this.analog_inputs = new IOPort(input.analog_inputs);
-    this.analog_outputs = new IOPort(input.analog_outputs);
-  }
-}
+// export interface IOPortInterface {
+//   name: string;
+//   number_of_points: number;
+//   points: Array<IOPointInterface | null>;
+// }
+
+// export class IOPort {
+//   name: string;
+//   number_of_points: number;
+//   points: Array<IOPoint | null> = new Array<IOPoint>();
+
+//   constructor(input: IOPortInterface) {
+//     this.name = input.name;
+//     this.number_of_points = input.number_of_points;
+//     input.points.forEach((point) => {
+//       this.points.push(point != undefined ? new IOPoint(point) : null);
+//     });
+//   }
+// }
+
+// export interface IOSystemInterface {
+//   digital_inputs: IOPortInterface;
+//   digital_outputs: IOPortInterface;
+//   programmable_digital_io: IOPortInterface;
+//   analog_inputs: IOPortInterface;
+//   analog_outputs: IOPortInterface;
+// }
+
+// export class IOSystem implements IOSystemInterface {
+//   digital_inputs: IOPort;
+//   digital_outputs: IOPort;
+//   programmable_digital_io: IOPort;
+//   analog_inputs: IOPort;
+//   analog_outputs: IOPort;
+
+//   constructor(input: IOSystemInterface) {
+//     this.digital_inputs = new IOPort(input.digital_inputs);
+//     this.digital_outputs = new IOPort(input.digital_outputs);
+//     this.programmable_digital_io = new IOPort(input.programmable_digital_io);
+//     this.analog_inputs = new IOPort(input.analog_inputs);
+//     this.analog_outputs = new IOPort(input.analog_outputs);
+//   }
+// }
+
+
+
+
+
+
+
+
+
 
 // export interface IOModuleInterface {
 //   module_index: number;

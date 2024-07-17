@@ -125,12 +125,12 @@ async function handler(
   { params }: { params: { slug: string[] } }
 ) {
   console.log(
-    `Received ${request.method} request to /ros/${params.slug.join("/")}`
+    `Received ${request.method} request to /backend/${params.slug.join("/")}`
   );
 
   if (!(await validateAuthentication())) {
     console.error(
-      `Unauthenicated ${request.method} request on /ros/${params.slug.join(
+      `Unauthenicated ${request.method} request on /backend/${params.slug.join(
         "/"
       )}`
     );

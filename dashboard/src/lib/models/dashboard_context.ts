@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction, createContext } from "react";
 
 import {
   DatabaseDocument,
-  DatabaseIOStateArray,
+  DatabaseIOStateDocumentArray,
   DatabaseMessageArray,
 } from "@/lib/models/database_models";
 
@@ -32,7 +32,7 @@ export class ApplicationContext {
   latest_document: DatabaseDocument | null = null;
   messages: DatabaseMessageArray | null = null;
   configuration: UIConfiguration | null = null;
-  io_state: DatabaseIOStateArray | null = null;
+  io_state: DatabaseIOStateDocumentArray | null = null;
   hardware_configuration: HardwareConfiguration | null = null;
   heartbeat: boolean = false;
   database_online: boolean = false;
@@ -43,7 +43,7 @@ export class ApplicationContext {
     this.latest_document = new DatabaseDocument();
     this.configuration = new UIConfiguration();
     this.messages = new DatabaseMessageArray();
-    this.io_state = new DatabaseIOStateArray();
+    this.io_state = new DatabaseIOStateDocumentArray();
   }
 }
 

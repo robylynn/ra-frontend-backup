@@ -26,7 +26,7 @@ export default function DataUpdater(props: {
   async function fetcher<Type>(path: string, timeout: number) : Promise<Type> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      controller.abort();
+      controller.abort("Timeout");
     }, timeout);
     
     let request_params: RequestInit = {
@@ -42,9 +42,14 @@ export default function DataUpdater(props: {
         (res) => res.json()
       );
       
+      if (!fetch_response.authenticated) {
+        console.log(`Attempted unauthenticated fetch to ${path}`)
+        ret = null;
+      }
+
       ret = fetch_response.data.data;
     } catch (e) {
-      console.log("fetcher error: " + e)
+      console.log(`fetcher error getting ${path}: ` + e)
       
       ret = null;
     }
@@ -80,12 +85,14 @@ export default function DataUpdater(props: {
         ui_config_params.append("client_id", "-1");
       }
 
-      const response: NextAPIResponseInterface = await fetch(
-        "/api/config?" + ui_config_params
-      ).then((res) => res.json());
+      // const response = await fetcher<UIConfiguration>("/api/config?" + ui_config_params, 750)
+      const response = await fetcher<UIConfiguration>("/api/backend/ui/configuration?" + ui_config_params, 750)
+      // const response: NextAPIResponseInterface = await fetch(
+      //   "/api/config?" + ui_config_params
+      // ).then((res) => res.json());
 
-      if (response.authenticated) {
-        const received_configuration = new UIConfiguration(response.data);
+      if (response != null) {
+        const received_configuration = new UIConfiguration(response);
 
         if (
           received_configuration.configured &&
@@ -99,9 +106,25 @@ export default function DataUpdater(props: {
             return { ...c, configuration: received_configuration };
           });
         }
-      } else {
-        console.log("NOT AUTHENTICATED FOR CONFIG");
       }
+      // if (response.authenticated) {
+      //   const received_configuration = new UIConfiguration(response.data);
+
+      //   if (
+      //     received_configuration.configured &&
+      //     received_configuration.client_id != undefined
+      //   ) {
+      //     console.log(
+      //       "updating UI configuration for client id " +
+      //         received_configuration.client_id
+      //     );
+      //     setContext((c) => {
+      //       return { ...c, configuration: received_configuration };
+      //     });
+      //   }
+      // } else {
+      //   console.log("NOT AUTHENTICATED FOR CONFIG");
+      // }
     };
 
     try {
@@ -110,6 +133,12 @@ export default function DataUpdater(props: {
       console.log("UI configuration error " + e);
     }
   }, [configurationUpdateCounter]);
+
+  useEffect(() => {
+    const fetch_ui_configuration = async () => {
+      
+    }
+  })
 
   useEffect(() => {
     const fetch_io_configuration = async () => {
@@ -132,38 +161,60 @@ export default function DataUpdater(props: {
   }, [configurationUpdateCounter])
 
   useEffect(() => {
-    const fetchHeartbeat = async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-      }, 500);
+    const heartbeat = async () => {
+      let heartbeat = await fetcher<string>("/api/backend/state/heartbeat", 750);
+      // return heartbeat == "ACK" ? true : false;
+      let heartbeat_valid = heartbeat == "ACK" ? true : false;
       
-      let request_params: RequestInit = {
-        method: 'GET',
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        cache: "no-store",
+      if (!heartbeat_valid) {
+        console.log("Error getting heartbeat")
       }
 
-      const heartbeat_response = await fetch("/api/state/heartbeat", request_params).then(
-        (res) => res.json()
-      );
-
-      clearTimeout(timeoutId);
-
       setContext((c) => {
-        return { ...c, heartbeat: heartbeat_response.data.heartbeat };
+        return { ...c, heartbeat: heartbeat_valid };
       });
-    };
-
-    try {
-      fetchHeartbeat();
-    } catch (e) {
-      console.log("Heartbeat error: " + e);
-      setContext((c) => {
-        return { ...c, heartbeat: false };
-      });
+      
     }
+
+    heartbeat();
+    // if (heartbeat()) {
+    //   setContext((c) => {
+    //     return { ...c, heartbeat: heartbeat_response.data.heartbeat };
+    //   });
+    // }
+    
+    // const fetchHeartbeat = async () => {
+    //   const controller = new AbortController();
+    //   const timeoutId = setTimeout(() => {
+    //     controller.abort();
+    //   }, 500);
+      
+    //   let request_params: RequestInit = {
+    //     method: 'GET',
+    //     headers: { "Content-Type": "application/json" },
+    //     signal: controller.signal,
+    //     cache: "no-store",
+    //   }
+
+    //   const heartbeat_response = await fetch("/api/state/heartbeat", request_params).then(
+    //     (res) => res.json()
+    //   );
+
+    //   clearTimeout(timeoutId);
+
+    //   setContext((c) => {
+    //     return { ...c, heartbeat: heartbeat_response.data.heartbeat };
+    //   });
+    // };
+
+    // try {
+    //   fetchHeartbeat();
+    // } catch (e) {
+    //   console.log("Heartbeat error: " + e);
+    //   setContext((c) => {
+    //     return { ...c, heartbeat: false };
+    //   });
+    // }
   }, [updateCounter]);
   // }, []);
 
