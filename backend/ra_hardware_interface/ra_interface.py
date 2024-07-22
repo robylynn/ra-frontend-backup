@@ -84,6 +84,7 @@ class RAInterface(Thread):
     
     def run(self):
         while True:
+            # TODO Add ros subscriptions here
             if False:
                 if not self._hardware_configuration_loaded:
                     self.load_io_system_configuration()

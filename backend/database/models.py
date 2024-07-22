@@ -155,58 +155,10 @@ class DatabaseRecordDataContainer:
 #################### DATA POINT TYPES ####################
 ##########################################################
 
-# @dataclass
-# class DatabaseDataPoint:
-#     def serialize(self) -> Dict:
-#         return asdict(self)
-
-# @dataclass
-# class IOPointData(DatabaseRecordDataContainer):
-#     point_index: int
-#     state: Union[bool, float]
-
-    # def serialize(self) -> Dict:
-    #     return asdict(self)
-
-# @dataclass
-# class FrontendMessage:
-#     message: str
-#     severity: MessageSeverity
-
-
-# @dataclass
-# class IOPointDataContainer(DatabaseRecordDataContainer):
-#     io_points: List[IOPointData]
-
 @dataclass
 class IOSystemDataContainer(DatabaseRecordDataContainer):
     io_system: IOSystem
-    # io_system_state: InitVar[IOSystem]
-
-    # io_system: Dict = None
-
-    # def __post_init__(self, io_system: IOSystem):
-    #     self.io_system = io_system.serialize()
-    # def serialize(self) -> Dict:
-    #     return asdict(self)
-
-# @dataclass
-# class ROSIOPointConfiguration:
-#     label: str
-#     channel: int
-#     type: IOPointType
-#     transfer_function_type: TransferFunctionType
-#     measurement_unit: str
-#     min_value: float
-#     min_signal_v: float
-#     max_value: float
-#     max_signal_v: float
-
-#     transfer_function_callback: str = None
-
-# @dataclass
-# class FrontendMessagesContainer(DatabaseRecordDataContainer):
-#     messages: List[FrontendMessage]
+    
 DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataContainer)
 
 ##########################################################
