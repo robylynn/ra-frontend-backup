@@ -1,5 +1,5 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 "use-client";
 
@@ -67,7 +67,6 @@ export function R2AlarmSliderToggle(props: {
                             items-center 
                             flex-shrink-0 
                             ml-4 
-                            
                             text-black
                             text-center
                             after:leading-9

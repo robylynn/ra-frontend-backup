@@ -1,3 +1,6 @@
+// Frontend Web Application for RA Products
+// Developed by R2 Labs
+
 "use client";
 
 import { useContext, useEffect, useState, useRef } from "react";

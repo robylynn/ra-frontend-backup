@@ -84,78 +84,26 @@ export default function DiagnosticsContainer(props: {
     >
       {context.configuration?.configured ? (
         <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>
-          {/* <button
-            className="w-[35%] bg-white"
-            onClick={async () => {
-              let res: NextAPIResponseInterface = await fetch(
-                "api/backend/historian/io_data?number_of_points=5",
-                {
-                  method: "GET",
-                  mode: "cors",
-                }
-              ).then((res) => res.json());
-              console.log("GET response: " + JSON.stringify(res.data));
-
-              let docs = new DatabaseIOStateDocumentArray(res.data.data);
-              let i = 5;
-            }}
-          >
-            GET IO STATE HISTORY BUTTON
-          </button> */}
           <R2Button
             text="GET IO STATE HISTORY"
             onClick={get_IO_state_history}
-            className="w-[50%]"
+            className="w-[55%]"
           />
           <R2Button
             text="GET IO CONFIGURATION"
             onClick={get_IO_configuration}
-            className="w-[50%]"
+            className="w-[55%]"
           />
           <R2Button
             text="CONFIURE IO POINT"
             onClick={configure_point}
-            className="w-[50%]"
+            className="w-[55%]"
           />
           <R2Button
             text="SEND WEBSOCKET MESSAGE"
             onClick={send_websocket_message}
-            className="w-[50%]"
+            className="w-[55%]"
           />
-          {/* <button
-            className="w-[25%] bg-white"
-            onClick={async () => {
-              let body = {
-                index: 5,
-                point_type: "ANALOG_INPUT",
-              };
-              let res: NextAPIResponseInterface = await fetch(
-                "api/backend/configuration/io/configure_point",
-                {
-                  method: "POST",
-                  headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                  },
-                  mode: "cors",
-                  body: JSON.stringify(body),
-                }
-              ).then((res) => res.json());
-              console.log("POST response: " + JSON.stringify(res.data));
-            }}
-          >
-            POST BUTTON
-          </button> */}
-          {/* <button
-            className="w-[25%] bg-white"
-            onClick={() => {
-              if (context.ra_websocket != null) {
-                context.ra_websocket.send("TEST MESSAGE");
-              }
-            }}
-          >
-            WEBSOCKET SEND BUTTON
-          </button> */}
         </div>
       ) : (
         <LoadingIndicator />

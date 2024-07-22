@@ -17,7 +17,6 @@ export default function StateReadout(props: { className?: string }) {
           props.className ?? ""
         }`}
       >
-        {/* {context.latest_document.machine_state} */}
         {"NOT IMPLEMENTED"}
       </p>
     </div>

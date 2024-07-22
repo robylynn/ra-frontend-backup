@@ -1,15 +1,10 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 "use client";
 
 import { Icon } from "@blueprintjs/core";
 import { ReactNode, useContext } from "react";
-
-import {
-  R2AlarmSliderToggle,
-  R2Button,
-} from "@/lib/components/client_components/click_button";
 import { PagePanel } from "@/lib/components/client_components/dashboard_header_container";
 import DashboardContext from "@/lib/models/dashboard_context";
 import { DatabaseDocumentInterface } from "@/lib/models/database_models";
@@ -46,28 +41,28 @@ export default function Header(props: {
 }) {
   const { context } = useContext(DashboardContext);
 
-  const send_estop_command = async (endpoint_slug: string) => {
-    const backend_response = await fetch(
-      `/api/command/estop/${endpoint_slug}`,
-      {
-        method: "POST",
-      },
-    ).then((res) => res.json());
+  // const send_estop_command = async (endpoint_slug: string) => {
+  //   const backend_response = await fetch(
+  //     `/api/command/estop/${endpoint_slug}`,
+  //     {
+  //       method: "POST",
+  //     },
+  //   ).then((res) => res.json());
 
-    console.log(backend_response);
-  };
+  //   console.log(backend_response);
+  // };
 
-  const send_override_alarm_command = async (value: boolean) => {
-    console.log("Overriding global alarms");
-    const backend_response = await fetch(
-      `/api/command/alarm/global/override?enable=${value}`,
-      {
-        method: "POST",
-      },
-    ).then((res) => res.json());
+  // const send_override_alarm_command = async (value: boolean) => {
+  //   console.log("Overriding global alarms");
+  //   const backend_response = await fetch(
+  //     `/api/command/alarm/global/override?enable=${value}`,
+  //     {
+  //       method: "POST",
+  //     },
+  //   ).then((res) => res.json());
 
-    console.log(backend_response);
-  };
+  //   console.log(backend_response);
+  // };
 
   return (
     <PagePanel
@@ -85,47 +80,6 @@ export default function Header(props: {
       >
         R2 Autonomy Monitor
       </RoundedContainer>
-      
-      {/* <RoundedContainer>
-        <IndicatorLight
-          text="MANUAL"
-          state={context.latest_document.machine_state == "MANUAL"}
-        />
-      </RoundedContainer>
-
-      <RoundedContainer className="">
-        <IndicatorLight
-          text="ALARM"
-          state={context.latest_document.alarm_active}
-        />
-        <IndicatorLight
-          text="ESTOP"
-          state={context.latest_document.estop_active}
-        />
-        <R2Button
-          text="CLEAR ESTOP"
-          onClick={() => {
-            send_estop_command("reset");
-          }}
-          className="p-1 rounded-full w-fit"
-        />
-        <R2Button
-          text="SET ESTOP"
-          onClick={() => {
-            send_estop_command("set");
-          }}
-          className="p-1 rounded-full w-fit"
-        />
-      </RoundedContainer>
-      <R2AlarmSliderToggle
-        text="ALARM ON"
-        state={!context.latest_document.alarms_overridden}
-        onClick={() => {
-          send_override_alarm_command(
-            !context.latest_document.alarms_overridden,
-          );
-        }}
-      /> */}
     </PagePanel>
   );
 }

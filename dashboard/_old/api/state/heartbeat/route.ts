@@ -14,9 +14,9 @@ export async function GET() {
   if (session == null) {
     return createAPIResponse({
       authenticated: false,
-      data: {
-        heartbeat: false,
-      },
+      // data: {
+      //   heartbeat: false,
+      // },
     });
   }
 

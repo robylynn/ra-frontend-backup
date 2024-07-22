@@ -1,5 +1,5 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 import Image from "next/image";
 import Link from "next/link";
@@ -78,8 +78,6 @@ export default async function LinksColumn(props: {
             src={"/branding/r2_logo.svg"}
             alt="RA Frontend Built by R2 Labs"
             className="dark:invert"
-            // width={100}
-            // height={100}
             width={75}
             height={75}
             priority
@@ -99,46 +97,16 @@ export default async function LinksColumn(props: {
               icon_path={"/icons/Dashboard.svg"}
               href={"/dashboard"}
             />
-            {/* <PageTab
-              tab_text={"Devices"}
-              icon_path={"/icons/device.svg"}
-              href={"/devices"}
-            />
-            <PageTab
-              tab_text={"Control"}
-              icon_path={"/icons/trello.svg"}
-              href={"/controls"}
-            />
-            <PageTab
-              tab_text={"Measurement"}
-              icon_path={"/icons/sliders.svg"}
-              href={"/measurement"}
-            /> */}
             <PageTab
               tab_text={"Data Charts"}
               icon_path={"/icons/Diagnose.svg"}
               href={"/charts"}
             />
-            {/* <PageTab
-              tab_text={"Control Loops"}
-              icon_path={"/icons/Loop.svg"}
-              href={"/control_loops"}
-            />
-            <PageTab
-              tab_text={"Setup"}
-              icon_path={"/icons/Control.svg"}
-              href={"/setup"}
-            /> */}
             <PageTab
               tab_text={"Diagnostics"}
               icon_path={"/icons/grid.svg"}
               href={"/diagnostics"}
             />
-            {/* <PageTab
-              tab_text={"Safety"}
-              icon_path={"/icons/alert-circle.svg"}
-              href={"/safety"}
-            /> */}
             <PageTab
               tab_text={"Administration"}
               icon_path={"/icons/user.svg"}
