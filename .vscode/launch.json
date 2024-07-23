@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {"name":"Python: Current File","type":"python","request":"launch","program":"${file}","console":"integratedTerminal","justMyCode":false},
         {
             "name": "Python Backend",
             "type": "python",
@@ -12,7 +11,8 @@
             "module": "backend",
             "justMyCode": false,
             "env": {
-                "CONFIG_FILE_DIR": "/home/r2/r2/ra-frontend/config",
+                // "CONFIG_FILE_DIR": "/home/r2/r2/ra-frontend/config",
+                "CONFIG_FILE_DIR": "${workspaceFolder}/config",
                 "CONTAINERIZED": "false",
                 // "SIMULATE_HARDWARE": "false",
                 // "ROOT_DIR": "/home/roby/r2/development/r2-carbonator-controller",
@@ -20,7 +20,9 @@
                 "CONFIG_FILE": "system_configuration.yaml",
                 // "CONTROL_LOOP_CONFIG_FILE": "control_loop_configuration.yaml",
                 // "MQTT_HOST": "127.0.0.1",
-                "PYTHONPATH": "/home/r2/r2/ra-frontend/backend",
+                // "PYTHONPATH": "/home/r2/r2/ra-frontend/backend",
+                "PYTHONPATH": "${workspaceFolder}/backend",
+                
                 // "USER_CODE_DIR": "/home/roby/r2/development/r2-carbonator-controller/user_code",
                 // "LOG_DIRECTORY_ROOT": "/home/roby/r2/development/r2-carbonator-controller",
                 // "BACKUP_LOG_DIRECTORY_ROOT": "/home/roby/r2/development/backup/carbonator",
@@ -35,7 +37,8 @@
             "request": "launch",
             "command": "yarn dev",
             // "justMyCode": true,
-            "cwd": "/home/r2/r2/ra-frontend/dashboard",
+            // "cwd": "/home/r2/r2/ra-frontend/dashboard",
+            "cwd": "${workspaceFolder}/dashboard",
             "serverReadyAction": {
                 "pattern": "started server on .+, url: (https?://.+)",
                 "uriFormat": "%s",

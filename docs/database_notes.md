@@ -22,5 +22,5 @@ use ra_data
 db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"carbonator_data"}, { role: 'readWrite', db: 'carbonator_data' }],mechanisms:[ 'SCRAM-SHA-1', 'SCRAM-SHA-256' ]})
 ```
 
-Another example connection string
-`mongodb://r2:password@ra_database:27017/ra_data`
+## Accessing Data using the mongo UI
+After the mongo UI container has been started, navigate to `<hostname>:5001`, where `<hostname>` is the IP or hostname of the machine running the container. Use the connection string `mongodb://r2:password@ra_database:27017/ra_data`. Selecting the `ra_data` database on the left will open the collections where data can be viewed. Note that nothing will be in the database until the backend starts and the lines to commit data in `ra_interface.py` are run.
