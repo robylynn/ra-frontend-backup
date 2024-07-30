@@ -65,6 +65,7 @@ export enum TransferFunctionType {
 }
 
 export interface IOPointConfigurationInterface {
+  id?: string;
   channel: number;
   type: IOPointType;
   enabled: boolean;
@@ -75,9 +76,11 @@ export interface IOPointConfigurationInterface {
   min_signal_v?: number;
   max_value?: number;
   max_signal_v?: number;
+  value?: any
 }
 
 export class IOPointConfiguration implements IOPointConfigurationInterface {
+  id: string;
   channel: number;
   type: IOPointType;
   enabled: boolean;
@@ -88,8 +91,10 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
   min_signal_v: number;
   max_value: number;
   max_signal_v: number;
+  value: any
 
   constructor(input: IOPointConfigurationInterface) {
+    this.id = input.id;
     this.channel = input.channel;
     this.label = input.label ?? "";
     this.enabled = input.enabled ?? false;
@@ -108,6 +113,7 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
             (input.type ?? "NULL") as keyof typeof TransferFunctionType
           ]
         : (input.transfer_function_type as TransferFunctionType);
+    this.value = input.value;
   }
 }
 

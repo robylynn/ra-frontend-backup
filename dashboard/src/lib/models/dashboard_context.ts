@@ -4,6 +4,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, createContext } from "react";
+import ROSLIB from "roslib";
 
 import {
   DatabaseDocument,
@@ -25,6 +26,8 @@ export class ApplicationContext {
   heartbeat: boolean = false;
   database_online: boolean = false;
   ra_websocket: WebSocket | null = null;
+  ra_ros_websocket: ROSLIB.Ros | null = null;
+  config_service: ROSLIB.Service | null = null;
 
   constructor() {
     this.latest_document = new DatabaseDocument();

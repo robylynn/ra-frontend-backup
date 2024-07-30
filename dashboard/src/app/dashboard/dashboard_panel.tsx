@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { PagePanel } from "@/lib/components/client_components/dashboard_header_container";
 import DiagnosticsContainer from "@/app/diagnostics/diagnostics_container";
+import ROSContainer from "../ros/ros_container";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
@@ -28,7 +29,14 @@ export default function DashboardMainPanel(props: { className?: string }) {
       <DiagnosticsContainer
         id={"diagnostics"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "diagnostics",
+          "diagnostics"
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
+      <ROSContainer
+        id={"ros"}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "ros"
         )}`}
         fill_tile_callback={setFillTile}
       />
