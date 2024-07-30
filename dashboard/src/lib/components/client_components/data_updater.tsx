@@ -20,7 +20,7 @@ export default function DataUpdater(props: {
   const [updateCounter, setUpdateCounter] = useState(0);
   const [configurationUpdateCounter, setConfigurationUpdateCounter] =
     useState(0);
-  const { context, setContext } = useContext(DashboardContext);
+  const { dashboardContext: context, setContext } = useContext(DashboardContext);
 
   // const fetcher= async (path: string) : Promise<any> => {
   async function fetcher<Type>(path: string, timeout: number): Promise<Type> {

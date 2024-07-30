@@ -18,7 +18,7 @@ export default function DiagnosticsContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
-  const { context } = useContext(DashboardContext);
+  const { dashboardContext: context } = useContext(DashboardContext);
 
   const get_IO_state_history = async () => {
     let res: NextAPIResponseInterface = await fetch(

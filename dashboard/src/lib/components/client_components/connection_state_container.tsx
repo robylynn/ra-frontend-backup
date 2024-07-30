@@ -9,7 +9,7 @@ import { useContext, useEffect, useState } from "react";
 import DashboardContext from "@/lib/models/dashboard_context";
 
 export default function ConnectionStateIndicator(props: { className?: string }) {
-  const { context } = useContext(DashboardContext);
+  const { dashboardContext: context } = useContext(DashboardContext);
   const [isClient, setIsClient] = useState<boolean>(false);
   const { data: session } = useSession();
 
@@ -26,7 +26,7 @@ export default function ConnectionStateIndicator(props: { className?: string }) 
   const websocket_text = () => {
     let websocket_connected = context.ra_websocket ? true : false;
     
-    let text = context.ra_websocket ? "WEBSOCKET CONNECTED" : "WAITING FOR CONTEXT"
+    let text = context.ra_websocket ? "WEBSOCKET CONNECTED" : "WAITING FOR WEBSOCKET"
 
     return (
       <p className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocket_connected ? "bg-r2-green-500" : "bg-r2-red-300"}`}>{text}</p>

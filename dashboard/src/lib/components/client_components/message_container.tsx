@@ -17,7 +17,7 @@ interface MessageContainerInterface {
 }
 
 export default function MessageContainer(props: MessageContainerInterface) {
-  const { context } = useContext(DashboardContext);
+  const { dashboardContext: context } = useContext(DashboardContext);
 
   const messages = (): ReactElement[] => {
     const m: ReactElement[] = [];

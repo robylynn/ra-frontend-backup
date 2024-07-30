@@ -7,10 +7,11 @@ import React, { useState, useContext, Dispatch, SetStateAction } from "react";
 import ROSLIB from "roslib"; // Add this import statement
 
 import Modal from "@/lib/components/client_components/Modal";
-import { AnalogInputContext } from "./AnalogInputContext";
+import { AnalogInputContext } from "@/lib/components/client_components/AnalogInputContext";
+import DashboardContext from "@/lib/models/dashboard_context";
 // import DashboardContext from "@/lib/models/dashboard_context";
-import { ApplicationContext } from "@/lib/models/dashboard_context";
-import { IOPointConfiguration } from "@/lib/models/api_models";
+// import { ApplicationContext } from "@/lib/models/dashboard_context";
+import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
 // import { useRos } from "@/lib/ros/RosContext";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
 import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
@@ -21,7 +22,7 @@ type AnalogInputProps = {
   updateInput: any,
   deleteInput: any,
   setIsConfigOpen: Dispatch<SetStateAction<any>>,
-  dashboardContext: ApplicationContext
+  // dashboardContext: ApplicationContext
 }
 
 const AnalogInput = ({
@@ -30,7 +31,7 @@ const AnalogInput = ({
   updateInput,
   deleteInput,
   setIsConfigOpen,
-  dashboardContext
+  // dashboardContext
 }: AnalogInputProps) => {
   const [showConfig, setShowConfig] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Add loading state
@@ -38,6 +39,7 @@ const AnalogInput = ({
   const { inputs } = useContext(AnalogInputContext);
   // const { configService } = useRos();
   // const {context} = useContext
+  const { dashboardContext } = useContext(DashboardContext);
 
   const handleConfigSave = (updatedInput: IOPointConfiguration) => {
     console.log("Updated input:", updatedInput);
@@ -62,16 +64,29 @@ const AnalogInput = ({
     }
 
     // Define the request
+    // const request = new ROSLIB.ServiceRequest({
+    //   label: updatedInput.label,
+    //   channel: updatedInput.channel,
+    //   type: updatedInput.type === "Voltage" ? 0 : 1,
+    //   transfer_function: updatedInput.transferFunction,
+    //   measurement_unit: updatedInput.measurementUnit,
+    //   min_electrical_value: updatedInput.minElectricalValue,
+    //   min_measurement_value: updatedInput.minMeasurementValue,
+    //   max_electrical_value: updatedInput.maxElectricalValue,
+    //   max_measurement_value: updatedInput.maxMeasurementValue,
+    //   custom_transfer_function: "empty transfer function string",
+    // });
+
     const request = new ROSLIB.ServiceRequest({
       label: updatedInput.label,
       channel: updatedInput.channel,
-      type: updatedInput.type === "Voltage" ? 0 : 1,
-      transfer_function: updatedInput.transferFunction,
-      measurement_unit: updatedInput.measurementUnit,
-      min_electrical_value: updatedInput.minElectricalValue,
-      min_measurement_value: updatedInput.minMeasurementValue,
-      max_electrical_value: updatedInput.maxElectricalValue,
-      max_measurement_value: updatedInput.maxMeasurementValue,
+      type: updatedInput.type === IOPointType.ANALOG_VOLTAGE_INPUT ? 0 : 1,
+      transfer_function: updatedInput.transfer_function_type,
+      measurement_unit: updatedInput.measurement_unit,
+      min_electrical_value: updatedInput.min_signal_v,
+      min_measurement_value: updatedInput.min_value,
+      max_electrical_value: updatedInput.max_signal_v,
+      max_measurement_value: updatedInput.max_value,
       custom_transfer_function: "empty transfer function string",
     });
 
@@ -139,7 +154,7 @@ const AnalogInput = ({
     updateInput({ ...input, enabled: checked });
   };
 
-  const interpolateColor = (value) => {
+  const interpolateColor = (value: number) => {
     const startColor = [200, 200, 200]; // RGB for gray
     const endColor = [59, 136, 195]; // RGB for #3B88C3
     const ratio = value / 10;

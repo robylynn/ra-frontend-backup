@@ -39,7 +39,7 @@ export default function Header(props: {
   data_sample?: DatabaseDocumentInterface;
   className?: string;
 }) {
-  const { context } = useContext(DashboardContext);
+  const { dashboardContext: context } = useContext(DashboardContext);
 
   // const send_estop_command = async (endpoint_slug: string) => {
   //   const backend_response = await fetch(

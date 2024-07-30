@@ -8,7 +8,7 @@ import { useContext } from "react";
 import DashboardContext from "@/lib/models/dashboard_context";
 
 export default function StateReadout(props: { className?: string }) {
-  const { context } = useContext(DashboardContext);
+  const { dashboardContext: context } = useContext(DashboardContext);
 
   return (
     <div>

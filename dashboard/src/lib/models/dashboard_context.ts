@@ -40,7 +40,7 @@ export class ApplicationContext {
 const setter: Dispatch<SetStateAction<ApplicationContext>> = () => {};
 
 const DashboardContext = createContext({
-  context: new ApplicationContext(),
+  dashboardContext: new ApplicationContext(),
   setContext: setter,
 });
 

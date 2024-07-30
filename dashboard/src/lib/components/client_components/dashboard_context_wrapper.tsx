@@ -13,7 +13,7 @@ export default function DashboardContextProvider(props: {
   const [data, setData] = useState<ApplicationContext>(new ApplicationContext());
 
   return (
-    <DashboardContext.Provider value={{ context: data, setContext: setData }}>
+    <DashboardContext.Provider value={{ dashboardContext: data, setContext: setData }}>
       {props.children}
     </DashboardContext.Provider>
   );

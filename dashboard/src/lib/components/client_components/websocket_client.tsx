@@ -82,7 +82,7 @@ export default function RAWebSocket(props: {
   websocket_path: string;
   reconnect_period_seconds: number;
 }) {
-  const { context, setContext } = useContext(DashboardContext);
+  const { dashboardContext: context, setContext } = useContext(DashboardContext);
   const [reconnectCounter, setReconnectCounter] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
 
