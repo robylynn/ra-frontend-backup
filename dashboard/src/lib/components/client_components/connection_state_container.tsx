@@ -24,9 +24,8 @@ export default function ConnectionStateIndicator(props: { className?: string }) 
     : "NOT LOGGED IN";
 
   const websocket_text = () => {
-    let websocket_connected = context.ra_websocket ? true : false;
-    
-    let text = context.ra_websocket ? "WEBSOCKET CONNECTED" : "WAITING FOR WEBSOCKET"
+    let websocket_connected = context.ra_ros_websocket ? true : false;
+    let text = websocket_connected ? "WEBSOCKET CONNECTED" : "WAITING FOR WEBSOCKET"
 
     return (
       <p className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocket_connected ? "bg-r2-green-500" : "bg-r2-red-300"}`}>{text}</p>

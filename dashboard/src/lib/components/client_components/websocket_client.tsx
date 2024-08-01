@@ -50,7 +50,7 @@ function connectROSWebSocket(url: string, timeout: number): Promise<ROSLIB.Ros> 
     });
 
     const timer = setTimeout(function () {
-      reject(new Error("webSocket timeout"));
+      reject(new Error("ROS webSocket timeout"));
       done();
       socket.close();
     }, timeout);
@@ -68,12 +68,18 @@ function connectROSWebSocket(url: string, timeout: number): Promise<ROSLIB.Ros> 
       done();
     }
 
-    socket.on("open", () => {
+    // socket.on("open", () => {
+    //   console.log('Connected to Rosbridge server');
+    //   resolve(socket);
+    //   done();
+    // })
+    
+    socket.on("connection", () => {
       console.log('Connected to Rosbridge server');
       resolve(socket);
       done();
     })
-    
+
     socket.on("error", error)
   });
 }
@@ -141,11 +147,22 @@ export default function RAWebSocket(props: {
                 close_websocket();
               });
 
+              // try{
+              //   const config_service = new ROSLIB.Service({
+              //     ros: socket,
+              //     name: '/configure_analog_in',
+              //     serviceType: 'r2c_interfaces/ConfigureAnalogIn'
+              //   });
+              // } catch (e) {
+              //   console.error("Error setting up config service: " + e)
+              // }
+
               const config_service = new ROSLIB.Service({
                 ros: socket,
                 name: '/configure_analog_in',
                 serviceType: 'r2c_interfaces/ConfigureAnalogIn'
               });
+              
 
               ra_ros_websocket.current = socket;
               websocket_connecting.current = false;

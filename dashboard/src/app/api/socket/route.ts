@@ -25,7 +25,8 @@ export async function SOCKET(
     //   var a = 5;
     // }
 
-    let backend_socket = new WebSocket("ws://127.0.0.1:8000/streams/socket");
+    // let backend_socket = new WebSocket("ws://127.0.0.1:8000/streams/socket");
+    let backend_socket = new WebSocket("ws://127.0.0.1:9090");
     console.log("websocket created");
 
     const onBackendWebsocketClose = () => {

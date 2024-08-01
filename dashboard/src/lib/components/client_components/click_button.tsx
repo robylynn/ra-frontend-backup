@@ -108,7 +108,7 @@ export function R2SliderToggle(props: {
       />
       <span
         id={props.text}
-        className="w-48 
+        className="w-24 
                     h-10 
                     flex 
                     items-center 
@@ -124,7 +124,7 @@ export function R2SliderToggle(props: {
                     rounded-full 
                     duration-300 
                     ease-in-out 
-                    after:w-32 after:h-10
+                    after:w-16 after:h-10
                     peer-checked:before:bg-white
                     peer-checked:after:bg-red-600
                     after:rounded-full 
@@ -132,7 +132,7 @@ export function R2SliderToggle(props: {
                     after:duration-300 
                     after:border-2
                     after:border-red-600
-                    peer-checked:after:translate-x-16
+                    peer-checked:after:translate-x-8
                     group-hover:after:translate-x-1 
                     after:content-[attr(id)]
                     "

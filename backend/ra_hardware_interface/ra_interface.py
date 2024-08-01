@@ -85,6 +85,12 @@ class RAInterface(Thread):
     def run(self):
         while True:
             # TODO Add ros subscriptions here
+
+            if not self._hardware_configuration_loaded:
+                self.load_io_system_configuration()
+                # self.add_sensor('temperature_sensor')
+                # self.sensors._sensors['temperature_sensor'].state = 5
+
             if False:
                 if not self._hardware_configuration_loaded:
                     self.load_io_system_configuration()

@@ -15,6 +15,7 @@ import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
 // import { useRos } from "@/lib/ros/RosContext";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
 import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
+import { R2SliderToggle } from "@/lib/components/client_components/click_button";
 
 type AnalogInputProps = {
   index: number,
@@ -167,10 +168,12 @@ const AnalogInput = ({
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center" }}>
+    // <div style={{ display: "flex", alignItems: "center" }}></div>
+    <div className="flex items-center">
       {/* <div className="drag-handle" {...(!showConfig && provided.dragHandleProps)}>⋮⋮⋮</div> */}
       <div
-        className="input-circle"
+        // className="input-circle"
+        className="flex bg-gray-300 rounded-full w-[20px] h-[20px] justify-center items-center m-[8px]"
         style={{
           backgroundColor: interpolateColor(input.value),
         }}
@@ -178,7 +181,7 @@ const AnalogInput = ({
         {input.channel}
       </div>
       <button
-        className="config-button"
+        className="m-8px"
         onClick={() => {
           setShowConfig(true);
           setIsConfigOpen(true);
@@ -201,7 +204,8 @@ const AnalogInput = ({
         )}
         {errorMessage && (
           <div className="error-overlay">
-            <div className="error-dialog">
+            {/* <div className="error-dialog"> */}
+            <div className="bg-white p-[20px] rounded-[5px] shadow-[0px,2px,10px] shadow-black/0.1">
               <p>{errorMessage}</p>
               <button onClick={() => setErrorMessage("")}>Close</button>
             </div>
@@ -224,14 +228,22 @@ const AnalogInput = ({
         checked={input.enabled}
         onChange={handleToggleChange}
       /> */}
-
-      <label className="toggle-switch">
+      <R2SliderToggle
+        text={""}
+        state={input.enabled}
+        onClick={handleToggleChange}
+      />
+      
+      <label className="relative inline-block w-[50px] h-[24px]">
+      {/* <label className="toggle-switch"> */}
         <input
+          className="opacity-0 w-0 h-0"
           type="checkbox"
           checked={input.enabled}
           onChange={handleToggleChange}
         />
-        <span className="slider"></span>
+        {/* <span className="slider"></span> */}
+        <span className="absolute cursor-pointer top-0 "></span>
       </label>
 
       <span className="input-label">{input.label}</span>
@@ -262,8 +274,10 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
   const unitLabel = localInput.type === "Current" ? "(mA)" : "(V)";
 
   return (
-    <div className="dialog">
-      <div className="dialog-row">
+    // <div className="dialog">
+    <div className="flex flex-col">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Label</label>
         <input
           type="text"
@@ -272,7 +286,8 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           onChange={handleChange}
         />
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Channel</label>
         <select
           name="channel"
@@ -285,14 +300,16 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           <option value="3">3</option>
         </select>
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Type</label>
         <select name="type" value={localInput.type} onChange={handleTypeChange}>
           <option value="Voltage">Voltage</option>
           <option value="Current">Current</option>
         </select>
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Transfer Function</label>
         <select
           name="transferFunction"
@@ -303,7 +320,8 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           <option value="custom">Custom</option>
         </select>
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Measurement Unit</label>
         <input
           type="text"
@@ -312,7 +330,8 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           onChange={handleChange}
         />
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Min Electrical Value {unitLabel}</label>
         <input
           type="text"
@@ -321,7 +340,8 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           onChange={handleChange}
         />
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Min Measurement Value ({localInput.measurementUnit})</label>
         <input
           type="text"
@@ -330,7 +350,8 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           onChange={handleChange}
         />
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Max Electrical Value {unitLabel}</label>
         <input
           type="text"
@@ -339,7 +360,8 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           onChange={handleChange}
         />
       </div>
-      <div className="dialog-row">
+      {/* <div className="dialog-row"> */}
+      <div className="flex flex-col mb-[10px]">
         <label>Max Measurement Value ({localInput.measurementUnit})</label>
         <input
           type="text"
@@ -348,9 +370,10 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           onChange={handleChange}
         />
       </div>
-      <div className="dialog-buttons">
-        <button onClick={onDelete}>Delete</button>
-        <button onClick={() => onSave(localInput)}>Save</button>
+      {/* <div className="dialog-buttons"> */}
+      <div className="flex justify-between mt-[20px]">
+        <button className="px-[10px] py-[20px] cursor-pointer" onClick={onDelete}>Delete</button>
+        <button className="px-[10px] py-[20px] cursor-pointer" onClick={() => onSave(localInput)}>Save</button>
       </div>
     </div>
   );

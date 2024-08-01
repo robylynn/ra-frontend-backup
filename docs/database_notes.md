@@ -19,7 +19,7 @@ Then log into the database and set up the databases and users
 ```
 mongosh --port 27017
 use ra_data
-db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"carbonator_data"}, { role: 'readWrite', db: 'carbonator_data' }],mechanisms:[ 'SCRAM-SHA-1', 'SCRAM-SHA-256' ]})
+db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"ra_data"}, { role: 'readWrite', db: 'ra_data' }],mechanisms:[ 'SCRAM-SHA-1', 'SCRAM-SHA-256' ]})
 ```
 
 ## Accessing Data using the mongo UI

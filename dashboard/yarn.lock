@@ -3977,7 +3977,7 @@ robust-predicates@^3.0.2:
 
 roslib@^1.4.1:
   version "1.4.1"
-  resolved "https://registry.npmjs.org/roslib/-/roslib-1.4.1.tgz"
+  resolved "https://registry.yarnpkg.com/roslib/-/roslib-1.4.1.tgz#ddf7c61e60d8e563d46ba8e2ea9ad90f9a1e5aa3"
   integrity sha512-l3BOHqG99RHb73XROykj8o2rRaUqqYwN0E6C1EkH+R1GIfDjMaUGPaCNEoKKmsXT0Vu0EOyL1BudQtdVlMsgjA==
   dependencies:
     "@xmldom/xmldom" "^0.8.0"
