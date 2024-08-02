@@ -15,7 +15,7 @@ import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
 // import { useRos } from "@/lib/ros/RosContext";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
 import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
-import { R2SliderToggle } from "@/lib/components/client_components/click_button";
+import { R2Button, R2SliderToggle } from "@/lib/components/client_components/click_button";
 
 type AnalogInputProps = {
   index: number,
@@ -173,7 +173,7 @@ const AnalogInput = ({
       {/* <div className="drag-handle" {...(!showConfig && provided.dragHandleProps)}>⋮⋮⋮</div> */}
       <div
         // className="input-circle"
-        className="flex bg-gray-300 rounded-full w-[20px] h-[20px] justify-center items-center m-[8px]"
+        className="flex bg-gray-300 rounded-full w-[40px] h-[20px] justify-center items-center m-[8px]"
         style={{
           backgroundColor: interpolateColor(input.value),
         }}
@@ -207,7 +207,11 @@ const AnalogInput = ({
             {/* <div className="error-dialog"> */}
             <div className="bg-white p-[20px] rounded-[5px] shadow-[0px,2px,10px] shadow-black/0.1">
               <p>{errorMessage}</p>
-              <button onClick={() => setErrorMessage("")}>Close</button>
+              {/* <button onClick={() => setErrorMessage("")}>Close</button> */}
+              <R2Button
+                text={"Close"}
+                onClick={() => setErrorMessage("")}
+              />
             </div>
           </div>
         )}
@@ -243,12 +247,13 @@ const AnalogInput = ({
           onChange={handleToggleChange}
         />
         {/* <span className="slider"></span> */}
-        <span className="absolute cursor-pointer top-0 "></span>
+        <span className="absolute cursor-pointer top-0"></span>
       </label>
 
-      <span className="input-label">{input.label}</span>
-      <div className="vertical-divider"></div>
-      <span className="input-type">{input.type}</span>
+      <span className="m-[8px]">{input.label}</span>
+      {/* <div className="vertical-divider"></div> */}
+      <div className="h-[20px] border-l-[1px] border-[#ccc] mx-[16px] my-[16px]"></div>
+      <span className="m-[8px]">{input.type}</span>
     </div>
   );
 };
@@ -372,8 +377,16 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
       </div>
       {/* <div className="dialog-buttons"> */}
       <div className="flex justify-between mt-[20px]">
-        <button className="px-[10px] py-[20px] cursor-pointer" onClick={onDelete}>Delete</button>
-        <button className="px-[10px] py-[20px] cursor-pointer" onClick={() => onSave(localInput)}>Save</button>
+        {/* <button className="px-[10px] py-[20px] cursor-pointer" onClick={onDelete}>Delete</button>
+        <button className="px-[10px] py-[20px] cursor-pointer" onClick={() => onSave(localInput)}>Save</button> */}
+        <R2Button
+          text={"Delete"}
+          onClick={onDelete}
+        />
+        <R2Button
+          text={"Save"}
+          onClick={() => onSave(localInput)}
+        />
       </div>
     </div>
   );

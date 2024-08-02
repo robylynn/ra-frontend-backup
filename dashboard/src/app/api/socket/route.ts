@@ -37,7 +37,7 @@ export async function SOCKET(
 
     const onBackendWebsocketMessage = (message: string) => {
       console.log(`Got message from backend: ${message}`);
-      client.send(message);
+      client.send(message.toString());
     };
 
     const onBackendWebsocketError = (event: ErrorEvent) => {
@@ -59,6 +59,7 @@ export async function SOCKET(
     const onClientWebsocketMessage = (message: string) => {
       console.log(`Got message from client: ${message}`);
       backend_socket.send(message.toString());
+      //var a = 5;
     };
 
     client.on("message", onClientWebsocketMessage);

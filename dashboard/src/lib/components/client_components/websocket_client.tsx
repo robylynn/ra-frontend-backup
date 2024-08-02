@@ -159,7 +159,7 @@ export default function RAWebSocket(props: {
 
               const config_service = new ROSLIB.Service({
                 ros: socket,
-                name: '/configure_analog_in',
+                name: '/gpio/configure_analog_in',
                 serviceType: 'r2c_interfaces/ConfigureAnalogIn'
               });
               

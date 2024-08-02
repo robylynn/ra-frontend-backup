@@ -28,7 +28,7 @@
     margin: 8px;
   }
   
-  .input-label {
+  /* .input-label {
     margin: 8px;
   }
   
@@ -37,10 +37,10 @@
   }
   
   .vertical-divider {
-    height: 20px; /* Match the height of the surrounding elements */
+    height: 20px; Match the height of the surrounding elements 
     border-left: 1px solid #ccc;
-    margin: 16px 16px; /* Add horizontal margin around the divider */
-  }
+    margin: 16px 16px;  Add horizontal margin around the divider 
+  } */
   
   /* .loading-overlay {
     position: fixed;
