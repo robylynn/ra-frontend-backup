@@ -1,5 +1,5 @@
 /* AnalogInput.css */
-.analog-input {
+/* .analog-input {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
@@ -7,7 +7,7 @@
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 4px;
-  }
+  } */
   
   /* .input-circle {
     background-color: lightgray;
@@ -24,9 +24,9 @@
     margin: 8px;
   } */
   
-  .input-checkbox {
+  /* .input-checkbox {
     margin: 8px;
-  }
+  } */
   
   /* .input-label {
     margin: 8px;
@@ -55,19 +55,19 @@
     justify-content: center;
   } */
   
-  .loading-spinner {
+  /* .loading-spinner {
     border: 8px solid rgba(255, 255, 255, 0.3);
     border-top: 8px solid white;
     border-radius: 50%;
     width: 60px;
     height: 60px;
     animation: spin 1s linear infinite;
-  }
+  } */
   
-  @keyframes spin {
+  /* @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
+  } */
   
   /* .error-overlay {
     position: fixed;
@@ -82,7 +82,7 @@
     justify-content: center;
   } */
   
-  .error-dialog {
+  /* .error-dialog {
     background: white;
     padding: 20px;
     border-radius: 5px;
@@ -91,9 +91,9 @@
   
   .error-dialog p {
     margin: 0 0 10px 0;
-  }
+  } */
   
-  .error-dialog button {
+  /* .error-dialog button {
     display: block;
     margin: 0 auto;
     padding: 10px 20px;
@@ -106,10 +106,10 @@
   
   .error-dialog button:hover {
     background: darkred;
-  }
+  } */
   
   /* AnalogInput.css */
-  .dialog {
+  /* .dialog {
     display: flex;
     flex-direction: column;
   }
@@ -140,10 +140,10 @@
   .dialog-buttons button {
     padding: 10px 20px;
     cursor: pointer;
-  }
+  } */
   
   /* AnalogInput.css */
-  .toggle-switch {
+  /* .toggle-switch {
     position: relative;
     display: inline-block;
     width: 50px;
@@ -154,9 +154,9 @@
     opacity: 0;
     width: 0;
     height: 0;
-  }
+  } */
   
-  .slider {
+  /* .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -186,4 +186,4 @@
   
   input:checked + .slider:before {
     transform: translateX(26px);
-  }
+  } */

@@ -40,6 +40,15 @@ module.exports = {
         "r2-dark-background-400": "#333944",
         "r2-dark-background-500": "#262A37",
       },
+      keyframes: {
+        spin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        }
+      },
+      animation: {
+        loading_spin: 'spin 1s linear infinite'
+      }
     },
     fontSize: {
       xs: ["10px", "14px"],

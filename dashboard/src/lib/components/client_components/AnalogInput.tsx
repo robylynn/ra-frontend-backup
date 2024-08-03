@@ -14,7 +14,7 @@ import DashboardContext from "@/lib/models/dashboard_context";
 import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
 // import { useRos } from "@/lib/ros/RosContext";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
-import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
+// import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
 import { R2Button, R2SliderToggle } from "@/lib/components/client_components/click_button";
 
 type AnalogInputProps = {
@@ -190,6 +190,8 @@ const AnalogInput = ({
         ⚙️
       </button>
 
+      {/* <div className="border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div> */}
+
       <Modal
         isOpen={showConfig}
         onClose={() => {
@@ -199,7 +201,8 @@ const AnalogInput = ({
       >
         {isLoading && (
           <div className="loading-overlay">
-            <div className="loading-spinner"></div>
+            {/* <div className="loading-spinner"></div> */}
+            <div className="border-[8px] border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div>
           </div>
         )}
         {errorMessage && (
