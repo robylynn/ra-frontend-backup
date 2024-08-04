@@ -12,7 +12,7 @@ export function R2Button(props: {
 }) {
   return (
     <button
-      className={`border-2 rounded-lg w-[50px] hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] ${
+      className={`border-2 rounded-lg hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] ${
         props.className ?? ""
       }`}
       onClick={props.onClick}
@@ -120,19 +120,21 @@ export function R2SliderToggle(props: {
                     after:leading-9
                     border-2
                     border-red-600
+                    peer-checked:border-green-600
                     bg-gray-300 
                     rounded-full 
                     duration-300 
                     ease-in-out 
-                    after:w-16 after:h-10
-                    peer-checked:before:bg-white
-                    peer-checked:after:bg-red-600
+                    after:w-12 after:h-10
+                    peer-checked:before:bg-red-600
+                    peer-checked:after:bg-green-600
+                    peer-checked:after:border-green-600
                     after:rounded-full 
                     after:shadow-md 
                     after:duration-300 
                     after:border-2
                     after:border-red-600
-                    peer-checked:after:translate-x-8
+                    peer-checked:after:translate-x-12
                     group-hover:after:translate-x-1 
                     after:content-[attr(id)]
                     "

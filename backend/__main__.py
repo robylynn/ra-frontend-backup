@@ -56,4 +56,4 @@ if __name__ == "__main__":
         prefix="/streams"
     )
 
-    uvicorn.run(ra_backend_server, host="0.0.0.0", port=8000, timeout_keep_alive=0)
+    uvicorn.run(ra_backend_server, host="0.0.0.0", port=8000, timeout_keep_alive=0, log_level='debug')

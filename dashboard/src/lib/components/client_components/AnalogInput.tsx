@@ -11,11 +11,12 @@ import { AnalogInputContext } from "@/lib/components/client_components/AnalogInp
 import DashboardContext from "@/lib/models/dashboard_context";
 // import DashboardContext from "@/lib/models/dashboard_context";
 // import { ApplicationContext } from "@/lib/models/dashboard_context";
-import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
+import { IOPointConfiguration, IOPointType, TransferFunctionType } from "@/lib/models/api_models";
 // import { useRos } from "@/lib/ros/RosContext";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
 // import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
 import { R2Button, R2SliderToggle } from "@/lib/components/client_components/click_button";
+
 
 type AnalogInputProps = {
   index: number,
@@ -34,13 +35,12 @@ const AnalogInput = ({
   setIsConfigOpen,
   // dashboardContext
 }: AnalogInputProps) => {
+  const { dashboardContext } = useContext(DashboardContext);
+  const { inputs } = useContext(AnalogInputContext);
+
   const [showConfig, setShowConfig] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Add loading state
-  const [errorMessage, setErrorMessage] = useState(""); // Add error message state
-  const { inputs } = useContext(AnalogInputContext);
-  // const { configService } = useRos();
-  // const {context} = useContext
-  const { dashboardContext } = useContext(DashboardContext);
+  const [errorMessage, setErrorMessage] = useState(""); // Add error message state  
 
   const handleConfigSave = (updatedInput: IOPointConfiguration) => {
     console.log("Updated input:", updatedInput);
@@ -65,19 +65,6 @@ const AnalogInput = ({
     }
 
     // Define the request
-    // const request = new ROSLIB.ServiceRequest({
-    //   label: updatedInput.label,
-    //   channel: updatedInput.channel,
-    //   type: updatedInput.type === "Voltage" ? 0 : 1,
-    //   transfer_function: updatedInput.transferFunction,
-    //   measurement_unit: updatedInput.measurementUnit,
-    //   min_electrical_value: updatedInput.minElectricalValue,
-    //   min_measurement_value: updatedInput.minMeasurementValue,
-    //   max_electrical_value: updatedInput.maxElectricalValue,
-    //   max_measurement_value: updatedInput.maxMeasurementValue,
-    //   custom_transfer_function: "empty transfer function string",
-    // });
-
     const request = new ROSLIB.ServiceRequest({
       label: updatedInput.label,
       channel: updatedInput.channel,
@@ -96,7 +83,6 @@ const AnalogInput = ({
 
     // Call the config service with timeout
     timeoutServiceCall(dashboardContext.config_service, request, 3000)
-    // timeoutServiceCall(configService, request, 3000)
       .then((result) => {
         if ((result as any).success) {
           console.log("Service call successful:", result);
@@ -110,7 +96,7 @@ const AnalogInput = ({
       })
       .catch((error) => {
         console.error("Service call failed:", error);
-        setErrorMessage("Service call failed: " + error.message);
+        setErrorMessage("Service call failed: " + error.toString());
       })
       .finally(() => {
         setIsLoading(false); // Set loading state to false
@@ -160,20 +146,19 @@ const AnalogInput = ({
     const endColor = [59, 136, 195]; // RGB for #3B88C3
     const ratio = value / 10;
 
-    const r = Math.round(startColor[0] + ratio * (endColor[0] - startColor[0]));
-    const g = Math.round(startColor[1] + ratio * (endColor[1] - startColor[1]));
-    const b = Math.round(startColor[2] + ratio * (endColor[2] - startColor[2]));
+    const r = Math.round(startColor[0] + ratio * (endColor[0] - startColor[0])).toString(16);
+    const g = Math.round(startColor[1] + ratio * (endColor[1] - startColor[1])).toString(16);
+    const b = Math.round(startColor[2] + ratio * (endColor[2] - startColor[2])).toString(16);
 
-    return `rgb(${r}, ${g}, ${b})`;
+    // return `rgb(${r}, ${g}, ${b})`;
+    return `#${r}${g}${b}`;
   };
 
   return (
-    // <div style={{ display: "flex", alignItems: "center" }}></div>
     <div className="flex items-center">
       {/* <div className="drag-handle" {...(!showConfig && provided.dragHandleProps)}>⋮⋮⋮</div> */}
       <div
-        // className="input-circle"
-        className="flex bg-gray-300 rounded-full w-[40px] h-[20px] justify-center items-center m-[8px]"
+        className={`flex bg-gray-300 rounded-full w-[40px] h-[20px] justify-center items-center m-[8px] bg-[${interpolateColor(input.value)}]`}
         style={{
           backgroundColor: interpolateColor(input.value),
         }}
@@ -190,8 +175,6 @@ const AnalogInput = ({
         ⚙️
       </button>
 
-      {/* <div className="border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div> */}
-
       <Modal
         isOpen={showConfig}
         onClose={() => {
@@ -200,13 +183,15 @@ const AnalogInput = ({
         }}
       >
         {isLoading && (
-          <div className="loading-overlay">
+          // <div className="loading-overlay">
+          <div className="flex fixed inset-0 bg-black/[0.5] z-[9999] justify-center items-center">
             {/* <div className="loading-spinner"></div> */}
             <div className="border-[8px] border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div>
           </div>
         )}
         {errorMessage && (
-          <div className="error-overlay">
+          // <div className="error-overlay">
+          <div className="flex fixed inset-0 bg-red/[0.5] z-[10000] items-center justify-center">
             {/* <div className="error-dialog"> */}
             <div className="bg-white p-[20px] rounded-[5px] shadow-[0px,2px,10px] shadow-black/0.1">
               <p>{errorMessage}</p>
@@ -241,7 +226,7 @@ const AnalogInput = ({
         onClick={handleToggleChange}
       />
       
-      <label className="relative inline-block w-[50px] h-[24px]">
+      <label className="relative inline-block h-[24px]">
       {/* <label className="toggle-switch"> */}
         <input
           className="opacity-0 w-0 h-0"
@@ -256,17 +241,34 @@ const AnalogInput = ({
       <span className="m-[8px]">{input.label}</span>
       {/* <div className="vertical-divider"></div> */}
       <div className="h-[20px] border-l-[1px] border-[#ccc] mx-[16px] my-[16px]"></div>
-      <span className="m-[8px]">{input.type}</span>
+      <span className="m-[8px]">{IOPointType[input.type]}</span>
     </div>
   );
 };
 
-const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
+interface AnalogInputConfigDialogInterface { 
+  input: IOPointConfiguration;
+  onSave: (updatedInput: IOPointConfiguration) => void;
+  onDelete: () => void;
+}
+
+
+const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigDialogInterface) => {
   const [localInput, setLocalInput] = useState(input);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setLocalInput({ ...localInput, [name]: value });
+  };
+
+  const handleNumericChange = (e) => {
+    const { name, value } = e.target;
+    setLocalInput({ ...localInput, [name]: parseFloat(value) });
+  };
+
+  const handleTransferFunctionChange = (e) => {
+    const value = TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
+    setLocalInput({ ...localInput, transfer_function_type: value });
   };
 
   const handleChannelChange = (e) => {
@@ -275,15 +277,16 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
   };
 
   const handleTypeChange = (e) => {
-    const { value } = e.target;
+    const value = IOPointType[e.target.value as keyof typeof IOPointType];
+    // const value2 = e.target.value as keyof typeof IOPointType;
     setLocalInput({ ...localInput, type: value });
   };
 
-  const unitLabel = localInput.type === "Current" ? "(mA)" : "(V)";
+  const unitLabel = localInput.type === IOPointType.ANALOG_CURRENT_INPUT ? "(mA)" : "(V)";
 
   return (
     // <div className="dialog">
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Label</label>
@@ -308,85 +311,77 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }) => {
           <option value="3">3</option>
         </select>
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Type</label>
-        <select name="type" value={localInput.type} onChange={handleTypeChange}>
-          <option value="Voltage">Voltage</option>
-          <option value="Current">Current</option>
+        <select name="type" value={IOPointType[localInput.type]} onChange={handleTypeChange}>
+          <option value={IOPointType[IOPointType.ANALOG_VOLTAGE_INPUT]}>Voltage</option>
+          <option value={IOPointType[IOPointType.ANALOG_CURRENT_INPUT]}>Current</option>
         </select>
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Transfer Function</label>
         <select
           name="transferFunction"
-          value={localInput.transfer}
-          onChange={handleChange}
+          value={TransferFunctionType[localInput.transfer_function_type]}
+          onChange={handleTransferFunctionChange}
         >
-          <option value="linear">Linear</option>
-          <option value="custom">Custom</option>
+          <option value={TransferFunctionType[TransferFunctionType.LINEAR]}>Linear</option>
+          <option value={TransferFunctionType[TransferFunctionType.CUSTOM]}>Custom</option>
         </select>
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Measurement Unit</label>
         <input
           type="text"
-          name="measurementUnit"
-          value={localInput.measurementUnit}
+          name="measurement_unit"
+          value={localInput.measurement_unit}
           onChange={handleChange}
         />
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Min Electrical Value {unitLabel}</label>
         <input
           type="text"
-          name="minElectricalValue"
-          value={localInput.minValue}
-          onChange={handleChange}
+          name="min_signal_v"
+          value={localInput.min_signal_v}
+          onChange={handleNumericChange}
         />
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
-        <label>Min Measurement Value ({localInput.measurementUnit})</label>
+        <label>Min Measurement Value ({localInput.min_value})</label>
         <input
           type="text"
-          name="minMeasurementValue"
-          value={localInput.minSignal}
-          onChange={handleChange}
+          name="min_value"
+          value={localInput.min_value}
+          onChange={handleNumericChange}
         />
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Max Electrical Value {unitLabel}</label>
         <input
           type="text"
-          name="maxElectricalValue"
-          value={localInput.maxValue}
-          onChange={handleChange}
+          name="max_signal_v"
+          value={localInput.max_signal_v}
+          onChange={handleNumericChange}
         />
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
-        <label>Max Measurement Value ({localInput.measurementUnit})</label>
+        <label>Max Measurement Value ({localInput.measurement_unit})</label>
         <input
           type="text"
-          name="maxMeasurementValue"
-          value={localInput.maxSignal}
-          onChange={handleChange}
+          name="max_value"
+          value={localInput.max_value}
+          onChange={handleNumericChange}
         />
       </div>
-      {/* <div className="dialog-buttons"> */}
       <div className="flex justify-between mt-[20px]">
-        {/* <button className="px-[10px] py-[20px] cursor-pointer" onClick={onDelete}>Delete</button>
-        <button className="px-[10px] py-[20px] cursor-pointer" onClick={() => onSave(localInput)}>Save</button> */}
         <R2Button
+          className="w-[60px]"
           text={"Delete"}
           onClick={onDelete}
         />
         <R2Button
+          className="w-[60px]"
           text={"Save"}
           onClick={() => onSave(localInput)}
         />

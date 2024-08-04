@@ -14,7 +14,7 @@
     margin: 8px;
   } */
 
-  .loading-overlay {
+  /* .loading-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -25,9 +25,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
+  } */
 
-  .error-overlay {
+  /* .error-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -38,7 +38,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
+  } */
 }
 
 :root {

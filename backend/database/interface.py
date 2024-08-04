@@ -694,61 +694,65 @@ class MongoInterface(Process):
         self._pusher_thread.start()
         self._puller_thread.start()
 
+        logger.success(f"Database interface process launched.")
+
         while self._run_process: 
+            try:
+                if self.configuration.local.enabled:
+                    self._database_queues_container.check_queue_sizes()
 
-            if self.configuration.local.enabled:
-                self._database_queues_container.check_queue_sizes()
-
-                if not self.local_connection_established:
-                    try:
-                        self._interface_state.local._connect()
-                        self._database_queues_container.interface_state = self._interface_state
-                        
-                        self._puller_thread._interface_state = self._interface_state
-                        self._pusher_thread._interface_state = self._interface_state
-                    except MongoInterfaceException as e:
-                        logger.error(f"{e.args[0]}. Yielding before local mongo instance connection reattempt")
-                        time.sleep(0)
-                elif not self.local_connection_alive:
-                    logger.error(f"Local database connection lost")
-                    self.local_connection_alive = self._interface_state.local.ping_database()
-                else:
-                    time.sleep(1)
-                    
-                    # TODO implement later
-                    if self.configuration.cloud.enabled and False:
+                    if not self.local_connection_established:
                         try:
-                            if not self.cloud_connection_established:
-                                try:
-                                    self._interface_state.cloud._connect()
-                                    self._data_queue.target_remote_collection = self._interface_state.cloud._data_collection
-                                    self._event_queue.target_remote_collection = self._interface_state.cloud._event_collection
+                            self._interface_state.local._connect()
+                            self._database_queues_container.interface_state = self._interface_state
+                            
+                            self._puller_thread._interface_state = self._interface_state
+                            self._pusher_thread._interface_state = self._interface_state
+                        except MongoInterfaceException as e:
+                            logger.error(f"{e.args[0]}. Yielding before local mongo instance connection reattempt")
+                            time.sleep(0)
+                    elif not self.local_connection_alive:
+                        logger.error(f"Local database connection lost")
+                        self.local_connection_alive = self._interface_state.local.ping_database()
+                    else:
+                        time.sleep(1)
+                        
+                        # TODO implement later
+                        if self.configuration.cloud.enabled and False:
+                            try:
+                                if not self.cloud_connection_established:
+                                    try:
+                                        self._interface_state.cloud._connect()
+                                        self._data_queue.target_remote_collection = self._interface_state.cloud._data_collection
+                                        self._event_queue.target_remote_collection = self._interface_state.cloud._event_collection
 
-                                except MongoInterfaceException as e:
-                                    logger.error(f"{e.args[0]}. Yielding before cloud mongo instance connection reattempt")
-                                    time.sleep(0)
-                                except Exception as e:
-                                    logger.error(f"Unknown error {e.args[0]} when connecting to cloud database")
-                            elif self.local_connection_alive:
-                                for queue in self.database_queues:
-                                    if queue == None: continue
-                                    if (time.time() - queue._last_synchronization_time) >= self.configuration.database_synchronization_period_sec:
-                                        synchronization_time = time.time()
-                                        queue.synchronize_databases(
-                                            batch_size=self.configuration.synchronization_batch_size
-                                        )
-                                        self.cloud_connection_alive = True
-                                        queue._last_synchronization_time = synchronization_time
-                        except MongoLocalInterfaceException as e:
-                            logger.error(f"Unable to synchronize cloud and local databases for queue {queue.name}. Local database connection is down. Received error: {e}")
-                            self.local_connection_alive = False
-                        except (ServerSelectionTimeoutError, MongoCloudInterfaceException, AutoReconnect) as e:
-                            logger.error(f"Unable to synchronize cloud and local databases for queue {queue.name}. Received error: {e}")
-                            self.cloud_connection_alive = False
-                        except Exception as e:
-                            logger.error(f"Synchronization error {e}")
-            else:
-                # Local database is not enabled
-                for _, queue in self._database_queues_container.queues_generator:
-                    while not queue.empty:
-                        queue.get_nowait()
+                                    except MongoInterfaceException as e:
+                                        logger.error(f"{e.args[0]}. Yielding before cloud mongo instance connection reattempt")
+                                        time.sleep(0)
+                                    except Exception as e:
+                                        logger.error(f"Unknown error {e.args[0]} when connecting to cloud database")
+                                elif self.local_connection_alive:
+                                    for queue in self.database_queues:
+                                        if queue == None: continue
+                                        if (time.time() - queue._last_synchronization_time) >= self.configuration.database_synchronization_period_sec:
+                                            synchronization_time = time.time()
+                                            queue.synchronize_databases(
+                                                batch_size=self.configuration.synchronization_batch_size
+                                            )
+                                            self.cloud_connection_alive = True
+                                            queue._last_synchronization_time = synchronization_time
+                            except MongoLocalInterfaceException as e:
+                                logger.error(f"Unable to synchronize cloud and local databases for queue {queue.name}. Local database connection is down. Received error: {e}")
+                                self.local_connection_alive = False
+                            except (ServerSelectionTimeoutError, MongoCloudInterfaceException, AutoReconnect) as e:
+                                logger.error(f"Unable to synchronize cloud and local databases for queue {queue.name}. Received error: {e}")
+                                self.cloud_connection_alive = False
+                            except Exception as e:
+                                logger.error(f"Synchronization error {e}")
+                else:
+                    # Local database is not enabled
+                    for _, queue in self._database_queues_container.queues_generator:
+                        while not queue.empty:
+                            queue.get_nowait()
+            except Exception as e:
+                a=5

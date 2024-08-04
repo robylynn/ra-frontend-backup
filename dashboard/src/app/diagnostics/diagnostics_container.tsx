@@ -83,26 +83,26 @@ export default function DiagnosticsContainer(props: {
       fill_tile_callback={props.fill_tile_callback}
     >
       {context.configuration?.configured ? (
-        <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>
+        <div className={`grid grid-cols-1 p-2 h-full w-full justify-between${props.className ?? ""}`}>
           <R2Button
             text="GET IO STATE HISTORY"
             onClick={get_IO_state_history}
-            className="w-[55%]"
+            // className="w-[55%]"
           />
           <R2Button
             text="GET IO CONFIGURATION"
             onClick={get_IO_configuration}
-            className="w-[55%]"
+            // className="w-[55%]"
           />
           <R2Button
             text="CONFIURE IO POINT"
             onClick={configure_point}
-            className="w-[55%]"
+            // className="w-[55%]"
           />
           <R2Button
             text="SEND WEBSOCKET MESSAGE"
             onClick={send_websocket_message}
-            className="w-[55%]"
+            // className="w-[55%]"
           />
         </div>
       ) : (

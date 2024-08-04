@@ -1,9 +1,21 @@
+// Frontend Web Application for RA Products
+// Developed by R2 Labs
+
 // AnalogInputContext.js
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, Dispatch, SetStateAction } from 'react';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid to generate unique IDs
 import { IOPointConfiguration } from '@/lib/models/api_models';
 
-export const AnalogInputContext = createContext(null);
+interface AnalogInputContextInterface { 
+  inputs: Array<IOPointConfiguration>;
+  setInputs: Dispatch<SetStateAction<Array<IOPointConfiguration>>>;
+  addInput: (input: IOPointConfiguration) => void, 
+  updateInput: (index: number, updatedInput: IOPointConfiguration) => void, 
+  deleteInput: (index: number) => void
+}
+
+
+export const AnalogInputContext = createContext<AnalogInputContextInterface>(null);
 
 export const AnalogInputProvider = ({ children }) => {
   const [inputs, setInputs] = useState<Array<IOPointConfiguration>>([]);
