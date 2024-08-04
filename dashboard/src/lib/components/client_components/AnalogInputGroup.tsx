@@ -3,6 +3,7 @@ import React, { useContext, useState } from 'react';
 import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
 import AnalogInput from '@/lib/components/client_components/AnalogInput';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { R2Button } from './click_button';
 
 const AnalogInputGroup = () => {
   const { inputs, setInputs, addInput, updateInput, deleteInput } = useContext(AnalogInputContext);
@@ -79,7 +80,7 @@ const AnalogInputGroup = () => {
             </div>
           )}
         </Droppable>
-        <button onClick={() => addInput({
+        {/* <button onClick={() => addInput({
           label: 'Analog Input',
           type: 'Voltage',
           channel: 0,
@@ -92,7 +93,25 @@ const AnalogInputGroup = () => {
           value: 0,
           enabled: false })}>
             Add Input
-        </button>
+        </button> */}
+        <R2Button
+          text={"Add Input"}
+          className='w-[80px]'
+          onClick={
+            () => addInput({
+              label: 'Analog Input',
+              type: 'Voltage',
+              channel: 0,
+              transfer: 'linear',
+              measurementUnit: '',
+              minValue: 0,
+              minSignal: 0,
+              maxValue: 0,
+              maxSignal: 0,
+              value: 0,
+              enabled: false })
+          }
+        />
       </div>
     </DragDropContext>
   );
