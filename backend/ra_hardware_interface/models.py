@@ -151,6 +151,14 @@ class IOSystem:
                 IOPoint(configuration=c) for c in configuration.digital_outputs
             ]
         )
+
+        self.analog_inputs = IOPort(
+            name="analog_inputs",
+            number_of_points=len(configuration.analog_inputs),
+            points=[
+                IOPoint(configuration=c) for c in configuration.analog_inputs
+            ]
+        )
     
     def serialize(self) -> Dict:
         d = {}

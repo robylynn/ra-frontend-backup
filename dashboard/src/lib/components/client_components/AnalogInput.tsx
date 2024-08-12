@@ -263,7 +263,13 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigD
 
   const handleNumericChange = (e) => {
     const { name, value } = e.target;
-    setLocalInput({ ...localInput, [name]: parseFloat(value) });
+    let numeric_value = parseFloat(value);
+    if (numeric_value) {
+      setLocalInput({ ...localInput, [name]: numeric_value });
+    } else {
+      setLocalInput({ ...localInput, [name]: "" });
+    }
+    
   };
 
   const handleTransferFunctionChange = (e) => {

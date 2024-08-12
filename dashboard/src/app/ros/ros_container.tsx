@@ -21,17 +21,17 @@ export default function ROSContainer(props: {
     <DashboardHeaderContainer
       header_text={"ROS CONFIGURATION"}
       icon_path={"/icons/sliders.svg"}
-      className={`overflow-y-auto ${props.className ?? ""}`}
+      className={`${props.className ?? ""}`}
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-      <AnalogInputProvider>
+      {/* <AnalogInputProvider> */}
         {/* <div style={{ display: "flex" }}> */}
         <div className="flex">
           <AnalogInputGroup />
           {/* <AnalogInputPlot /> */}
         </div>
-      </AnalogInputProvider>
+      {/* </AnalogInputProvider> */}
     </DashboardHeaderContainer>
     // </RosProvider>
   );

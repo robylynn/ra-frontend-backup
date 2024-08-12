@@ -11,6 +11,9 @@ from enum import Enum, auto
 
 from utils.utils import websocket_message_dict_factory
 
+class APIException(Exception):
+    pass
+
 class AuthenticationResponse(BaseModel):
     authenticated: bool
     signed_token: str
@@ -20,8 +23,24 @@ class APIResponse(BaseModel):
     data: str | List | Dict
 
 class IOConfigurationRequestData(BaseModel):
-    index: int
-    point_type: str
+    point_type: int
+    label: str
+    max_electrical_value: float
+    min_electrical_value: float
+    max_measurement_value: float
+    min_measurement_value: float
+    transfer_function_type: int
+    custom_transfer_function: str
+    channel: int
+    # point_type: str
+
+class AnalogIOStatePostData(BaseModel):
+    # read_channel: bool
+    # value: float
+    # point_type: str
+    time_sec: int
+    time_nsec: int
+    values: Dict[int, float]
 
 class IOPointType(Enum):
     NULL_POINT = auto()

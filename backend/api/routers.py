@@ -20,7 +20,21 @@ from api.models import (
     APIResponse,
     IOPointType,
     FrontendConfiguration,
-    IOConfigurationRequestData
+    IOConfigurationRequestData,
+    AnalogIOStatePostData,
+    APIException
+)
+
+from api.helpers import (
+    create_database_document
+)
+
+from config.models import (
+    TransferFunctionType
+)
+
+from database.models import (
+    DocumentType
 )
 
 auth_router=APIRouter(
@@ -157,12 +171,58 @@ def get_sensor_data(number_of_data_points: int) -> APIResponse:
     )
 
 ###############################################################################
+############################### DATABASE INSERTS ##############################
+###############################################################################
+
+# TODO Accept ROS AnalogIn message instead
+@historian_router.post("/io_data")
+def push_io_state(data: AnalogIOStatePostData) -> APIResponse:
+    initializer.ra_interface.io_system.analog_inputs.points[0].state = data.values[0]
+    initializer.ra_interface.io_system.analog_inputs.points[1].state = data.values[1]
+    initializer.ra_interface.io_system.analog_inputs.points[2].state = data.values[2]
+    for ndx, ai in enumerate(initializer.ra_interface.io_system.analog_inputs.points):
+        ai.state = data.values[ndx]
+
+    initializer.ra_database.enqueue_record(
+        data=create_database_document(
+            timestamp=data.time_sec + data.time_nsec / 1e9,
+            document_type=DocumentType.IO_STATE,
+            data=initializer.ra_interface.io_system.serialize()
+        )
+    )
+
+    return APIResponse(
+        error=False,
+        data="Successful insertion of analog input data"
+    )
+
+###############################################################################
 ################################ CONFIGURATION ################################
 ###############################################################################
 
 @config_router.post("/io/configure_point")
 def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
     logger.info(f"Got configuration request: {config}")
+
+    # TODO FIXME to match point types
+    if config.point_type == 0 or config.point_type == 1:
+        # Analog voltage or current input
+        point = initializer.ra_interface.io_system.analog_inputs.points[config.channel]
+        point.configuration.type = IOPointType.ANALOG_VOLTAGE_INPUT if config.point_type == 0 else IOPointType.ANALOG_CURRENT_INPUT
+        point.configuration.label = config.label
+        point.configuration.max_signal_v = config.max_electrical_value
+        point.configuration.min_signal_v = config.min_electrical_value
+        point.configuration.max_value = config.max_measurement_value
+        point.configuration.min_value = config.min_measurement_value
+        
+        # FIXME to match transfer function types
+        point.configuration.transfer_function_type = TransferFunctionType(config.transfer_function_type + 1)
+        point.configuration.transfer_function_callback = config.custom_transfer_function if point.configuration.transfer_function_type == TransferFunctionType.CUSTOM else None
+        
+        initializer.ra_interface.save_system_configuration()
+
+    else:
+        raise APIException(f"Unknown point type {config.point_type}")
 
     return APIResponse(
         error=False,

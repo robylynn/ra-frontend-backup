@@ -87,7 +87,8 @@ export function DashboardHeaderContainer(props: {
           <></>
         )}
       </div>
-      <div className="h-full mx-2 mb-2 overflow-y-auto rounded-xl bg-r2-dark-background-400">
+      {/* <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-y-auto"> */}
+      <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400">
         {props.children}
       </div>
     </div>

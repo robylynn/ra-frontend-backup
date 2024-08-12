@@ -11,7 +11,7 @@ import DashboardContextProvider from "@/lib/components/client_components/dashboa
 import DataUpdater from "@/lib/components/client_components/data_updater";
 import LinksColumn from "@/lib/components/server_components/links_column";
 import RAWebSocket from "@/lib/components/client_components/websocket_client";
-
+import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,8 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <NextAuthProvider>        
+      <NextAuthProvider>
         <DashboardContextProvider>
+          <AnalogInputProvider>
           <DataUpdater
             update_period_seconds={1}
             configuration_update_period_seconds={5}
@@ -48,6 +49,7 @@ export default function RootLayout({
               <ConnectionStateIndicator />
             </div>
           </body>
+          </AnalogInputProvider>
         </DashboardContextProvider>
       </NextAuthProvider>
     </html>

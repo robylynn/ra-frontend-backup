@@ -135,6 +135,7 @@ class ROSIOPointConfiguration:
 class IOSystemConfiguration:
     digital_inputs: Annotated[List[ROSIOPointConfiguration], 8]
     digital_outputs: Annotated[List[ROSIOPointConfiguration], 8]
+    analog_inputs: Annotated[List[ROSIOPointConfiguration], 3]
 
 @dataclass
 class HardwareConfiguration:
@@ -142,15 +143,18 @@ class HardwareConfiguration:
 
     number_of_digital_inputs: ClassVar[int] = 8
     number_of_digital_outputs: ClassVar[int] = 8
+    number_of_analog_inputs: ClassVar[int] = 3
 
     @staticmethod
     def parse(serialized_configuration: Dict) -> "HardwareConfiguration":
         digital_inputs = serialized_configuration['io_system']['digital_inputs']
         digital_outputs = serialized_configuration['io_system']['digital_outputs']
+        analog_inputs = serialized_configuration['io_system']['analog_inputs']
         return HardwareConfiguration(
             io_system=IOSystemConfiguration(
                 digital_inputs=[ROSIOPointConfiguration(**di) for di in digital_inputs],
-                digital_outputs=[ROSIOPointConfiguration(**do) for do in digital_outputs]
+                digital_outputs=[ROSIOPointConfiguration(**do) for do in digital_outputs],
+                analog_inputs=[ROSIOPointConfiguration(**ai) for ai in analog_inputs]
             )
             
         )
@@ -167,10 +171,16 @@ class HardwareConfiguration:
             for x in range(HardwareConfiguration.number_of_digital_outputs)
         ]
 
+        analog_inputs = [
+            ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_VOLTAGE_INPUT)
+            for x in range(HardwareConfiguration.number_of_analog_inputs)
+        ]
+
         return HardwareConfiguration(
             io_system=IOSystemConfiguration(
                 digital_inputs=digital_inputs,
-                digital_outputs=digital_outputs
+                digital_outputs=digital_outputs,
+                analog_inputs=analog_inputs
             )
         )
     

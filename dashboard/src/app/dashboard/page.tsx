@@ -12,7 +12,7 @@ export default function Dashboard() {
     <ProtectedPage>
       <div className="flex flex-col justify-end h-full">
         <Header className="h-[10%] w-full" />
-        <DashboardMainPanel className="h-[30%] grow" />
+        <DashboardMainPanel className="h-[30%] grow overflow-y-auto" />
         <MessageContainer className="h-[15%]" />
       </div>
     </ProtectedPage>

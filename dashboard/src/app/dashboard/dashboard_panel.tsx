@@ -8,13 +8,16 @@ import { PagePanel } from "@/lib/components/client_components/dashboard_header_c
 import DiagnosticsContainer from "@/app/diagnostics/diagnostics_container";
 import ROSContainer from "@/app/ros/ros_container";
 import IOStateContainer from "@/app/io_state/io_state_container";
+import AnalogInputPlotContainer from "@/app/analog_input_plot/analog_input_plot_container";
+import MotionPlotContainer from "@/app/motion_plot/motion_plot_container";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
 
   const grid_state = () =>
     // fillTile == "" ? "grid grid-cols-[35%_30%_35%] grid-rows-2" : "";
-    fillTile == "" ? "grid grid-cols-[50%_50%] grid-rows-2" : "";
+    fillTile == "" ? "grid grid-cols-[50%_50%] grid-rows-auto" : "";
+    // fillTile == "" ? "flex flex-col" : "";
   const tile_hidden = (tile_name: string) =>
     fillTile != tile_name && fillTile != "" ? "hidden" : "";
 
@@ -24,6 +27,7 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${grid_state()}
         gap-y-2
         transition-all
+        overflow-y-scroll
         ${props.className ?? ""}
         `}
     >
@@ -45,6 +49,20 @@ export default function DashboardMainPanel(props: { className?: string }) {
         id={"io_state"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "io_state"
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
+      <AnalogInputPlotContainer
+        id={"analog_input_plot"}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "analog_input_plot"
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
+      <MotionPlotContainer
+        id={"motion_plot"}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "motion_plot"
         )}`}
         fill_tile_callback={setFillTile}
       />

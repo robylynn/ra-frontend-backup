@@ -78,7 +78,8 @@ export default function DiagnosticsContainer(props: {
     <DashboardHeaderContainer
       header_text={"DIAGNOSTICS"}
       icon_path={"/icons/sliders.svg"}
-      className={`overflow-y-auto ${props.className ?? ""}`}
+      // className={`overflow-y-auto ${props.className ?? ""}`}
+      className={`${props.className ?? ""}`}
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >

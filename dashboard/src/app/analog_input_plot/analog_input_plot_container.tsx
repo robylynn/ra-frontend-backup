@@ -12,8 +12,9 @@ import { HardwareConfiguration, NextAPIResponseInterface } from "@/lib/models/ap
 import { DatabaseIOStateDocumentArray } from "@/lib/models/database_models"
 import { R2Button } from "@/lib/components/client_components/click_button";
 import AnalogInDisplay from "@/lib/components/client_components/AnalogInDisplay";
+import AnalogInputPlot from "@/lib/components/client_components/AnalogInputPlot";
 
-export default function IOStateContainer(props: {
+export default function AnalogInputPlotContainer(props: {
   id: string;
   className?: string;
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
@@ -21,33 +22,33 @@ export default function IOStateContainer(props: {
 }) {
   const { dashboardContext: context } = useContext(DashboardContext);
 
-  const get_IO_state_history = async () => {
-    let res: NextAPIResponseInterface = await fetch(
-      "api/backend/historian/io_data?number_of_points=5",
-      {
-        method: "GET",
-        mode: "cors",
-      }
-    ).then((res) => res.json());
-    console.log("GET response: " + JSON.stringify(res.data));
+  // const get_IO_state_history = async () => {
+  //   let res: NextAPIResponseInterface = await fetch(
+  //     "api/backend/historian/io_data?number_of_points=5",
+  //     {
+  //       method: "GET",
+  //       mode: "cors",
+  //     }
+  //   ).then((res) => res.json());
+  //   console.log("GET response: " + JSON.stringify(res.data));
 
-    let docs = new DatabaseIOStateDocumentArray(res.data.data);
-    let i = 5;
-  }
+  //   let docs = new DatabaseIOStateDocumentArray(res.data.data);
+  //   let i = 5;
+  // }
 
-  const get_IO_configuration = async () => {
-    let res: NextAPIResponseInterface = await fetch(
-      "api/backend/ui/io_configuration",
-      {
-        method: "GET",
-        mode: "cors",
-      }
-    ).then((res) => res.json());
-    console.log("GET response: " + JSON.stringify(res.data));
+  // const get_IO_configuration = async () => {
+  //   let res: NextAPIResponseInterface = await fetch(
+  //     "api/backend/ui/io_configuration",
+  //     {
+  //       method: "GET",
+  //       mode: "cors",
+  //     }
+  //   ).then((res) => res.json());
+  //   console.log("GET response: " + JSON.stringify(res.data));
 
-    let config = new HardwareConfiguration(res.data.data);
-    let i = 5;
-  }
+  //   let config = new HardwareConfiguration(res.data.data);
+  //   let i = 5;
+  // }
   
   // const configure_point = async () => {
   //   let body = {
@@ -77,7 +78,7 @@ export default function IOStateContainer(props: {
 
   return (
     <DashboardHeaderContainer
-      header_text={"IO STATE"}
+      header_text={"ANALOG INPUT PLOT"}
       icon_path={"/icons/sliders.svg"}
       className={`${props.className ?? ""}`}
       fill_tile_id={props.id}
@@ -85,7 +86,8 @@ export default function IOStateContainer(props: {
     >
       {/* <AnalogInDisplay/> */}
       {context.configuration?.configured ? (
-        <AnalogInDisplay/>
+        // <AnalogInDisplay/>
+        <AnalogInputPlot/>
         // <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>
         //   <R2Button
         //     text="GET IO STATE HISTORY"
