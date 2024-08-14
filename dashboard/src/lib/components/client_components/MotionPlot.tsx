@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import DashboardContext from "@/lib/models/dashboard_context";
 import { Topic } from 'roslib';
-// import ros from '../ros/ros'; // Adjust the path as necessary
+import DashboardContext from "@/lib/models/dashboard_context";
 
 const VelocityPlot = () => {
   // Initialize state with an object of four arrays for velocity data

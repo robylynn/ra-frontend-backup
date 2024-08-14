@@ -5,12 +5,56 @@
 
 // AnalogInputPlot.js
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Topic } from 'roslib';
+import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
+import DashboardContext from '@/lib/models/dashboard_context';
+
+
+
+interface AnalogInputDataPoint {
+  time: number,
+  [key: number]: number
+}
+
+const Plot = (props: {data: Array<AnalogInputDataPoint>}) => {
+  return (
+    <div>
+      <h2>Analog Inputs</h2>
+      <ResponsiveContainer width="100%" height={400}>
+        <LineChart data={props.data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone"
+                dataKey={0}
+                stroke="#8884d8"
+                isAnimationActive={true}
+                animationBegin={0}
+                animationDuration={1500}
+                animationEasing="ease-in-out" />
+          <Line type="monotone"
+                dataKey={1}
+                stroke="#82ca9d"
+                isAnimationActive={false}
+                animationBegin={0}
+                animationDuration={50}
+                animationEasing="ease-in-out" />
+          <Line type="monotone" dataKey={2} stroke="#ffc658" isAnimationActive={false} />
+          {/* <Line type="monotone" dataKey="axis_3" stroke="#ff7300" isAnimationActive={false} /> */}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
 
 const AnalogInputPlot = () => {
   const { inputs } = useContext(AnalogInputContext);
+  const { dashboardContext } = useContext(DashboardContext);
   const [visiblePlots, setVisiblePlots] = useState([]);
+  const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>([]);
   const analog_in_subscription = useRef<Topic | null>();
 
   const togglePlotVisibility = (index) => {
@@ -21,57 +65,74 @@ const AnalogInputPlot = () => {
     }
   };
 
+  // const [updateCounter, setUpdateCounter] = useState(0);
+
   // useEffect(() => {
-  //   const subscribeToVelocities = (axisIndex: number) => {
-  //     if (!subscriptions.current[axisIndex]) {
-  //       if (dashboardContext.ra_ros_websocket) {
-  //           subscriptions.current[axisIndex] = new Topic({
-  //               ros: dashboardContext.ra_ros_websocket,
-  //               name: `/axis_${axisIndex}/pos_vel`,
-  //               messageType: 'r2c_interfaces/EncoderEstimates'
-  //           });
-
-  //           subscriptions.current[axisIndex].subscribe((message) => {
-  //               setVelocityData((prevData) => {
-  //                   const newVelocityData = {
-  //                   ...prevData,
-  //                   [`axis_${axisIndex}`]: [
-  //                       ...prevData[`axis_${axisIndex}`],
-  //                       { time: new Date(), velocity: message.velocity }
-  //                   ].slice(-50) // Keep only the latest 50 data points
-  //                   };
-  //                   return newVelocityData;
-  //               });
-  //           });
-
-  //           // subscriptions.current[axisIndex] = 
-  //           // ros.subscribeToTopic(`/axis_${axisIndex}/pos_vel`, 'r2c_interfaces/EncoderEstimates', (message) => {
-
-            
-
-            
-  //           // });
-
-  //           console.log(`Subscribed to /axis_${axisIndex}/pos_vel`);
-  //       }
-        
-  //     }
-  //   };
-
-  //   // Subscribe to all 4 axis topics
-  //   [0, 1, 2, 3].forEach(subscribeToVelocities);
-
-  //   // Cleanup function to unsubscribe on component unmount
-  //   return () => {
-  //     [0, 1, 2, 3].forEach((axisIndex) => {
-  //       if (subscriptions.current[axisIndex]) {
-  //         subscriptions.current[axisIndex].unsubscribe();
-  //         subscriptions.current[axisIndex] = null;
-  //         console.log(`Unsubscribed from /axis_${axisIndex}/pos_vel`);
-  //       }
-  //     });
-  //   };
+  //   const intervalId = setInterval(() => {
+  //     setUpdateCounter((counter) => counter + 1);
+  //   }, 1 * 1000);
+  //   return () => clearInterval(intervalId);
   // }, []);
+
+  useEffect(() => {
+    const subscribeToAnalogInputs = () => {
+      if (!analog_in_subscription.current) {
+        if (dashboardContext.ra_ros_websocket) {
+          analog_in_subscription.current = new Topic({
+            ros: dashboardContext.ra_ros_websocket,
+            name: `/gpio/analog_in_electrical_units`,
+            messageType: 'r2c_interfaces/AnalogIn'
+          })
+
+          analog_in_subscription.current.subscribe((message) => {
+            setAnalogInData((prevData) => {
+              let time = (message as any).stamp.sec + (message as any).stamp.nanosec / 1e9;
+
+              let data_point: AnalogInputDataPoint = {
+                // time: new Date(time)
+                time: time
+              };
+
+              (message as any).values.forEach((v, i) => {
+                data_point[i] = v
+                // prevData[i].unshift(v);
+                // if (prevData[i].length > 100) {
+                //   prevData[i] = prevData[i].slice(0, 100);
+                // }
+              })
+
+              prevData.unshift(data_point);
+
+              if (prevData.length > 100) {
+                prevData = prevData.slice(0,100);
+              }
+
+              return prevData;
+              // return (message as any).values;
+              // return new Array<number>([
+              //   message.values[0],
+              //   message.values[1],
+              //   message.values[2],
+              // ])
+            })
+          })
+
+          console.log(`Subscribed to /gpio/analog_in_electrical_units`);
+        }
+      }
+    }
+    
+    subscribeToAnalogInputs();
+    
+    // Cleanup function to unsubscribe on component unmount
+    return () => {
+      if (analog_in_subscription.current)
+        analog_in_subscription.current.unsubscribe();
+        analog_in_subscription.current = null;
+        console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
+
+    };
+  }, [dashboardContext.ra_ros_websocket]);
 
   return (
     <div>
@@ -92,6 +153,7 @@ const AnalogInputPlot = () => {
       <div>
         {/* Plot component here, using visiblePlots to determine which plots to show */}
         {visiblePlots.map((v, i) => <p>{i}</p>)}
+        <Plot data={analogInData}/>
       </div>
     </div>
   );
