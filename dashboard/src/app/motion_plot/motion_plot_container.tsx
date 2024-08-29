@@ -5,7 +5,7 @@
 
 import { useContext, Dispatch, SetStateAction } from "react";
 
-import { DashboardHeaderContainer } from "@/lib/components/client_components/dashboard_header_container";
+import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import DashboardContext from "@/lib/models/dashboard_context";
 import VelocityPlot from '@/lib/components/client_components/MotionPlot';

@@ -6,7 +6,7 @@ import React, { useContext, useState } from 'react';
 import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
 import AnalogInput from '@/lib/components/client_components/AnalogInput';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { R2Button } from './click_button';
+import { R2Button } from './ClickButton';
 import { IOPointType, TransferFunctionType } from '@/lib/models/api_models';
 
 const AnalogInputGroup = () => {

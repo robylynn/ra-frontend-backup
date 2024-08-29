@@ -710,7 +710,7 @@ class MongoInterface(Process):
                             self._pusher_thread._interface_state = self._interface_state
                         except MongoInterfaceException as e:
                             logger.error(f"{e.args[0]}. Yielding before local mongo instance connection reattempt")
-                            time.sleep(0)
+                            time.sleep(1)
                     elif not self.local_connection_alive:
                         logger.error(f"Local database connection lost")
                         self.local_connection_alive = self._interface_state.local.ping_database()

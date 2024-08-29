@@ -5,7 +5,7 @@
 
 import { Icon } from "@blueprintjs/core";
 import { ReactNode, useContext } from "react";
-import { PagePanel } from "@/lib/components/client_components/dashboard_header_container";
+import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 import DashboardContext from "@/lib/models/dashboard_context";
 import { DatabaseDocumentInterface } from "@/lib/models/database_models";
 

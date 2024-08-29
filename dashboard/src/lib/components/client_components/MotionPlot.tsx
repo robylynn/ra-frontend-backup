@@ -44,14 +44,6 @@ const VelocityPlot = () => {
                 });
             });
 
-            // subscriptions.current[axisIndex] = 
-            // ros.subscribeToTopic(`/axis_${axisIndex}/pos_vel`, 'r2c_interfaces/EncoderEstimates', (message) => {
-
-            
-
-            
-            // });
-
             console.log(`Subscribed to /axis_${axisIndex}/pos_vel`);
         }
         
@@ -71,7 +63,7 @@ const VelocityPlot = () => {
         }
       });
     };
-  }, []); 
+  }, [dashboardContext.ra_ros_websocket]); 
 
   // Combine data for plotting
   const combinedData = velocityData.axis_0.map((_, index) => ({

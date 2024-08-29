@@ -4,7 +4,7 @@
 "use client";
 
 import { useState } from "react";
-import { PagePanel } from "@/lib/components/client_components/dashboard_header_container";
+import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 import DiagnosticsContainer from "@/app/diagnostics/diagnostics_container";
 import ROSContainer from "@/app/ros/ros_container";
 import IOStateContainer from "@/app/io_state/io_state_container";

@@ -1,23 +1,30 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-"use client"
+"use client";
 
 // AnalogInputPlot.js
-import React, { useContext, useState, useRef, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Topic } from 'roslib';
-import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
-import DashboardContext from '@/lib/models/dashboard_context';
-
-
+import React, { useContext, useState, useRef, useEffect } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { Topic } from "roslib";
+import { AnalogInputContext } from "@/lib/components/client_components/AnalogInputContext";
+import DashboardContext from "@/lib/models/dashboard_context";
 
 interface AnalogInputDataPoint {
-  time: number,
-  [key: number]: number
+  time: number;
+  [key: number]: number;
 }
 
-const Plot = (props: {data: Array<AnalogInputDataPoint>}) => {
+const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
   return (
     <div>
       <h2>Analog Inputs</h2>
@@ -28,33 +35,44 @@ const Plot = (props: {data: Array<AnalogInputDataPoint>}) => {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone"
-                dataKey={0}
-                stroke="#8884d8"
-                isAnimationActive={true}
-                animationBegin={0}
-                animationDuration={1500}
-                animationEasing="ease-in-out" />
-          <Line type="monotone"
-                dataKey={1}
-                stroke="#82ca9d"
-                isAnimationActive={false}
-                animationBegin={0}
-                animationDuration={50}
-                animationEasing="ease-in-out" />
-          <Line type="monotone" dataKey={2} stroke="#ffc658" isAnimationActive={false} />
+          <Line
+            type="monotone"
+            dataKey={0}
+            stroke="#8884d8"
+            isAnimationActive={false}
+            animationBegin={0}
+            animationDuration={500}
+            animationEasing="ease-in-out"
+          />
+          <Line
+            type="monotone"
+            dataKey={1}
+            stroke="#82ca9d"
+            isAnimationActive={false}
+            animationBegin={0}
+            animationDuration={50}
+            animationEasing="ease-in-out"
+          />
+          <Line
+            type="monotone"
+            dataKey={2}
+            stroke="#ffc658"
+            isAnimationActive={false}
+          />
           {/* <Line type="monotone" dataKey="axis_3" stroke="#ff7300" isAnimationActive={false} /> */}
         </LineChart>
       </ResponsiveContainer>
     </div>
-  )
-}
+  );
+};
 
-const AnalogInputPlot = () => {
+const AnalogInputPlot = (props: { length: number }) => {
   const { inputs } = useContext(AnalogInputContext);
   const { dashboardContext } = useContext(DashboardContext);
   const [visiblePlots, setVisiblePlots] = useState([]);
-  const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>([]);
+  const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
+    []
+  );
   const analog_in_subscription = useRef<Topic | null>();
 
   const togglePlotVisibility = (index) => {
@@ -65,15 +83,6 @@ const AnalogInputPlot = () => {
     }
   };
 
-  // const [updateCounter, setUpdateCounter] = useState(0);
-
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     setUpdateCounter((counter) => counter + 1);
-  //   }, 1 * 1000);
-  //   return () => clearInterval(intervalId);
-  // }, []);
-
   useEffect(() => {
     const subscribeToAnalogInputs = () => {
       if (!analog_in_subscription.current) {
@@ -81,56 +90,44 @@ const AnalogInputPlot = () => {
           analog_in_subscription.current = new Topic({
             ros: dashboardContext.ra_ros_websocket,
             name: `/gpio/analog_in_electrical_units`,
-            messageType: 'r2c_interfaces/AnalogIn'
-          })
+            messageType: "r2c_interfaces/AnalogIn",
+          });
 
+          let original_data;
           analog_in_subscription.current.subscribe((message) => {
             setAnalogInData((prevData) => {
-              let time = (message as any).stamp.sec + (message as any).stamp.nanosec / 1e9;
+              let time =
+                (message as any).stamp.sec +
+                (message as any).stamp.nanosec / 1e9;
 
               let data_point: AnalogInputDataPoint = {
-                // time: new Date(time)
-                time: time
+                time: time,
               };
 
               (message as any).values.forEach((v, i) => {
-                data_point[i] = v
-                // prevData[i].unshift(v);
-                // if (prevData[i].length > 100) {
-                //   prevData[i] = prevData[i].slice(0, 100);
-                // }
-              })
+                data_point[i] = v;
+              });
 
-              prevData.unshift(data_point);
+              prevData.push(data_point);
 
-              if (prevData.length > 100) {
-                prevData = prevData.slice(0,100);
-              }
-
+              prevData = prevData.reverse().slice(0, props.length).reverse();
               return prevData;
-              // return (message as any).values;
-              // return new Array<number>([
-              //   message.values[0],
-              //   message.values[1],
-              //   message.values[2],
-              // ])
-            })
-          })
+            });
+          });
 
           console.log(`Subscribed to /gpio/analog_in_electrical_units`);
         }
       }
-    }
-    
+    };
+
     subscribeToAnalogInputs();
-    
+
     // Cleanup function to unsubscribe on component unmount
     return () => {
       if (analog_in_subscription.current)
         analog_in_subscription.current.unsubscribe();
-        analog_in_subscription.current = null;
-        console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
-
+      analog_in_subscription.current = null;
+      console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
     };
   }, [dashboardContext.ra_ros_websocket]);
 
@@ -152,8 +149,10 @@ const AnalogInputPlot = () => {
         ))}
       <div>
         {/* Plot component here, using visiblePlots to determine which plots to show */}
-        {visiblePlots.map((v, i) => <p>{i}</p>)}
-        <Plot data={analogInData}/>
+        {visiblePlots.map((v, i) => (
+          <p>{i}</p>
+        ))}
+        <Plot data={analogInData} />
       </div>
     </div>
   );

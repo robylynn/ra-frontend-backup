@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 
 import authOptions from "@/lib/auth/auth_options";
-import StateReadout from "@/lib/components/client_components/state_readout";
+import StateReadout from "@/lib/components/client_components/StateReadout";
 
 function PageTab(props: {
   icon_path: string;

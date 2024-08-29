@@ -15,7 +15,7 @@ import { IOPointConfiguration, IOPointType, TransferFunctionType } from "@/lib/m
 // import { useRos } from "@/lib/ros/RosContext";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
 // import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
-import { R2Button, R2SliderToggle } from "@/lib/components/client_components/click_button";
+import { R2Button, R2SliderToggle } from "@/lib/components/client_components/ClickButton";
 
 
 type AnalogInputProps = {

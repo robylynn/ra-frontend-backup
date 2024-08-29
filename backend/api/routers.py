@@ -146,6 +146,7 @@ def get_ui_io_configuration():
 ############################## DATABASE REQUESTS ##############################
 ###############################################################################
 
+# TODO make new endpoints that just return raw ROS JSON data
 @historian_router.get("/io_data")
 def get_io_data_points(number_of_points: int) -> APIResponse:
     points = initializer.ra_database.get_io_state(number_of_points=number_of_points, timeout=1)
@@ -175,6 +176,7 @@ def get_sensor_data(number_of_data_points: int) -> APIResponse:
 ###############################################################################
 
 # TODO Accept ROS AnalogIn message instead
+# TODO actually, just accept JSON from ROS2JSON
 @historian_router.post("/io_data")
 def push_io_state(data: AnalogIOStatePostData) -> APIResponse:
     initializer.ra_interface.io_system.analog_inputs.points[0].state = data.values[0]

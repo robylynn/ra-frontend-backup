@@ -50,3 +50,8 @@ def configure_gpio_callback(self, request: ConfigureAnalogIn_Request, response: 
     response.success = True
     return response
 ```
+
+TODO
+Make new endpoints for ROS JSON only data for database
+Fix analog plot
+Parse UI configuration on startup to render frontend

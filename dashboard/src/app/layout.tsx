@@ -6,11 +6,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import NextAuthProvider from "@/lib/auth/next_auth_provider";
-import ConnectionStateIndicator from "@/lib/components/client_components/connection_state_container";
-import DashboardContextProvider from "@/lib/components/client_components/dashboard_context_wrapper";
-import DataUpdater from "@/lib/components/client_components/data_updater";
+import ConnectionStateIndicator from "@/lib/components/client_components/ConnectionStateContainer";
+import DashboardContextProvider from "@/lib/components/client_components/DashboardContextWrapper";
+import DataUpdater from "@/lib/components/client_components/DataUpdater";
 import LinksColumn from "@/lib/components/server_components/links_column";
-import RAWebSocket from "@/lib/components/client_components/websocket_client";
+import RAWebSocket from "@/lib/components/client_components/WebsocketClient";
 import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
 
 const inter = Inter({ subsets: ["latin"] });

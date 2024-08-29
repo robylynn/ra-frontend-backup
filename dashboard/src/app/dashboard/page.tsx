@@ -1,8 +1,8 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-import Header from "@/lib/components/client_components/header";
-import MessageContainer from "@/lib/components/client_components/message_container";
+import Header from "@/lib/components/client_components/Header";
+import MessageContainer from "@/lib/components/client_components/MessageContainer";
 import ProtectedPage from "@/lib/components/server_components/protected_page";
 
 import DashboardMainPanel from "./dashboard_panel";

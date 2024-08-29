@@ -8,7 +8,7 @@ import { ReactElement, useContext } from "react";
 import {
   DashboardHeaderContainer,
   PagePanel,
-} from "@/lib/components/client_components/dashboard_header_container";
+} from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import DashboardContext from "@/lib/models/dashboard_context";
 
