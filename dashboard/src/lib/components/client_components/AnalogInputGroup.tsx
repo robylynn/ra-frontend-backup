@@ -2,16 +2,21 @@
 // Developed by R2 Labs
 
 // AnalogInputGroup.js
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
 import AnalogInput from '@/lib/components/client_components/AnalogInput';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { R2Button } from './ClickButton';
-import { IOPointType, TransferFunctionType } from '@/lib/models/api_models';
+import { HardwareConfiguration, IOPointConfiguration, IOPointType, TransferFunctionType } from '@/lib/models/api_models';
+import timeoutFetch from '@/lib/utils/timeoutFetch';
+import { HardwareConfigurationInterface } from '@/lib/models/api_models';
+import DashboardContext from "@/lib/models/dashboard_context";
 
 const AnalogInputGroup = () => {
   const { inputs, setInputs, addInput, updateInput, deleteInput } = useContext(AnalogInputContext);
+  const { dashboardContext } = useContext(DashboardContext);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [hardwareConfiguration, setHardwareConfiguration] = useState<HardwareConfiguration | null>(null);
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -39,12 +44,36 @@ const AnalogInputGroup = () => {
     ...draggableStyle
   });
 
-  const getListStyle = isDraggingOver => ({
-    background: isDraggingOver ? "lightblue" : "lightgrey",
-    padding: grid,
-    width: 600,
-    borderRadius: '4px'
-  });
+  // const getListStyle = isDraggingOver => ({
+  //   background: isDraggingOver ? "lightblue" : "lightgrey",
+  //   padding: grid,
+  //   width: 600,
+  //   borderRadius: '4px'
+  // });
+
+  useEffect(() => {
+    const get_io_configuration = async () => {
+      await timeoutFetch<HardwareConfigurationInterface>(`/api/backend/ui/io_configuration`, 5000)
+        .then((data) => {
+          if (data) {
+            let configuration = new HardwareConfiguration(data);
+            // console.log("Got initial data");
+            console.log("Got IO configuration")
+            setHardwareConfiguration(() => configuration)
+            
+            // let io_points: Array<IOPointConfiguration> = [];
+            let io_points: Array<IOPointConfiguration> = configuration.io_system.analog_inputs.map((v, i) => new IOPointConfiguration(v));
+            io_points.forEach((i) => i.enabled = true);
+            setInputs(io_points);
+          }
+        })
+        .catch((e) => {
+          console.error(`Error acquiring IO configuration: ${e}`)
+          // initial_data_acquired.current = true;
+        })
+    };
+    get_io_configuration();
+  }, [dashboardContext.heartbeat])
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -63,18 +92,11 @@ const AnalogInputGroup = () => {
                 type: IOPointType.ANALOG_VOLTAGE_INPUT,
                 channel: 0,
                 transfer_function_type: TransferFunctionType.LINEAR,
-                // transfer: 'linear',
                 measurement_unit: '',
-                // measurementUnit: '',
                 min_value: 0,
                 min_signal_v: 0,
                 max_value: 0,
                 max_signal_v: 0,
-                
-                // minValue: 0,
-                // minSignal: 0,
-                // maxValue: 0,
-                // maxSignal: 0,
                 value: 0,
                 enabled: false })
             }

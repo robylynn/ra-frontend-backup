@@ -120,11 +120,13 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
 export interface IOConfigurationInterface {
   digital_inputs: Array<IOPointConfigurationInterface>;
   digital_outputs: Array<IOPointConfigurationInterface>;
+  analog_inputs: Array<IOPointConfigurationInterface>;
 }
 
 export class IOConfiguration implements IOConfigurationInterface {
   digital_inputs: Array<IOPointConfiguration> = [];
   digital_outputs: Array<IOPointConfiguration> = [];
+  analog_inputs: Array<IOPointConfigurationInterface> = [];
 
   constructor(input: IOConfigurationInterface) {
     input.digital_inputs.forEach((i) => {
@@ -133,6 +135,10 @@ export class IOConfiguration implements IOConfigurationInterface {
 
     input.digital_outputs.forEach((o) => {
       this.digital_outputs.push(new IOPointConfiguration(o));
+    });
+    
+    input.analog_inputs.forEach((i) => {
+      this.analog_inputs.push(new IOPointConfiguration(i));
     });
   }
 }

@@ -135,6 +135,19 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
         ).serialize()
     )
 
+@ui_router.post("/configuration")
+async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse:
+    
+    if client_id == None or int(client_id) == -1:
+        client_id = initializer.ra_frontend.add_client()
+
+    return APIResponse(
+        error=False,
+        data=FrontendConfiguration(
+            client_id=client_id
+        ).serialize()
+    )
+
 @ui_router.get("/io_configuration")
 def get_ui_io_configuration():
     config = initializer.ra_database.get_latest_system_configuration(timeout=1)

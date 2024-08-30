@@ -71,7 +71,7 @@ const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
 const AnalogInputPlot = (props: { length: number }) => {
   const { inputs } = useContext(AnalogInputContext);
   const { dashboardContext } = useContext(DashboardContext);
-  const [visiblePlots, setVisiblePlots] = useState([]);
+  const [visiblePlots, setVisiblePlots] = useState([0, 1, 2]);
   const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
     []
   );
@@ -171,6 +171,11 @@ const AnalogInputPlot = (props: { length: number }) => {
   }, [dashboardContext.ra_ros_websocket]);
 
   let a = 5;
+  // inputs.forEach((v, i) => setVisiblePlots((plots) => plots.forEach(v, i) => {}))
+  // setVisiblePlots((plots) => {
+  //   plots.forEach((p) => {console.log(p)})
+  //   return plots;
+  // })
 
   return (
     analogInData.length == 0 ? 

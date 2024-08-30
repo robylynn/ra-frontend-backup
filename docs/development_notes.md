@@ -54,4 +54,5 @@ def configure_gpio_callback(self, request: ConfigureAnalogIn_Request, response: 
 TODO
 Make new endpoints for ROS JSON only data for database
 Fix analog plot
-Parse UI configuration on startup to render frontend
+Parse IO configuration on startup to render frontend
+Create UI configuration structure and store in database
