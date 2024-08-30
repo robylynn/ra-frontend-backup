@@ -1,14 +1,14 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-"use client";
+// "use client";
 
-import { useContext, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 // import { RosProvider } from "@/lib/ros/RosContext";
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
-import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
+// import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
 import AnalogInputGroup from "@/lib/components/client_components/AnalogInputGroup";
-import AnalogInDisplay from "@/lib/components/client_components/AnalogInDisplay";
+// import AnalogInDisplay from "@/lib/components/client_components/AnalogInDisplay";
 
 export default function ROSContainer(props: {
   id: string;
@@ -17,7 +17,6 @@ export default function ROSContainer(props: {
   force_expanded?: boolean;
 }) {
   return (
-    // <RosProvider>
     <DashboardHeaderContainer
       header_text={"ROS CONFIGURATION"}
       icon_path={"/icons/sliders.svg"}
@@ -25,14 +24,9 @@ export default function ROSContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-      {/* <AnalogInputProvider> */}
-        {/* <div style={{ display: "flex" }}> */}
         <div className="flex">
           <AnalogInputGroup />
-          {/* <AnalogInputPlot /> */}
         </div>
-      {/* </AnalogInputProvider> */}
     </DashboardHeaderContainer>
-    // </RosProvider>
   );
 }

@@ -12,6 +12,7 @@ import {
   UIConfiguration,
 } from "@/lib/models/api_models";
 import DashboardContext from "@/lib/models/dashboard_context";
+import timeoutFetch from "@/lib/utils/timeoutFetch";
 
 export default function DataUpdater(props: {
   update_period_seconds: number;
@@ -23,41 +24,41 @@ export default function DataUpdater(props: {
   const { dashboardContext: context, setContext } = useContext(DashboardContext);
 
   // const fetcher= async (path: string) : Promise<any> => {
-  async function fetcher<Type>(path: string, timeout: number): Promise<Type> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort("Timeout");
-    }, timeout);
+  // async function fetcher<Type>(path: string, timeout: number): Promise<Type> {
+  //   const controller = new AbortController();
+  //   const timeoutId = setTimeout(() => {
+  //     controller.abort("Timeout");
+  //   }, timeout);
 
-    let request_params: RequestInit = {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal,
-      cache: "no-store",
-    };
+  //   let request_params: RequestInit = {
+  //     method: "GET",
+  //     headers: { "Content-Type": "application/json" },
+  //     signal: controller.signal,
+  //     cache: "no-store",
+  //   };
 
-    let ret: any;
-    try {
-      const fetch_response: NextAPIResponseInterface = await fetch(
-        path,
-        request_params
-      ).then((res) => res.json());
+  //   let ret: any;
+  //   try {
+  //     const fetch_response: NextAPIResponseInterface = await fetch(
+  //       path,
+  //       request_params
+  //     ).then((res) => res.json());
 
-      if (!fetch_response.authenticated) {
-        console.log(`Attempted unauthenticated fetch to ${path}`);
-        ret = null;
-      }
+  //     if (!fetch_response.authenticated) {
+  //       console.log(`Attempted unauthenticated fetch to ${path}`);
+  //       ret = null;
+  //     }
 
-      ret = fetch_response.data.data;
-    } catch (e) {
-      console.log(`fetcher error getting ${path}: ` + e);
+  //     ret = fetch_response.data.data;
+  //   } catch (e) {
+  //     console.log(`fetcher error getting ${path}: ` + e);
 
-      ret = null;
-    }
+  //     ret = null;
+  //   }
 
-    clearTimeout(timeoutId);
-    return ret;
-  }
+  //   clearTimeout(timeoutId);
+  //   return ret;
+  // }
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -87,7 +88,7 @@ export default function DataUpdater(props: {
         }
 
         // const response = await fetcher<UIConfiguration>("/api/config?" + ui_config_params, 750)
-        const response = await fetcher<UIConfiguration>(
+        const response = await timeoutFetch<UIConfiguration>(
           "/api/backend/ui/configuration?" + ui_config_params,
           750
         );
@@ -132,7 +133,7 @@ export default function DataUpdater(props: {
     const fetch_io_configuration = async () => {
       let config: HardwareConfigurationInterface;
       try {
-        config = await fetcher<HardwareConfiguration>(
+        config = await timeoutFetch<HardwareConfiguration>(
           "/api/backend/ui/io_configuration",
           750
         );
@@ -153,7 +154,7 @@ export default function DataUpdater(props: {
 
   useEffect(() => {
     const heartbeat = async () => {
-      let heartbeat = await fetcher<string>(
+      let heartbeat = await timeoutFetch<string>(
         "/api/backend/state/heartbeat",
         750
       );

@@ -4,6 +4,7 @@
 import secrets, time, asyncio, random
 
 from fastapi import WebSocket, APIRouter, Body
+from datetime import datetime
 from typing import (
     List,
     Dict
@@ -155,6 +156,14 @@ def get_io_data_points(number_of_points: int) -> APIResponse:
         data=[p.serialize_to_dict() for p in points]
     )
 
+# @historian_router.get("/ros_io_data")
+# def get_io_data_points(number_of_points: int) -> APIResponse:
+#     points = initializer.ra_database.get_io_state(number_of_points=number_of_points, timeout=1)
+#     return APIResponse(
+#         error=False,
+#         data=[p.data_dictionary for p in points]
+#     )
+
 @historian_router.get("/messages")
 def get_messages(number_of_messages: int) -> APIResponse:
     messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages, timeout=1)
@@ -196,6 +205,21 @@ def push_io_state(data: AnalogIOStatePostData) -> APIResponse:
     return APIResponse(
         error=False,
         data="Successful insertion of analog input data"
+    )
+
+@historian_router.post("/ros_io_data")
+def push_io_state(data: Dict) -> APIResponse:
+    initializer.ra_database.enqueue_record(
+        data=create_database_document(
+            timestamp=datetime.timestamp(datetime.utcnow()),
+            document_type=DocumentType.IO_STATE,
+            data=dict(data)
+        )
+    )
+
+    return APIResponse(
+        error=False,
+        data="Successful insertion of ROS analog input data"
     )
 
 ###############################################################################

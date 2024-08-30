@@ -30,32 +30,8 @@ export default function AnalogInputPlotContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-      {/* <AnalogInDisplay/> */}
       {context.configuration?.configured ? (
-        // <AnalogInDisplay/>
-        <AnalogInputPlot length={10}/>
-        // <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>
-        //   <R2Button
-        //     text="GET IO STATE HISTORY"
-        //     onClick={get_IO_state_history}
-        //     className="w-[55%]"
-        //   />
-        //   <R2Button
-        //     text="GET IO CONFIGURATION"
-        //     onClick={get_IO_configuration}
-        //     className="w-[55%]"
-        //   />
-        //   <R2Button
-        //     text="CONFIURE IO POINT"
-        //     onClick={configure_point}
-        //     className="w-[55%]"
-        //   />
-        //   <R2Button
-        //     text="SEND WEBSOCKET MESSAGE"
-        //     onClick={send_websocket_message}
-        //     className="w-[55%]"
-        //   />
-        // </div>
+        <AnalogInputPlot length={100}/>
       ) : (
         <LoadingIndicator />
       )}

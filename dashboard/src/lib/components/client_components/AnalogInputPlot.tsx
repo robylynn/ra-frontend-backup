@@ -15,9 +15,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import { Topic } from "roslib";
 import { AnalogInputContext } from "@/lib/components/client_components/AnalogInputContext";
 import DashboardContext from "@/lib/models/dashboard_context";
+import timeoutFetch from "@/lib/utils/timeoutFetch";
+import { ROSAnalogIOStateInterface, DatabaseROSAnalogIOStateArray } from "@/lib/models/database_models";
 
 interface AnalogInputDataPoint {
   time: number;
@@ -27,7 +30,7 @@ interface AnalogInputDataPoint {
 const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
   return (
     <div>
-      <h2>Analog Inputs</h2>
+      {/* <h2>Analog Inputs</h2> */}
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={props.data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -59,7 +62,6 @@ const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
             stroke="#ffc658"
             isAnimationActive={false}
           />
-          {/* <Line type="monotone" dataKey="axis_3" stroke="#ff7300" isAnimationActive={false} /> */}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -73,7 +75,9 @@ const AnalogInputPlot = (props: { length: number }) => {
   const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
     []
   );
+  
   const analog_in_subscription = useRef<Topic | null>();
+  const initial_data_acquired = useRef<boolean>();
 
   const togglePlotVisibility = (index) => {
     if (visiblePlots.includes(index)) {
@@ -82,6 +86,41 @@ const AnalogInputPlot = (props: { length: number }) => {
       setVisiblePlots([...visiblePlots, index]);
     }
   };
+
+  useEffect(() => {
+    const get_initial_data = async () => {
+      await timeoutFetch<Array<ROSAnalogIOStateInterface>>(`/api/backend/historian/io_data?number_of_points=${props.length}`, 5000)
+        .then((data) => {
+          if (data) {
+            let data_documents = new DatabaseROSAnalogIOStateArray(data);
+            console.log("Got initial data");
+            setAnalogInData((prevData) => {
+              data_documents.documents.forEach((d) => {
+                
+                let time = d.time_sec + d.time_nsec / 1e9;
+
+                let data_point: AnalogInputDataPoint = {
+                  time: time,
+                };
+  
+                for (const key in d.values) {
+                  data_point[parseInt(key)] = d.values[key];
+                }
+
+                prevData.unshift(data_point)
+              })
+              initial_data_acquired.current = true;
+              return prevData;
+            })
+          }
+        })
+        .catch((e) => {
+          console.error(`Error acquiring initial plot data: ${e}`)
+          initial_data_acquired.current = true;
+        })
+    };
+    get_initial_data();
+  }, [])
 
   useEffect(() => {
     const subscribeToAnalogInputs = () => {
@@ -93,7 +132,6 @@ const AnalogInputPlot = (props: { length: number }) => {
             messageType: "r2c_interfaces/AnalogIn",
           });
 
-          let original_data;
           analog_in_subscription.current.subscribe((message) => {
             setAnalogInData((prevData) => {
               let time =
@@ -108,9 +146,11 @@ const AnalogInputPlot = (props: { length: number }) => {
                 data_point[i] = v;
               });
 
-              prevData.push(data_point);
-
-              prevData = prevData.reverse().slice(0, props.length).reverse();
+              if (initial_data_acquired.current == true) {
+                prevData.push(data_point);
+                prevData = prevData.reverse().slice(0, props.length).reverse();
+              }
+              
               return prevData;
             });
           });
@@ -121,7 +161,6 @@ const AnalogInputPlot = (props: { length: number }) => {
     };
 
     subscribeToAnalogInputs();
-
     // Cleanup function to unsubscribe on component unmount
     return () => {
       if (analog_in_subscription.current)
@@ -131,30 +170,38 @@ const AnalogInputPlot = (props: { length: number }) => {
     };
   }, [dashboardContext.ra_ros_websocket]);
 
+  let a = 5;
+
   return (
-    <div>
-      {inputs
-        .filter((input) => input.enabled)
-        .map((input, index) => (
-          <div key={index}>
-            <label>
-              <input
-                type="checkbox"
-                checked={visiblePlots.includes(index)}
-                onChange={() => togglePlotVisibility(index)}
-              />
-              {input.label}
-            </label>
+    analogInData.length == 0 ? 
+      (<LoadingIndicator/>)
+      :
+      (
+        <div>
+          {inputs
+            .filter((input) => input.enabled)
+            .map((input, index) => (
+              <div key={index}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={visiblePlots.includes(index)}
+                    onChange={() => togglePlotVisibility(index)}
+                  />
+                  Show Plot {input.label}
+                </label>
+              </div>
+            ))}
+          <div>
+            {/* Plot component here, using visiblePlots to determine which plots to show */}
+            {visiblePlots.map((v, i) => (
+              // <p>{i}</p>
+              <Plot data={analogInData} />
+            ))}
+            {/* <Plot data={analogInData} /> */}
           </div>
-        ))}
-      <div>
-        {/* Plot component here, using visiblePlots to determine which plots to show */}
-        {visiblePlots.map((v, i) => (
-          <p>{i}</p>
-        ))}
-        <Plot data={analogInData} />
-      </div>
-    </div>
+        </div>
+      )
   );
 };
 

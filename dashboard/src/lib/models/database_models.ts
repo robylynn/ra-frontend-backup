@@ -141,9 +141,62 @@ export class DatabaseIOState extends DatabaseDocument implements DatabaseIOState
   }
 }
 
+export interface ROSAnalogIOStateInterface extends DatabaseDocumentInterface {
+  values: Record<string, number>
+  time_sec: number
+  time_nsec: number
+}
+
+export class ROSAnalogIOState extends DatabaseDocument implements ROSAnalogIOStateInterface {
+  values: Record<string, number>
+  time_sec: number
+  time_nsec: number
+
+  constructor(document?: ROSAnalogIOStateInterface) {
+    super(document);
+    if (document != undefined) {
+      this.values = document.values;
+      this.time_nsec = document.time_nsec;
+      this.time_sec = document.time_sec;
+      // this.digital_inputs = new DatabaseDocumentIOPort(document.digital_inputs);
+      // this.digital_outputs = new DatabaseDocumentIOPort(document.digital_outputs);
+    }
+  }
+}
+
 //////////////////////////////////////////////////////////////
 //// DATABASE RETURN VALUES
 //////////////////////////////////////////////////////////////
+
+// export class TDocumentArray<T> {
+//   protected _documents: Array<T> = [];
+
+//   public get latest_document() {
+//     return this._documents[0];
+//   }
+
+//   public get documents() {
+//     return this._documents;
+//   }
+
+//   constructor(input_documents?: Array<T>) {
+//     // super();
+//     if (input_documents != undefined) {
+//       input_documents.forEach((input_doc) => {
+//         this.add_document(input_doc);
+//       });
+//     }
+//   }
+
+//   add_document(document: T) {
+//     this._documents.push(new T(document));
+//   }
+
+//   public serialize(): string {
+//     // const json_value = JSON.parse(JSON.stringify(this));
+//     return JSON.parse(JSON.stringify(this._documents));
+//   }
+// }
 
 export class DocumentArray {
   protected _documents: Array<any> = [];
@@ -208,19 +261,25 @@ export class DatabaseMessageArray extends DocumentArray {
   }
 }
 
-// export class DatabaseDocumentArray extends DocumentArray {
-//   protected _documents: Array<DatabaseDocument> = [];
+export class DatabaseROSAnalogIOStateArray extends DocumentArray {
+  protected _documents: Array<ROSAnalogIOState> = [];
 
-//   constructor(input_documents?: Array<DatabaseDocumentInterface>) {
-//     super();
-//     if (input_documents != undefined) {
-//       input_documents.forEach((input_doc) => {
-//         this.add_document(input_doc);
-//       });
-//     }
-//   }
+  public get documents() {
+    return this._documents;
+  }
 
-//   add_document(document: DatabaseDocumentInterface) {
-//     this._documents.push(new DatabaseDocument(document));
-//   }
-// }
+  constructor(input_documents?: Array<ROSAnalogIOStateInterface>) {
+    super();
+    if (input_documents != undefined) {
+      input_documents.forEach((input_doc) => {
+        this.add_document(input_doc);
+      });
+    }
+  }
+
+  add_document(document: ROSAnalogIOStateInterface) {
+    this._documents.push(new ROSAnalogIOState(document));
+  }
+}
+
+
