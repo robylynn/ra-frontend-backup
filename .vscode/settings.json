@@ -1,3 +1,4 @@
 {
-    "debug.javascript.autoAttachFilter": "always"
+    "debug.javascript.autoAttachFilter": "always",
+    "ros.distro": "humble"
 }

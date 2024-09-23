@@ -1,7 +1,11 @@
-from pydantic import BaseModel
+from pydantic import (
+    BaseModel, 
+    Field
+)
 from typing import (
     List,
-    Dict
+    Dict,
+    Optional
 )
 from dataclasses import (
     dataclass,
@@ -58,3 +62,17 @@ class FrontendConfiguration:
 
     def serialize(self):
         return asdict(self)
+
+class PlotConfiguration(BaseModel):
+    # enabled: Optional[bool] = False
+    # data_sources: Optional[List[str]] = []
+
+    enabled: bool = Field(default=False)
+    data_sources: List[str] = Field(default=[])
+
+# @dataclass
+class UIConfiguration(BaseModel):
+    client_id: int
+    # plots: Optional[List[PlotConfiguration]] = []
+    plots: List[PlotConfiguration] = Field(default=[])
+    

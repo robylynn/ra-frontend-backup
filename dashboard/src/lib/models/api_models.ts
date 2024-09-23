@@ -24,19 +24,61 @@ export type LogMessage = {
   message_text: string;
 };
 
+export interface DataSourceInterface {
+  data_source_name: string
+}
+
+export class DataSource implements DataSourceInterface {
+  data_source_name: string
+
+  constructor(input?: DataSourceInterface) {
+    if (input != undefined) {
+      this.data_source_name = input.data_source_name;
+    }
+  }
+}
+
+export interface PlotConfigurationInterface {
+  enabled: boolean
+  data_sources: Array<DataSourceInterface>
+}
+
+export class PlotConfiguration implements PlotConfigurationInterface {
+  enabled: boolean
+  data_sources: Array<DataSourceInterface>
+
+  constructor(input?: PlotConfigurationInterface) {
+    this.enabled = input.enabled;
+    input.data_sources.forEach((d) => {
+      this.data_sources.push(new DataSource(d));
+    })
+  }
+}
+
 export interface UIConfigurationInterface {
   client_id: number | undefined;
+  plots: Array<PlotConfigurationInterface>
 }
 
 export class UIConfiguration implements UIConfigurationInterface {
   client_id: number | undefined;
+  plots: Array<PlotConfiguration> = [];
+
   configured: boolean = false;
 
   constructor(input?: UIConfigurationInterface) {
     if (input != undefined) {
       this.client_id = input.client_id;
+      input.plots.forEach(p => {
+        this.plots.push(new PlotConfiguration(p))
+      });
+
       this.configured = true;
     }
+  }
+
+  public plot_active(plot_index: number) {
+    return this.plots.length > plot_index;
   }
 
   serialize(): UIConfigurationInterface {

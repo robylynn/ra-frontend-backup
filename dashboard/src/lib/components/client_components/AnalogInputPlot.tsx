@@ -21,6 +21,8 @@ import { AnalogInputContext } from "@/lib/components/client_components/AnalogInp
 import DashboardContext from "@/lib/models/dashboard_context";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 import { ROSAnalogIOStateInterface, DatabaseROSAnalogIOStateArray } from "@/lib/models/database_models";
+import { R2Button } from "@/lib/components/client_components/ClickButton";
+import { NextAPIResponseInterface } from "@/lib/models/api_models";
 
 interface AnalogInputDataPoint {
   time: number;
@@ -70,8 +72,9 @@ const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
 
 const AnalogInputPlot = (props: { length: number }) => {
   const { inputs } = useContext(AnalogInputContext);
-  const { dashboardContext } = useContext(DashboardContext);
-  const [visiblePlots, setVisiblePlots] = useState([0, 1, 2]);
+  const { dashboardContext, setContext } = useContext(DashboardContext);
+  // const [visiblePlots, setVisiblePlots] = useState([0, 1, 2]);
+  // const [visiblePlots, setVisiblePlots] = useState(new UIConfiguration());
   const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
     []
   );
@@ -79,13 +82,43 @@ const AnalogInputPlot = (props: { length: number }) => {
   const analog_in_subscription = useRef<Topic | null>();
   const initial_data_acquired = useRef<boolean>();
 
-  const togglePlotVisibility = (index) => {
-    if (visiblePlots.includes(index)) {
-      setVisiblePlots(visiblePlots.filter((i) => i !== index));
-    } else {
-      setVisiblePlots([...visiblePlots, index]);
+  const togglePlotVisibility = (index: number) => {
+    if (dashboardContext.configuration.plot_active(index)) {
+      dashboardContext.configuration.plots[index].enabled = !dashboardContext.configuration.plots[index].enabled;
     }
+
+    setContext(() => dashboardContext)
+    // try {
+    //   visiblePlots.plots[index].enabled = !visiblePlots.plots[index].enabled;
+    //   dashboardContext.configuration.
+    // } catch (e) {
+    //   console.log(`Plot ${index} not configured`)
+    // }
+    // setVisiblePlots(visiblePlots);
+    // if (visiblePlots.includes(index)) {
+    //   setVisiblePlots(visiblePlots.filter((i) => i !== index));
+    // } else {
+    //   setVisiblePlots([...visiblePlots, index]);
+    // }
   };
+
+  const save_configuration = async () => {
+    let body = dashboardContext.configuration;
+    // let ui_configr
+    let res: NextAPIResponseInterface = await fetch(
+      "api/backend/configuration/ui/save_configuration",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        mode: "cors",
+        body: JSON.stringify(body),
+      }
+    ).then((res) => res.json());
+    console.log("POST response: " + JSON.stringify(res.data));
+  }
 
   useEffect(() => {
     const get_initial_data = async () => {
@@ -170,7 +203,7 @@ const AnalogInputPlot = (props: { length: number }) => {
     };
   }, [dashboardContext.ra_ros_websocket]);
 
-  let a = 5;
+  // let a = 5;
   // inputs.forEach((v, i) => setVisiblePlots((plots) => plots.forEach(v, i) => {}))
   // setVisiblePlots((plots) => {
   //   plots.forEach((p) => {console.log(p)})
@@ -183,26 +216,65 @@ const AnalogInputPlot = (props: { length: number }) => {
       :
       (
         <div>
-          {inputs
-            .filter((input) => input.enabled)
-            .map((input, index) => (
-              <div key={index}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={visiblePlots.includes(index)}
-                    onChange={() => togglePlotVisibility(index)}
-                  />
-                  Show Plot {input.label}
-                </label>
+          <div className="flex flex-col">
+            <select>
+            {/* <option value={"abc"}>abc</option> */}
+              
+              {
+                inputs.map((input, index) => (
+                  <option value={input.channel}>{input.channel}</option>
+                ))
+              }
+              
+              
+            </select>
+            <div className="flex flex-row justify-between">
+              {inputs
+                .filter((input) => input.enabled)
+                .map((input, index) => (
+                  <div key={index}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        // checked={visiblePlots.includes(index)}
+                        checked={dashboardContext.configuration.plot_active(index)}
+                        onChange={() => togglePlotVisibility(index)}
+                      />
+                      Show Plot {input.label}
+                    </label>
+                  </div>
+                ))}
               </div>
-            ))}
+              <R2Button
+                text="Save Configuration"
+                onClick={() => {
+                  // fetch()
+                  // let res: NextAPIResponseInterface = await fetch(
+                  //   "api/backend/configuration/io/configure_point",
+                  //   {
+                  //     method: "POST",
+                  //     headers: {
+                  //       Accept: "application/json",
+                  //       "Content-Type": "application/json",
+                  //     },
+                  //     mode: "cors",
+                  //     body: JSON.stringify(body),
+                  //   }
+                  // ).then((res) => res.json());
+                  // console.log("POST response: " + JSON.stringify(res.data));
+                }}
+              />
+            </div>
           <div>
             {/* Plot component here, using visiblePlots to determine which plots to show */}
-            {visiblePlots.map((v, i) => (
-              // <p>{i}</p>
-              <Plot data={analogInData} />
-            ))}
+              {/* {visiblePlots.map((v, i) => (
+                // <p>{i}</p>
+                <Plot data={analogInData} />
+              ))} */}
+              {dashboardContext.configuration.plots.map((v, i) => (
+                // <p>{i}</p>
+                <Plot data={analogInData} />
+              ))}
             {/* <Plot data={analogInData} /> */}
           </div>
         </div>

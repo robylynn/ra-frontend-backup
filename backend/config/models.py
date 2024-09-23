@@ -25,6 +25,7 @@ class DocumentType(Enum):
     FRONTEND_MESSAGE = auto()
     IO_STATE = auto()
     SYSTEM_CONFIGURATION = auto()
+    UI_CONFIGURATION = auto()
 
 def hardware_configuration_dict_factory(dataclass):
     d = {}

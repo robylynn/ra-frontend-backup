@@ -15,7 +15,7 @@ import system_initializer as initializer
 
 from auth.models import UserLoginSchema
 from auth.jwt_handler import signJWT
-from auth.jwt_bearer import JWTBearer
+# from auth.jwt_bearer import JWTBearer
 from api.models import (
     AuthenticationResponse,
     APIResponse,
@@ -23,7 +23,8 @@ from api.models import (
     FrontendConfiguration,
     IOConfigurationRequestData,
     AnalogIOStatePostData,
-    APIException
+    APIException,
+    UIConfiguration
 )
 
 from api.helpers import (
@@ -130,23 +131,39 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
 
     return APIResponse(
         error=False,
-        data=FrontendConfiguration(
-            client_id=client_id
-        ).serialize()
+        data=dict(UIConfiguration(client_id=client_id))
+        # data=FrontendConfiguration(
+        #     client_id=client_id
+        # ).serialize()
     )
+
+    # return APIResponse(
+    #     error=False,
+    #     data=FrontendConfiguration(
+    #         client_id=client_id
+    #     ).serialize()
+    # )
 
 @ui_router.post("/configuration")
 async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse:
     
-    if client_id == None or int(client_id) == -1:
-        client_id = initializer.ra_frontend.add_client()
-
-    return APIResponse(
-        error=False,
-        data=FrontendConfiguration(
-            client_id=client_id
-        ).serialize()
+    initializer.ra_database.enqueue_record(
+        data=create_database_document(
+            timestamp=datetime.utcnow().timestamp(),
+            document_type=DocumentType.UI_CONFIGURATION,
+            data=initializer.ra_interface.io_system.serialize()
+        )
     )
+
+    # if client_id == None or int(client_id) == -1:
+    #     client_id = initializer.ra_frontend.add_client()
+
+    # return APIResponse(
+    #     error=False,
+    #     data=FrontendConfiguration(
+    #         client_id=client_id
+    #     ).serialize()
+    # )
 
 @ui_router.get("/io_configuration")
 def get_ui_io_configuration():
