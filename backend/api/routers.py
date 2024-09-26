@@ -146,7 +146,6 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
 
 @ui_router.post("/configuration")
 async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse:
-    
     initializer.ra_database.enqueue_record(
         data=create_database_document(
             timestamp=datetime.utcnow().timestamp(),

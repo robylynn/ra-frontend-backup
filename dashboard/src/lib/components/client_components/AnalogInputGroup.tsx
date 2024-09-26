@@ -112,7 +112,8 @@ const AnalogInputGroup = () => {
               className={`${snapshot.isDraggingOver ? "bg-sky-300" : "bg-slate-300"} grid grid-cols-1 w-full rounded-[4px]`}
             >
               {inputs.map((input, index) => (
-                <Draggable key={input.id} draggableId={input.id} index={index} isDragDisabled={isConfigOpen}>
+                // <Draggable key={input.id} draggableId={input.id} index={index} isDragDisabled={isConfigOpen}>
+                <Draggable key={input.channel} draggableId={input.channel.toString()} index={index} isDragDisabled={isConfigOpen}>
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}

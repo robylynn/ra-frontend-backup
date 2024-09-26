@@ -22,7 +22,7 @@ import DashboardContext from "@/lib/models/dashboard_context";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 import { ROSAnalogIOStateInterface, DatabaseROSAnalogIOStateArray } from "@/lib/models/database_models";
 import { R2Button } from "@/lib/components/client_components/ClickButton";
-import { NextAPIResponseInterface } from "@/lib/models/api_models";
+import { DataSource, NextAPIResponseInterface, PlotConfiguration } from "@/lib/models/api_models";
 
 interface AnalogInputDataPoint {
   time: number;
@@ -75,6 +75,7 @@ const AnalogInputPlot = (props: { length: number }) => {
   const { dashboardContext, setContext } = useContext(DashboardContext);
   // const [visiblePlots, setVisiblePlots] = useState([0, 1, 2]);
   // const [visiblePlots, setVisiblePlots] = useState(new UIConfiguration());
+  const [selectedPlot, setSelectedPlot] = useState<string>();
   const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
     []
   );
@@ -82,25 +83,25 @@ const AnalogInputPlot = (props: { length: number }) => {
   const analog_in_subscription = useRef<Topic | null>();
   const initial_data_acquired = useRef<boolean>();
 
-  const togglePlotVisibility = (index: number) => {
-    if (dashboardContext.configuration.plot_active(index)) {
-      dashboardContext.configuration.plots[index].enabled = !dashboardContext.configuration.plots[index].enabled;
-    }
+  // const togglePlotVisibility = (index: number) => {
+  //   if (dashboardContext.configuration.plot_active(index)) {
+  //     dashboardContext.configuration.plots[index].enabled = !dashboardContext.configuration.plots[index].enabled;
+  //   }
 
-    setContext(() => dashboardContext)
-    // try {
-    //   visiblePlots.plots[index].enabled = !visiblePlots.plots[index].enabled;
-    //   dashboardContext.configuration.
-    // } catch (e) {
-    //   console.log(`Plot ${index} not configured`)
-    // }
-    // setVisiblePlots(visiblePlots);
-    // if (visiblePlots.includes(index)) {
-    //   setVisiblePlots(visiblePlots.filter((i) => i !== index));
-    // } else {
-    //   setVisiblePlots([...visiblePlots, index]);
-    // }
-  };
+  //   setContext(() => dashboardContext)
+  //   // try {
+  //   //   visiblePlots.plots[index].enabled = !visiblePlots.plots[index].enabled;
+  //   //   dashboardContext.configuration.
+  //   // } catch (e) {
+  //   //   console.log(`Plot ${index} not configured`)
+  //   // }
+  //   // setVisiblePlots(visiblePlots);
+  //   // if (visiblePlots.includes(index)) {
+  //   //   setVisiblePlots(visiblePlots.filter((i) => i !== index));
+  //   // } else {
+  //   //   setVisiblePlots([...visiblePlots, index]);
+  //   // }
+  // };
 
   const save_configuration = async () => {
     let body = dashboardContext.configuration;
@@ -217,18 +218,42 @@ const AnalogInputPlot = (props: { length: number }) => {
       (
         <div>
           <div className="flex flex-col">
-            <select>
-            {/* <option value={"abc"}>abc</option> */}
-              
-              {
-                inputs.map((input, index) => (
-                  <option value={input.channel}>{input.channel}</option>
-                ))
-              }
-              
-              
-            </select>
             <div className="flex flex-row justify-between">
+              <select className="w-[40%]" onChange={e => setSelectedPlot(e.target.value)}>
+                {
+                  inputs.map((input, index) => (
+                    <option value={input.channel}>{input.channel}</option>
+                  ))
+                }
+              </select>
+              <R2Button
+                text="Add Plot"
+                className="w-[40%]"
+                onClick={() => {
+                  // let plots = dashboardContext.configuration.plots.push(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
+                  let plots = new Array<PlotConfiguration>(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
+                  setContext((c) => {
+                    c.configuration.plots = plots;
+                    return c;
+                  })
+                  // fetch()
+                  // let res: NextAPIResponseInterface = await fetch(
+                  //   "api/backend/configuration/io/configure_point",
+                  //   {
+                  //     method: "POST",
+                  //     headers: {
+                  //       Accept: "application/json",
+                  //       "Content-Type": "application/json",
+                  //     },
+                  //     mode: "cors",
+                  //     body: JSON.stringify(body),
+                  //   }
+                  // ).then((res) => res.json());
+                  // console.log("POST response: " + JSON.stringify(res.data));
+                }}
+              />
+            </div>
+            {/* <div className="flex flex-row justify-between">
               {inputs
                 .filter((input) => input.enabled)
                 .map((input, index) => (
@@ -244,7 +269,7 @@ const AnalogInputPlot = (props: { length: number }) => {
                     </label>
                   </div>
                 ))}
-              </div>
+              </div> */}
               <R2Button
                 text="Save Configuration"
                 onClick={() => {
@@ -262,6 +287,7 @@ const AnalogInputPlot = (props: { length: number }) => {
                   //   }
                   // ).then((res) => res.json());
                   // console.log("POST response: " + JSON.stringify(res.data));
+
                 }}
               />
             </div>

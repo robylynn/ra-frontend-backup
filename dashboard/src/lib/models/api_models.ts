@@ -45,7 +45,7 @@ export interface PlotConfigurationInterface {
 
 export class PlotConfiguration implements PlotConfigurationInterface {
   enabled: boolean
-  data_sources: Array<DataSourceInterface>
+  data_sources: Array<DataSource> = [];
 
   constructor(input?: PlotConfigurationInterface) {
     this.enabled = input.enabled;

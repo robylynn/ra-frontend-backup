@@ -87,14 +87,10 @@ export default function DataUpdater(props: {
           ui_config_params.append("client_id", "-1");
         }
 
-        // const response = await fetcher<UIConfiguration>("/api/config?" + ui_config_params, 750)
         const response = await timeoutFetch<UIConfiguration>(
           "/api/backend/ui/configuration?" + ui_config_params,
           750
         );
-        // const response: NextAPIResponseInterface = await fetch(
-        //   "/api/config?" + ui_config_params
-        // ).then((res) => res.json());
 
         if (response != null) {
           const received_configuration = new UIConfiguration(response);
@@ -117,17 +113,9 @@ export default function DataUpdater(props: {
       }
     };
 
-    // try {
-    //   fetchConfiguration();
-    // } catch (e) {
-    //   console.log("UI configuration error " + e);
-    // }
     fetch_ui_configuration();
-  }, [configurationUpdateCounter]);
-
-  // useEffect(() => {
-  //   const fetch_ui_configuration = async () => {};
-  // });
+  // }, [configurationUpdateCounter]);
+  }, []);
 
   useEffect(() => {
     const fetch_io_configuration = async () => {
