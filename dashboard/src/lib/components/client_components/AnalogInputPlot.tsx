@@ -29,6 +29,18 @@ interface AnalogInputDataPoint {
   [key: number]: number;
 }
 
+const dateFormatter = (timestamp: number) => {
+  // return moment(date).unix();
+  // return new Date(timestamp).format('DD/MM/YY HH:mm');
+  console.log("formatting date")
+  let date = new Date(timestamp * 1000.0);
+  // let formatted_date = date.toLocaleString("en-US", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  let formatted_date = date.toLocaleString("en-US", { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  console.log("formatting date " + formatted_date);
+  return formatted_date;
+  return new Date(timestamp).toString()
+};
+
 const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) => {
   return (
     <div>
@@ -36,12 +48,12 @@ const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) =>
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={props.data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" />
+          <XAxis dataKey="time" tickFormatter={dateFormatter} tickCount={2} interval={'equidistantPreserveStart'}/>
           <YAxis label={{value: props.y_label ?? "Input Value", angle: -90}}/>
           {/* <Label>LABEL</Label>
           </YAxis> */}
           <Tooltip />
-          <Legend />
+          {/* <Legend /> */}
           <Line
             type="monotone"
             dataKey={0}
@@ -51,7 +63,7 @@ const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) =>
             animationDuration={500}
             animationEasing="ease-in-out"
           />
-          <Line
+          {/* <Line
             type="monotone"
             dataKey={1}
             stroke="#82ca9d"
@@ -65,7 +77,7 @@ const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) =>
             dataKey={2}
             stroke="#ffc658"
             isAnimationActive={false}
-          />
+          /> */}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -113,6 +125,7 @@ const AnalogInputPlot = (props: { length: number }) => {
     let filtered_data: Array<AnalogInputDataPoint> = input_data.map((data_point, index) => (
       
       {time: data_point.time, [channel]: data_point[channel]}
+      // {time: new Date(data_point.time), [channel]: data_point[channel]}
     ));
     return filtered_data;
   }

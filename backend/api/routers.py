@@ -129,8 +129,12 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
     if client_id == None or int(client_id) == -1:
         client_id = initializer.ra_frontend.add_client()
 
+    
     configuration = initializer.ra_database.get_latest_ui_configuration()
-    configuration.client_id = client_id
+    if configuration is None:
+        configuration = UIConfiguration(client_id=client_id)
+    else:
+        configuration.client_id = client_id
     
     return APIResponse(
         error=False,

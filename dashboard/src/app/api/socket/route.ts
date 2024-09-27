@@ -4,12 +4,25 @@ import { NextRequest } from "next/server";
 import authOptions from "@/lib/auth/auth_options";
 import { createAPIResponse } from "@/lib/models/api_models";
 import { getSession } from "next-auth/react";
+import { socketPassthrough } from "@/lib/utils/socketPassthrough";
+// import { request } from "http";
 
 export async function SOCKET(
   client: WebSocket,
   request: import("http").IncomingMessage,
   server: WebSocketServer
 ) {
+  await socketPassthrough({
+    socket_name: "ros_websocket",
+    proxy_address: "127.0.0.1:9090",
+    client: client,
+    server: server,
+    request: request,
+  });
+
+  // let z = socketPassthrough;
+  return;
+  
   console.log("Websocket client connected.");
 
   const session = await getSession({ req: request });
