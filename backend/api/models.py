@@ -36,6 +36,7 @@ class IOConfigurationRequestData(BaseModel):
     transfer_function_type: int
     custom_transfer_function: str
     channel: int
+    measurement_unit: str
     # point_type: str
 
 class AnalogIOStatePostData(BaseModel):

@@ -19,7 +19,8 @@ const Modal = ({ className, isOpen, onClose, children }: ModalInterface) => {
   return (
     // <div className="modal-overlay">
     <div
-      className={`flex fixed inset-0 bg-black/[0.7] justify-center items-center z-1000 ${className ? className : ""}`}
+      // className={`flex fixed inset-0 bg-black/[0.7] justify-center items-center z-1000 ${className ? className : ""}`}
+      className={`flex fixed inset-0 bg-black/[0.7] justify-center items-center z-[1000] ${className ? className : ""}`}
     >
       {/* <div className="modal-content"> */}
       <div className="bg-white p-[20px] border-[8px] relative w-[25%]">

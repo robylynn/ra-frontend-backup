@@ -39,8 +39,9 @@ from utils.utils import (
 )
 from config.models import (
     DocumentType,
-    HardwareConfiguration
+    HardwareConfiguration,
 )
+from api.models import UIConfiguration
 
 class MongoInterfaceException(Exception):
     pass
@@ -185,6 +186,19 @@ class HardwareConfigurationRecord(MongoTimeseriesRecord):
     @property
     def hardware_configuration(self) -> HardwareConfiguration:
         return HardwareConfiguration.parse(self.data_dictionary)
+
+@dataclass
+class UIConfigurationRecord(MongoTimeseriesRecord):
+    data: InitVar[UIConfiguration]
+
+    @staticmethod
+    def deserialize_from_dict(record: Dict) -> "UIConfigurationRecord":
+        return mongo_record_deserializer(record=record, record_class=UIConfigurationRecord)
+        # return MongoTimeseriesRecord.deserialize_from_dict(record)
+
+    @property
+    def ui_configuration(self) -> UIConfiguration:
+        return UIConfiguration(**self.data_dictionary)
 
 @dataclass
 class SensorDataRecord(MongoTimeseriesRecord):

@@ -52,6 +52,7 @@ class DatabaseCollectionsConfiguration:
     frontend_messages: CollectionConfiguration
     io_state: CollectionConfiguration
     hardware_configuration: CollectionConfiguration
+    ui_configuration: CollectionConfiguration
 
     @property
     def database_collections(self) -> Dict[str, CollectionConfiguration]:

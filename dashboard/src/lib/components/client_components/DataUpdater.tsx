@@ -113,9 +113,10 @@ export default function DataUpdater(props: {
       }
     };
 
-    fetch_ui_configuration();
-  // }, [configurationUpdateCounter]);
-  }, []);
+    if (context.configuration.client_id == undefined)
+      fetch_ui_configuration();
+  }, [configurationUpdateCounter]);
+  // }, []);
 
   useEffect(() => {
     const fetch_io_configuration = async () => {

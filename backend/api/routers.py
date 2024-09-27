@@ -129,20 +129,13 @@ async def get_ui_configuration(client_id: int = None) -> APIResponse:
     if client_id == None or int(client_id) == -1:
         client_id = initializer.ra_frontend.add_client()
 
+    configuration = initializer.ra_database.get_latest_ui_configuration()
+    configuration.client_id = client_id
+    
     return APIResponse(
         error=False,
-        data=dict(UIConfiguration(client_id=client_id))
-        # data=FrontendConfiguration(
-        #     client_id=client_id
-        # ).serialize()
+        data=configuration.dict()
     )
-
-    # return APIResponse(
-    #     error=False,
-    #     data=FrontendConfiguration(
-    #         client_id=client_id
-    #     ).serialize()
-    # )
 
 @ui_router.post("/configuration")
 async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse:
@@ -150,19 +143,14 @@ async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse
         data=create_database_document(
             timestamp=datetime.utcnow().timestamp(),
             document_type=DocumentType.UI_CONFIGURATION,
-            data=initializer.ra_interface.io_system.serialize()
+            data=configuration.dict()
         )
     )
 
-    # if client_id == None or int(client_id) == -1:
-    #     client_id = initializer.ra_frontend.add_client()
-
-    # return APIResponse(
-    #     error=False,
-    #     data=FrontendConfiguration(
-    #         client_id=client_id
-    #     ).serialize()
-    # )
+    return APIResponse(
+        error=False,
+        data="Successful save of UI configuration"
+    )
 
 @ui_router.get("/io_configuration")
 def get_ui_io_configuration():
@@ -269,6 +257,7 @@ def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
         point.configuration.min_signal_v = config.min_electrical_value
         point.configuration.max_value = config.max_measurement_value
         point.configuration.min_value = config.min_measurement_value
+        point.configuration.measurement_unit = config.measurement_unit
         
         # FIXME to match transfer function types
         point.configuration.transfer_function_type = TransferFunctionType(config.transfer_function_type + 1)

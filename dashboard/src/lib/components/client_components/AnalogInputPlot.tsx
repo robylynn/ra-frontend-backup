@@ -29,15 +29,17 @@ interface AnalogInputDataPoint {
   [key: number]: number;
 }
 
-const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
+const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) => {
   return (
     <div>
-      {/* <h2>Analog Inputs</h2> */}
+      {/* <h2>{`Analog Input ${props.data_name}`}</h2> */}
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={props.data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time" />
-          <YAxis />
+          <YAxis label={{value: props.y_label ?? "Input Value", angle: -90}}/>
+          {/* <Label>LABEL</Label>
+          </YAxis> */}
           <Tooltip />
           <Legend />
           <Line
@@ -70,6 +72,30 @@ const Plot = (props: { data: Array<AnalogInputDataPoint> }) => {
   );
 };
 
+const PlotContainer = (props: { data: Array<AnalogInputDataPoint>, data_name: string, y_label?: string, plot_index: number}) => {
+  const { dashboardContext, setContext } = useContext(DashboardContext);
+
+  return (
+    <div>
+      <div className="flex flex-row justify-between">
+        <h2>{`${props.data_name}`}</h2>
+        <R2Button
+          text="Remove Plot"
+          onClick={() => {
+            setContext((c) => {
+              delete c.configuration.plots[props.plot_index];
+              c.configuration.plots = c.configuration.plots.filter(plot => plot)
+              return c;
+            })
+          }}
+        />
+      </div>
+      <Plot data={props.data} y_label={props.y_label} />
+    </div>
+
+  )
+}
+
 const AnalogInputPlot = (props: { length: number }) => {
   const { inputs } = useContext(AnalogInputContext);
   const { dashboardContext, setContext } = useContext(DashboardContext);
@@ -83,31 +109,18 @@ const AnalogInputPlot = (props: { length: number }) => {
   const analog_in_subscription = useRef<Topic | null>();
   const initial_data_acquired = useRef<boolean>();
 
-  // const togglePlotVisibility = (index: number) => {
-  //   if (dashboardContext.configuration.plot_active(index)) {
-  //     dashboardContext.configuration.plots[index].enabled = !dashboardContext.configuration.plots[index].enabled;
-  //   }
-
-  //   setContext(() => dashboardContext)
-  //   // try {
-  //   //   visiblePlots.plots[index].enabled = !visiblePlots.plots[index].enabled;
-  //   //   dashboardContext.configuration.
-  //   // } catch (e) {
-  //   //   console.log(`Plot ${index} not configured`)
-  //   // }
-  //   // setVisiblePlots(visiblePlots);
-  //   // if (visiblePlots.includes(index)) {
-  //   //   setVisiblePlots(visiblePlots.filter((i) => i !== index));
-  //   // } else {
-  //   //   setVisiblePlots([...visiblePlots, index]);
-  //   // }
-  // };
+  const filter_plot_data = (input_data: Array<AnalogInputDataPoint>, channel: number): Array<AnalogInputDataPoint> => {
+    let filtered_data: Array<AnalogInputDataPoint> = input_data.map((data_point, index) => (
+      
+      {time: data_point.time, [channel]: data_point[channel]}
+    ));
+    return filtered_data;
+  }
 
   const save_configuration = async () => {
-    let body = dashboardContext.configuration;
-    // let ui_configr
+    // let body = dashboardContext.configuration;
     let res: NextAPIResponseInterface = await fetch(
-      "api/backend/configuration/ui/save_configuration",
+      "api/backend/ui/configuration",
       {
         method: "POST",
         headers: {
@@ -115,7 +128,7 @@ const AnalogInputPlot = (props: { length: number }) => {
           "Content-Type": "application/json",
         },
         mode: "cors",
-        body: JSON.stringify(body),
+        body: JSON.stringify(dashboardContext.configuration),
       }
     ).then((res) => res.json());
     console.log("POST response: " + JSON.stringify(res.data));
@@ -204,12 +217,12 @@ const AnalogInputPlot = (props: { length: number }) => {
     };
   }, [dashboardContext.ra_ros_websocket]);
 
-  // let a = 5;
-  // inputs.forEach((v, i) => setVisiblePlots((plots) => plots.forEach(v, i) => {}))
-  // setVisiblePlots((plots) => {
-  //   plots.forEach((p) => {console.log(p)})
-  //   return plots;
-  // })
+  useEffect(() => {
+    console.log(inputs)
+    setSelectedPlot(() => inputs[0]?.channel.toString())
+  }, [inputs])
+
+  let a = 5;
 
   return (
     analogInData.length == 0 ? 
@@ -219,11 +232,15 @@ const AnalogInputPlot = (props: { length: number }) => {
         <div>
           <div className="flex flex-col">
             <div className="flex flex-row justify-between">
-              <select className="w-[40%]" onChange={e => setSelectedPlot(e.target.value)}>
+              <select className="w-[40%]" value={selectedPlot} onChange={e => setSelectedPlot(e.target.value)}>
                 {
-                  inputs.map((input, index) => (
-                    <option value={input.channel}>{input.channel}</option>
-                  ))
+                  // inputs.map((input, index) => (
+                  //   <option key={input.channel.toString()} value={input.channel}>{`Input ${input.channel}`}</option>
+                  // ))
+                  inputs.map((input, index) => {
+                    const label = input.label != "" ? `${input.label} (Input ${input.channel})` : `Input ${input.channel}`
+                    return <option key={input.channel.toString()} value={input.channel}>{label}</option>
+                  })
                 }
               </select>
               <R2Button
@@ -231,63 +248,21 @@ const AnalogInputPlot = (props: { length: number }) => {
                 className="w-[40%]"
                 onClick={() => {
                   // let plots = dashboardContext.configuration.plots.push(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
-                  let plots = new Array<PlotConfiguration>(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
+                  // let plots = new Array<PlotConfiguration>(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
+                  // let plots = new Array<PlotConfiguration>(new PlotConfiguration({enabled: true, data_sources: [selectedPlot.toString()]}))
+                  let plots = dashboardContext.configuration.plots;
+                  plots.push(new PlotConfiguration({enabled: true, data_sources: [selectedPlot.toString()]}))
                   setContext((c) => {
                     c.configuration.plots = plots;
                     return c;
                   })
-                  // fetch()
-                  // let res: NextAPIResponseInterface = await fetch(
-                  //   "api/backend/configuration/io/configure_point",
-                  //   {
-                  //     method: "POST",
-                  //     headers: {
-                  //       Accept: "application/json",
-                  //       "Content-Type": "application/json",
-                  //     },
-                  //     mode: "cors",
-                  //     body: JSON.stringify(body),
-                  //   }
-                  // ).then((res) => res.json());
-                  // console.log("POST response: " + JSON.stringify(res.data));
                 }}
               />
             </div>
-            {/* <div className="flex flex-row justify-between">
-              {inputs
-                .filter((input) => input.enabled)
-                .map((input, index) => (
-                  <div key={index}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        // checked={visiblePlots.includes(index)}
-                        checked={dashboardContext.configuration.plot_active(index)}
-                        onChange={() => togglePlotVisibility(index)}
-                      />
-                      Show Plot {input.label}
-                    </label>
-                  </div>
-                ))}
-              </div> */}
               <R2Button
                 text="Save Configuration"
                 onClick={() => {
-                  // fetch()
-                  // let res: NextAPIResponseInterface = await fetch(
-                  //   "api/backend/configuration/io/configure_point",
-                  //   {
-                  //     method: "POST",
-                  //     headers: {
-                  //       Accept: "application/json",
-                  //       "Content-Type": "application/json",
-                  //     },
-                  //     mode: "cors",
-                  //     body: JSON.stringify(body),
-                  //   }
-                  // ).then((res) => res.json());
-                  // console.log("POST response: " + JSON.stringify(res.data));
-
+                  save_configuration()
                 }}
               />
             </div>
@@ -297,9 +272,26 @@ const AnalogInputPlot = (props: { length: number }) => {
                 // <p>{i}</p>
                 <Plot data={analogInData} />
               ))} */}
-              {dashboardContext.configuration.plots.map((v, i) => (
+              {dashboardContext.configuration.plots.map((plot_configuration, plot_index) => (
                 // <p>{i}</p>
-                <Plot data={analogInData} />
+                <div>
+                  {/* <Plot key={i.toString()} data_name={i.toString()} data={analogInData} /> */}
+                  <PlotContainer
+                    key={plot_index.toString()} 
+                    data_name={
+                      inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
+                      // inputs?.[plot_configuration.data_sources[0]].label ?? `Analog Input ${plot_configuration.data_sources[0]}`
+                    }
+                    data={filter_plot_data(analogInData, parseInt(plot_configuration.data_sources[0]))}
+                    y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
+                    plot_index={plot_index}
+                  />
+                  {/* <Plot 
+                    key={plot_index.toString()} 
+                    data_name={plot_configuration.data_sources[0]} 
+                    data={filter_plot_data(analogInData, parseInt(plot_configuration.data_sources[0]))}
+                  /> */}
+                </div>
               ))}
             {/* <Plot data={analogInData} /> */}
           </div>

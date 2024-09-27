@@ -183,19 +183,14 @@ const AnalogInput = ({
         }}
       >
         {isLoading && (
-          // <div className="loading-overlay">
           <div className="flex fixed inset-0 bg-black/[0.5] z-[9999] justify-center items-center">
-            {/* <div className="loading-spinner"></div> */}
             <div className="border-[8px] border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div>
           </div>
         )}
         {errorMessage && (
-          // <div className="error-overlay">
           <div className="flex fixed inset-0 bg-red/[0.5] z-[10000] items-center justify-center">
-            {/* <div className="error-dialog"> */}
             <div className="bg-white p-[20px] rounded-[5px] shadow-[0px,2px,10px] shadow-black/0.1">
               <p>{errorMessage}</p>
-              {/* <button onClick={() => setErrorMessage("")}>Close</button> */}
               <R2Button
                 text={"Close"}
                 onClick={() => setErrorMessage("")}

@@ -38,19 +38,25 @@ export class DataSource implements DataSourceInterface {
   }
 }
 
+// export interface PlotConfigurationInterface {
+//   enabled: boolean
+//   data_sources: Array<DataSourceInterface>
+// }
+
 export interface PlotConfigurationInterface {
   enabled: boolean
-  data_sources: Array<DataSourceInterface>
+  data_sources: Array<string>
 }
 
 export class PlotConfiguration implements PlotConfigurationInterface {
   enabled: boolean
-  data_sources: Array<DataSource> = [];
+  // data_sources: Array<DataSource> = [];
+  data_sources: Array<string> = [];
 
   constructor(input?: PlotConfigurationInterface) {
     this.enabled = input.enabled;
     input.data_sources.forEach((d) => {
-      this.data_sources.push(new DataSource(d));
+      this.data_sources.push(d);
     })
   }
 }

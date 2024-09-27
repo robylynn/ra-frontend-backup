@@ -28,13 +28,13 @@ const AnalogInputGroup = () => {
     setInputs(newInputs);
   };
 
-  const grid = 8;
+  // const grid = 8;
 
   const getItemStyle = (isDragging, draggableStyle) => ({
     // some basic styles to make the items look a bit nicer
     userSelect: "none",
     padding: 4,
-    margin: `0 0 ${grid}px 0`,
+    margin: `0 0 8px 0`,
     borderRadius: '4px',
 
     // change background colour if dragging
@@ -43,13 +43,6 @@ const AnalogInputGroup = () => {
     // styles we need to apply on draggables
     ...draggableStyle
   });
-
-  // const getListStyle = isDraggingOver => ({
-  //   background: isDraggingOver ? "lightblue" : "lightgrey",
-  //   padding: grid,
-  //   width: 600,
-  //   borderRadius: '4px'
-  // });
 
   useEffect(() => {
     const get_io_configuration = async () => {

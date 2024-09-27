@@ -49,6 +49,7 @@ from database.models import (
     IOStateRecord,
     FrontendMessageRecord,
     HardwareConfigurationRecord,
+    UIConfigurationRecord,
     IOStateRecord,
     SensorDataRecord,
     DocumentType
@@ -58,7 +59,11 @@ from config.models import (
     MongoConfiguration,
     MongoInstanceConfiguration,
     DatabaseCollectionsConfiguration,
-    HardwareConfiguration
+    HardwareConfiguration,
+)
+
+from api.models import (
+    UIConfiguration
 )
 
 from loguru import logger
@@ -677,6 +682,14 @@ class MongoInterface(Process):
         except TimeoutError:
             logger.error(f"Timed out getting {number_of_data_points} sensor data points from database")
             return []
+
+    def get_latest_ui_configuration(self, timeout: float = 10) -> UIConfiguration | None:
+        configuration = self.get_documents_from_collection(document_type=DocumentType.UI_CONFIGURATION, number_of_documents=1, timeout=timeout)
+        if len(configuration) > 0:
+            record = UIConfigurationRecord.deserialize_from_dict(configuration[0])
+            return record.ui_configuration
+        else:
+            return None
 
     def _run(self):
         self._pusher_thread = DatabasePusher(
