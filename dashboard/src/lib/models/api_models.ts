@@ -38,11 +38,6 @@ export class DataSource implements DataSourceInterface {
   }
 }
 
-// export interface PlotConfigurationInterface {
-//   enabled: boolean
-//   data_sources: Array<DataSourceInterface>
-// }
-
 export interface PlotConfigurationInterface {
   enabled: boolean
   data_sources: Array<string>
@@ -50,7 +45,6 @@ export interface PlotConfigurationInterface {
 
 export class PlotConfiguration implements PlotConfigurationInterface {
   enabled: boolean
-  // data_sources: Array<DataSource> = [];
   data_sources: Array<string> = [];
 
   constructor(input?: PlotConfigurationInterface) {

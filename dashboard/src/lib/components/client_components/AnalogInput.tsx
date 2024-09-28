@@ -4,19 +4,13 @@
 "use client"
 
 import React, { useState, useContext, Dispatch, SetStateAction } from "react";
-import ROSLIB from "roslib"; // Add this import statement
-
+import ROSLIB from "roslib";
 import Modal from "@/lib/components/client_components/Modal";
 import { AnalogInputContext } from "@/lib/components/client_components/AnalogInputContext";
 import DashboardContext from "@/lib/models/dashboard_context";
-// import DashboardContext from "@/lib/models/dashboard_context";
-// import { ApplicationContext } from "@/lib/models/dashboard_context";
 import { IOPointConfiguration, IOPointType, TransferFunctionType } from "@/lib/models/api_models";
-// import { useRos } from "@/lib/ros/RosContext";
-import timeoutServiceCall from "@/lib/utils/timeoutServiceCall"; // Import the timeoutServiceCall function
-// import "@/lib/components/client_components/AnalogInput.css"; // Assuming you have a CSS file for styles
+import timeoutServiceCall from "@/lib/utils/timeoutServiceCall";
 import { R2Button, R2SliderToggle } from "@/lib/components/client_components/ClickButton";
-
 
 type AnalogInputProps = {
   index: number,
@@ -24,7 +18,6 @@ type AnalogInputProps = {
   updateInput: any,
   deleteInput: any,
   setIsConfigOpen: Dispatch<SetStateAction<any>>,
-  // dashboardContext: ApplicationContext
 }
 
 const AnalogInput = ({
@@ -33,7 +26,6 @@ const AnalogInput = ({
   updateInput,
   deleteInput,
   setIsConfigOpen,
-  // dashboardContext
 }: AnalogInputProps) => {
   const { dashboardContext } = useContext(DashboardContext);
   const { inputs } = useContext(AnalogInputContext);
@@ -58,7 +50,6 @@ const AnalogInput = ({
     }
 
     // Check if the config service is available
-    // if (!configService) {
     if (!dashboardContext.config_service) {
       console.error("Service not defined");
       return;
@@ -103,23 +94,6 @@ const AnalogInput = ({
       });
   };
 
-  // const handleCheckboxChange = (e) => {
-  //   const { checked } = e.target;
-
-  //   // Validate enabling the input
-  //   if (checked) {
-  //     const isChannelUsed = inputs.some(
-  //       (inp) => inp.channel === input.channel && inp.id !== input.id && inp.enabled
-  //     );
-  //     if (isChannelUsed) {
-  //       alert('Cannot enable this input. Another input with the same channel is already enabled.');
-  //       return;
-  //     }
-  //   }
-
-  //   updateInput({ ...input, enabled: checked });
-  // };
-
   const handleToggleChange = (e) => {
     // CHANGE updated handler function
     const { checked } = e.target;
@@ -150,13 +124,11 @@ const AnalogInput = ({
     const g = Math.round(startColor[1] + ratio * (endColor[1] - startColor[1])).toString(16);
     const b = Math.round(startColor[2] + ratio * (endColor[2] - startColor[2])).toString(16);
 
-    // return `rgb(${r}, ${g}, ${b})`;
     return `#${r}${g}${b}`;
   };
 
   return (
     <div className="flex items-center">
-      {/* <div className="drag-handle" {...(!showConfig && provided.dragHandleProps)}>⋮⋮⋮</div> */}
       <div
         className={`flex bg-gray-300 rounded-full w-[40px] h-[20px] justify-center items-center m-[8px] bg-[${interpolateColor(input.value)}]`}
         style={{
@@ -209,12 +181,6 @@ const AnalogInput = ({
         />
       </Modal>
 
-      {/* <input
-        className="input-checkbox"
-        type="checkbox"
-        checked={input.enabled}
-        onChange={handleToggleChange}
-      /> */}
       <R2SliderToggle
         text={""}
         state={input.enabled}
@@ -222,19 +188,16 @@ const AnalogInput = ({
       />
       
       <label className="relative inline-block h-[24px]">
-      {/* <label className="toggle-switch"> */}
         <input
           className="opacity-0 w-0 h-0"
           type="checkbox"
           checked={input.enabled}
           onChange={handleToggleChange}
         />
-        {/* <span className="slider"></span> */}
         <span className="absolute cursor-pointer top-0"></span>
       </label>
 
       <span className="m-[8px]">{input.label}</span>
-      {/* <div className="vertical-divider"></div> */}
       <div className="h-[20px] border-l-[1px] border-[#ccc] mx-[16px] my-[16px]"></div>
       <span className="m-[8px]">{IOPointType[input.type]}</span>
     </div>
@@ -279,16 +242,13 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigD
 
   const handleTypeChange = (e) => {
     const value = IOPointType[e.target.value as keyof typeof IOPointType];
-    // const value2 = e.target.value as keyof typeof IOPointType;
     setLocalInput({ ...localInput, type: value });
   };
 
   const unitLabel = localInput.type === IOPointType.ANALOG_CURRENT_INPUT ? "(mA)" : "(V)";
 
   return (
-    // <div className="dialog">
     <div className="flex flex-col w-full">
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Label</label>
         <input
@@ -298,7 +258,6 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigD
           onChange={handleChange}
         />
       </div>
-      {/* <div className="dialog-row"> */}
       <div className="flex flex-col mb-[10px]">
         <label>Channel</label>
         <select

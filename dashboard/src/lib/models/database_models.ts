@@ -168,36 +168,6 @@ export class ROSAnalogIOState extends DatabaseDocument implements ROSAnalogIOSta
 //// DATABASE RETURN VALUES
 //////////////////////////////////////////////////////////////
 
-// export class TDocumentArray<T> {
-//   protected _documents: Array<T> = [];
-
-//   public get latest_document() {
-//     return this._documents[0];
-//   }
-
-//   public get documents() {
-//     return this._documents;
-//   }
-
-//   constructor(input_documents?: Array<T>) {
-//     // super();
-//     if (input_documents != undefined) {
-//       input_documents.forEach((input_doc) => {
-//         this.add_document(input_doc);
-//       });
-//     }
-//   }
-
-//   add_document(document: T) {
-//     this._documents.push(new T(document));
-//   }
-
-//   public serialize(): string {
-//     // const json_value = JSON.parse(JSON.stringify(this));
-//     return JSON.parse(JSON.stringify(this._documents));
-//   }
-// }
-
 export class DocumentArray {
   protected _documents: Array<any> = [];
 
@@ -210,7 +180,6 @@ export class DocumentArray {
   }
 
   public serialize(): string {
-    // const json_value = JSON.parse(JSON.stringify(this));
     return JSON.parse(JSON.stringify(this._documents));
   }
 }
@@ -230,14 +199,6 @@ export class DatabaseIOStateDocumentArray extends DocumentArray {
   public get state_valid() {
     return this._documents.length > 0;
   }
-
-  // public get latest_document() {
-  //   return this._documents[0];
-  // }
-
-  // public get documents() {
-  //   return this._documents;
-  // }
 
   add_document(document: DatabaseIOStateInterface) {
     this._documents.push(new DatabaseIOState(document));

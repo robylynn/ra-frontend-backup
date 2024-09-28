@@ -3,7 +3,6 @@
 
 "use client";
 
-// AnalogInputPlot.js
 import React, { useContext, useState, useRef, useEffect } from "react";
 import {
   LineChart,
@@ -30,30 +29,21 @@ interface AnalogInputDataPoint {
 }
 
 const dateFormatter = (timestamp: number) => {
-  // return moment(date).unix();
-  // return new Date(timestamp).format('DD/MM/YY HH:mm');
-  console.log("formatting date")
   let date = new Date(timestamp * 1000.0);
   // let formatted_date = date.toLocaleString("en-US", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
   let formatted_date = date.toLocaleString("en-US", { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  console.log("formatting date " + formatted_date);
   return formatted_date;
-  return new Date(timestamp).toString()
 };
 
 const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) => {
   return (
     <div>
-      {/* <h2>{`Analog Input ${props.data_name}`}</h2> */}
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={props.data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time" tickFormatter={dateFormatter} tickCount={2} interval={'equidistantPreserveStart'}/>
           <YAxis label={{value: props.y_label ?? "Input Value", angle: -90}}/>
-          {/* <Label>LABEL</Label>
-          </YAxis> */}
           <Tooltip />
-          {/* <Legend /> */}
           <Line
             type="monotone"
             dataKey={0}
@@ -63,21 +53,6 @@ const Plot = (props: { data: Array<AnalogInputDataPoint>, y_label?: string }) =>
             animationDuration={500}
             animationEasing="ease-in-out"
           />
-          {/* <Line
-            type="monotone"
-            dataKey={1}
-            stroke="#82ca9d"
-            isAnimationActive={false}
-            animationBegin={0}
-            animationDuration={50}
-            animationEasing="ease-in-out"
-          />
-          <Line
-            type="monotone"
-            dataKey={2}
-            stroke="#ffc658"
-            isAnimationActive={false}
-          /> */}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -111,8 +86,6 @@ const PlotContainer = (props: { data: Array<AnalogInputDataPoint>, data_name: st
 const AnalogInputPlot = (props: { length: number }) => {
   const { inputs } = useContext(AnalogInputContext);
   const { dashboardContext, setContext } = useContext(DashboardContext);
-  // const [visiblePlots, setVisiblePlots] = useState([0, 1, 2]);
-  // const [visiblePlots, setVisiblePlots] = useState(new UIConfiguration());
   const [selectedPlot, setSelectedPlot] = useState<string>();
   const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
     []
@@ -125,13 +98,11 @@ const AnalogInputPlot = (props: { length: number }) => {
     let filtered_data: Array<AnalogInputDataPoint> = input_data.map((data_point, index) => (
       
       {time: data_point.time, [channel]: data_point[channel]}
-      // {time: new Date(data_point.time), [channel]: data_point[channel]}
     ));
     return filtered_data;
   }
 
   const save_configuration = async () => {
-    // let body = dashboardContext.configuration;
     let res: NextAPIResponseInterface = await fetch(
       "api/backend/ui/configuration",
       {
@@ -247,9 +218,6 @@ const AnalogInputPlot = (props: { length: number }) => {
             <div className="flex flex-row justify-between">
               <select className="w-[40%]" value={selectedPlot} onChange={e => setSelectedPlot(e.target.value)}>
                 {
-                  // inputs.map((input, index) => (
-                  //   <option key={input.channel.toString()} value={input.channel}>{`Input ${input.channel}`}</option>
-                  // ))
                   inputs.map((input, index) => {
                     const label = input.label != "" ? `${input.label} (Input ${input.channel})` : `Input ${input.channel}`
                     return <option key={input.channel.toString()} value={input.channel}>{label}</option>
@@ -260,9 +228,6 @@ const AnalogInputPlot = (props: { length: number }) => {
                 text="Add Plot"
                 className="w-[40%]"
                 onClick={() => {
-                  // let plots = dashboardContext.configuration.plots.push(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
-                  // let plots = new Array<PlotConfiguration>(new PlotConfiguration({enabled: true, data_sources: [new DataSource({data_source_name: selectedPlot.toString()})]}))
-                  // let plots = new Array<PlotConfiguration>(new PlotConfiguration({enabled: true, data_sources: [selectedPlot.toString()]}))
                   let plots = dashboardContext.configuration.plots;
                   plots.push(new PlotConfiguration({enabled: true, data_sources: [selectedPlot.toString()]}))
                   setContext((c) => {
@@ -280,33 +245,19 @@ const AnalogInputPlot = (props: { length: number }) => {
               />
             </div>
           <div>
-            {/* Plot component here, using visiblePlots to determine which plots to show */}
-              {/* {visiblePlots.map((v, i) => (
-                // <p>{i}</p>
-                <Plot data={analogInData} />
-              ))} */}
               {dashboardContext.configuration.plots.map((plot_configuration, plot_index) => (
-                // <p>{i}</p>
                 <div>
-                  {/* <Plot key={i.toString()} data_name={i.toString()} data={analogInData} /> */}
                   <PlotContainer
                     key={plot_index.toString()} 
                     data_name={
                       inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
-                      // inputs?.[plot_configuration.data_sources[0]].label ?? `Analog Input ${plot_configuration.data_sources[0]}`
                     }
                     data={filter_plot_data(analogInData, parseInt(plot_configuration.data_sources[0]))}
                     y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
                     plot_index={plot_index}
                   />
-                  {/* <Plot 
-                    key={plot_index.toString()} 
-                    data_name={plot_configuration.data_sources[0]} 
-                    data={filter_plot_data(analogInData, parseInt(plot_configuration.data_sources[0]))}
-                  /> */}
                 </div>
               ))}
-            {/* <Plot data={analogInData} /> */}
           </div>
         </div>
       )

@@ -14,11 +14,6 @@ export async function socketPassthrough(
     return `${props.socket_name.toUpperCase()}: ${message}`;
   };
 
-  //     const log_formatted_message = (message: string) => {
-  //     console.log(`${socket_name.toUpperCase()}: ${message}`);
-  //   }
-
-  // console.log(`${socket_name.toUpperCase()}: Websocket client connected.`);
   console.log(format_message("Websocket client connected."));
 
   const session = await getSession({ req: props.request });
@@ -32,15 +27,8 @@ export async function socketPassthrough(
       )
     );
 
-    // if (session.user.name == null || session.user.name == undefined) {
-    //   var a = 5;
-    // }
-
-    // let backend_socket = new WebSocket("ws://127.0.0.1:8000/streams/socket");
-    // let backend_socket = new WebSocket("ws://127.0.0.1:9090");
     let backend_socket = new WebSocket(`ws://${props.proxy_address}`);
 
-    // console.log("websocket created");
     console.log(format_message("Proxy target websocket created"));
 
     const onBackendWebsocketClose = () => {

@@ -28,8 +28,6 @@ const AnalogInputGroup = () => {
     setInputs(newInputs);
   };
 
-  // const grid = 8;
-
   const getItemStyle = (isDragging, draggableStyle) => ({
     // some basic styles to make the items look a bit nicer
     userSelect: "none",
@@ -50,11 +48,9 @@ const AnalogInputGroup = () => {
         .then((data) => {
           if (data) {
             let configuration = new HardwareConfiguration(data);
-            // console.log("Got initial data");
             console.log("Got IO configuration")
             setHardwareConfiguration(() => configuration)
             
-            // let io_points: Array<IOPointConfiguration> = [];
             let io_points: Array<IOPointConfiguration> = configuration.io_system.analog_inputs.map((v, i) => new IOPointConfiguration(v));
             io_points.forEach((i) => i.enabled = true);
             setInputs(io_points);
@@ -62,7 +58,6 @@ const AnalogInputGroup = () => {
         })
         .catch((e) => {
           console.error(`Error acquiring IO configuration: ${e}`)
-          // initial_data_acquired.current = true;
         })
     };
     get_io_configuration();
@@ -70,9 +65,7 @@ const AnalogInputGroup = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      {/* <div className="input-group-container"> */}
       <div className="w-full">
-        {/* <h2>Analog Inputs</h2> */}
         <div className='flex flex-row justify-between'>
           <p className='text-white font-bold'>Analog Inputs</p>
           <R2Button
@@ -101,11 +94,9 @@ const AnalogInputGroup = () => {
             <div 
               {...provided.droppableProps}
               ref={provided.innerRef}
-              // style={getListStyle(snapshot.isDraggingOver)}
               className={`${snapshot.isDraggingOver ? "bg-sky-300" : "bg-slate-300"} grid grid-cols-1 w-full rounded-[4px]`}
             >
               {inputs.map((input, index) => (
-                // <Draggable key={input.id} draggableId={input.id} index={index} isDragDisabled={isConfigOpen}>
                 <Draggable key={input.channel} draggableId={input.channel.toString()} index={index} isDragDisabled={isConfigOpen}>
                   {(provided, snapshot) => (
                     <div
@@ -132,21 +123,6 @@ const AnalogInputGroup = () => {
             </div>
           )}
         </Droppable>
-        {/* <button onClick={() => addInput({
-          label: 'Analog Input',
-          type: 'Voltage',
-          channel: 0,
-          transfer: 'linear',
-          measurementUnit: '',
-          minValue: 0,
-          minSignal: 0,
-          maxValue: 0,
-          maxSignal: 0,
-          value: 0,
-          enabled: false })}>
-            Add Input
-        </button> */}
-        
       </div>
     </DragDropContext>
   );
