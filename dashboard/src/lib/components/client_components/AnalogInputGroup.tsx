@@ -6,7 +6,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AnalogInputContext } from '@/lib/components/client_components/AnalogInputContext';
 import AnalogInput from '@/lib/components/client_components/AnalogInput';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { R2Button } from './ClickButton';
+import { R2Button } from '@/lib/components/client_components/ClickButton';
 import { HardwareConfiguration, IOPointConfiguration, IOPointType, TransferFunctionType } from '@/lib/models/api_models';
 import timeoutFetch from '@/lib/utils/timeoutFetch';
 import { HardwareConfigurationInterface } from '@/lib/models/api_models';
@@ -28,9 +28,10 @@ const AnalogInputGroup = () => {
     setInputs(newInputs);
   };
 
-  const getItemStyle = (isDragging, draggableStyle) => ({
+  const getItemStyle = (isDragging: boolean, draggableStyle: React.CSSProperties) => ({
     // some basic styles to make the items look a bit nicer
-    userSelect: "none",
+    // userSelect: "none",
+    userSelect: null,
     padding: 4,
     margin: `0 0 8px 0`,
     borderRadius: '4px',

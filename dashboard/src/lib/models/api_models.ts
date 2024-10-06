@@ -25,11 +25,11 @@ export type LogMessage = {
 };
 
 export interface DataSourceInterface {
-  data_source_name: string
+  data_source_name: string;
 }
 
 export class DataSource implements DataSourceInterface {
-  data_source_name: string
+  data_source_name: string;
 
   constructor(input?: DataSourceInterface) {
     if (input != undefined) {
@@ -39,25 +39,25 @@ export class DataSource implements DataSourceInterface {
 }
 
 export interface PlotConfigurationInterface {
-  enabled: boolean
-  data_sources: Array<string>
+  enabled: boolean;
+  data_sources: Array<string>;
 }
 
 export class PlotConfiguration implements PlotConfigurationInterface {
-  enabled: boolean
+  enabled: boolean;
   data_sources: Array<string> = [];
 
   constructor(input?: PlotConfigurationInterface) {
     this.enabled = input.enabled;
     input.data_sources.forEach((d) => {
       this.data_sources.push(d);
-    })
+    });
   }
 }
 
 export interface UIConfigurationInterface {
   client_id: number | undefined;
-  plots: Array<PlotConfigurationInterface>
+  plots: Array<PlotConfigurationInterface>;
 }
 
 export class UIConfiguration implements UIConfigurationInterface {
@@ -69,8 +69,8 @@ export class UIConfiguration implements UIConfigurationInterface {
   constructor(input?: UIConfigurationInterface) {
     if (input != undefined) {
       this.client_id = input.client_id;
-      input.plots.forEach(p => {
-        this.plots.push(new PlotConfiguration(p))
+      input.plots.forEach((p) => {
+        this.plots.push(new PlotConfiguration(p));
       });
 
       this.configured = true;
@@ -93,12 +93,19 @@ export class UIConfiguration implements UIConfigurationInterface {
 
 export enum IOPointType {
   NULL,
-  ANALOG_VOLTAGE_INPUT,
-  ANALOG_CURRENT_INPUT,
-  ANALOG_VOLTAGE_OUTPUT,
-  ANALOG_CURRENT_OUTPUT,
+  // ANALOG_VOLTAGE_INPUT,
+  // ANALOG_CURRENT_INPUT,
+  // ANALOG_VOLTAGE_OUTPUT,
+  // ANALOG_CURRENT_OUTPUT,
+  ANALOG_INPUT,
+  ANALOG_OUTPUT,
   DIGITAL_INPUT,
   DIGITAL_OUTPUT,
+}
+
+export enum AnalogIOPointType {
+  VOLTAGE,
+  CURRENT,
 }
 
 export enum TransferFunctionType {
@@ -110,6 +117,7 @@ export interface IOPointConfigurationInterface {
   id?: string;
   channel: number;
   type: IOPointType;
+  analog_type?: AnalogIOPointType;
   enabled: boolean;
   label?: string;
   transfer_function_type?: TransferFunctionType;
@@ -118,13 +126,14 @@ export interface IOPointConfigurationInterface {
   min_signal_v?: number;
   max_value?: number;
   max_signal_v?: number;
-  value?: any
+  value?: any;
 }
 
 export class IOPointConfiguration implements IOPointConfigurationInterface {
   id: string;
   channel: number;
   type: IOPointType;
+  analog_type?: AnalogIOPointType;
   enabled: boolean;
   label: string;
   transfer_function_type: TransferFunctionType;
@@ -133,7 +142,7 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
   min_signal_v: number;
   max_value: number;
   max_signal_v: number;
-  value: any
+  value: any;
 
   constructor(input: IOPointConfigurationInterface) {
     this.id = input.id;
@@ -144,6 +153,19 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
       typeof input.type === "string"
         ? IOPointType[(input.type ?? "NULL") as keyof typeof IOPointType]
         : (input.type as IOPointType);
+
+    if (
+      this.type == IOPointType.ANALOG_INPUT ||
+      this.type == IOPointType.ANALOG_OUTPUT
+    ) {
+      this.analog_type =
+        typeof input.analog_type === "string"
+          ? AnalogIOPointType[
+              (input.analog_type ?? "NULL") as keyof typeof AnalogIOPointType
+            ]
+          : (input.analog_type as AnalogIOPointType);
+    }
+
     this.measurement_unit = input.measurement_unit ?? "";
     this.min_value = input.min_value ?? 0;
     this.max_value = input.max_value ?? 0;
@@ -166,6 +188,14 @@ export interface IOConfigurationInterface {
 }
 
 export class IOConfiguration implements IOConfigurationInterface {
+  configuration_constants: Record<IOPointType, number> = {
+    [IOPointType.DIGITAL_INPUT]: 8,
+    [IOPointType.DIGITAL_OUTPUT]: 8,
+    [IOPointType.ANALOG_INPUT]: 8,
+    [IOPointType.ANALOG_OUTPUT]: 8,
+    [IOPointType.NULL]: 8
+  }
+  
   digital_inputs: Array<IOPointConfiguration> = [];
   digital_outputs: Array<IOPointConfiguration> = [];
   analog_inputs: Array<IOPointConfigurationInterface> = [];
@@ -178,7 +208,7 @@ export class IOConfiguration implements IOConfigurationInterface {
     input.digital_outputs.forEach((o) => {
       this.digital_outputs.push(new IOPointConfiguration(o));
     });
-    
+
     input.analog_inputs.forEach((i) => {
       this.analog_inputs.push(new IOPointConfiguration(i));
     });

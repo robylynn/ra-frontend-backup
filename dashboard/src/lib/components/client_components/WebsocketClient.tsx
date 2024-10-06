@@ -91,7 +91,7 @@ export default function RAWebSocket(props: {
   const set_ROS_context = (config_service: ROSLIB.Service | null) => {
     setContext((c) => {
       c.ra_ros_websocket = ra_ros_websocket.current;
-      c.config_service = config_service
+      c.analog_input_config_service = config_service
       return c;
     });
   }

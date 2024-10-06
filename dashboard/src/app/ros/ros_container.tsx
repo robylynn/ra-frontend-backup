@@ -4,11 +4,9 @@
 // "use client";
 
 import { Dispatch, SetStateAction } from "react";
-// import { RosProvider } from "@/lib/ros/RosContext";
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
-// import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
 import AnalogInputGroup from "@/lib/components/client_components/AnalogInputGroup";
-// import AnalogInDisplay from "@/lib/components/client_components/AnalogInDisplay";
+import DigitalInputGroup from "@/lib/components/client_components/DigitalInputGroup";
 
 export default function ROSContainer(props: {
   id: string;
@@ -24,8 +22,9 @@ export default function ROSContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-        <div className="flex">
+        <div className="flex flex-col">
           <AnalogInputGroup />
+          <DigitalInputGroup />
         </div>
     </DashboardHeaderContainer>
   );

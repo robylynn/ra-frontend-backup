@@ -50,7 +50,7 @@ const AnalogInput = ({
     }
 
     // Check if the config service is available
-    if (!dashboardContext.config_service) {
+    if (!dashboardContext.analog_input_config_service) {
       console.error("Service not defined");
       return;
     }
@@ -73,7 +73,7 @@ const AnalogInput = ({
     setIsLoading(true);
 
     // Call the config service with timeout
-    timeoutServiceCall(dashboardContext.config_service, request, 3000)
+    timeoutServiceCall(dashboardContext.analog_input_config_service, request, 3000)
       .then((result) => {
         if ((result as any).success) {
           console.log("Service call successful:", result);
@@ -128,7 +128,7 @@ const AnalogInput = ({
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center h-[40px]">
       <div
         className={`flex bg-gray-300 rounded-full w-[40px] h-[20px] justify-center items-center m-[8px] bg-[${interpolateColor(input.value)}]`}
         style={{
@@ -138,7 +138,7 @@ const AnalogInput = ({
         {input.channel}
       </div>
       <button
-        className="m-8px"
+        className="m-[8px]"
         onClick={() => {
           setShowConfig(true);
           setIsConfigOpen(true);
@@ -210,7 +210,6 @@ interface AnalogInputConfigDialogInterface {
   onDelete: () => void;
 }
 
-
 const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigDialogInterface) => {
   const [localInput, setLocalInput] = useState(input);
 
@@ -227,7 +226,6 @@ const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigD
     } else {
       setLocalInput({ ...localInput, [name]: "" });
     }
-    
   };
 
   const handleTransferFunctionChange = (e) => {

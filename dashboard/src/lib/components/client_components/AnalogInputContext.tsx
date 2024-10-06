@@ -10,12 +10,12 @@ import React, {
   SetStateAction,
 } from "react";
 import { v4 as uuidv4 } from "uuid"; // Import uuid to generate unique IDs
-import { IOPointConfiguration } from "@/lib/models/api_models";
+import { IOPointConfiguration, IOPointConfigurationInterface } from "@/lib/models/api_models";
 
 interface AnalogInputContextInterface {
   inputs: Array<IOPointConfiguration>;
   setInputs: Dispatch<SetStateAction<Array<IOPointConfiguration>>>;
-  addInput: (input: IOPointConfiguration) => void;
+  addInput: (input: IOPointConfigurationInterface) => void;
   updateInput: (index: number, updatedInput: IOPointConfiguration) => void;
   deleteInput: (index: number) => void;
 }
