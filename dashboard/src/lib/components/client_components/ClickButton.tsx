@@ -104,6 +104,7 @@ export function R2SliderToggle(props: {
         type="checkbox"
         className="absolute w-full h-full -translate-x-1/2 rounded-md appearance-none left-1/2 peer"
         onClick={props.onClick}
+        onChange={() => {}}
         checked={props.state}
       />
       <span

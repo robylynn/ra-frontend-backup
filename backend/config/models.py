@@ -105,10 +105,16 @@ class SystemConfiguration:
 class IOPointType(Enum):
     DIGITAL_INPUT = auto()
     DIGITAL_OUTPUT = auto()
-    ANALOG_VOLTAGE_INPUT = auto()
-    ANALOG_VOLTAGE_OUTPUT = auto()
-    ANALOG_CURRENT_INPUT = auto()
-    ANALOG_CURRENT_OUTPUT = auto()
+    ANALOG_INPUT = auto()
+    ANALOG_OUTPUT = auto()
+    # ANALOG_VOLTAGE_INPUT = auto()
+    # ANALOG_VOLTAGE_OUTPUT = auto()
+    # ANALOG_CURRENT_INPUT = auto()
+    # ANALOG_CURRENT_OUTPUT = auto()
+
+class AnalogIOPointType(Enum):
+    CURRENT = auto()
+    VOLTAGE = auto()
 
 class TransferFunctionType(Enum):
     LINEAR = auto()
@@ -120,6 +126,7 @@ class ROSIOPointConfiguration:
     label: str = None
     enabled: bool = False
     type: IOPointType = None
+    analog_type: AnalogIOPointType = None
     transfer_function_type: TransferFunctionType = None
     measurement_unit: str = None
     min_value: float = None
@@ -138,6 +145,7 @@ class IOSystemConfiguration:
     digital_inputs: Annotated[List[ROSIOPointConfiguration], 8]
     digital_outputs: Annotated[List[ROSIOPointConfiguration], 8]
     analog_inputs: Annotated[List[ROSIOPointConfiguration], 3]
+    analog_outputs: Annotated[List[ROSIOPointConfiguration], 3]
 
 @dataclass
 class HardwareConfiguration:
@@ -146,19 +154,21 @@ class HardwareConfiguration:
     number_of_digital_inputs: ClassVar[int] = 8
     number_of_digital_outputs: ClassVar[int] = 8
     number_of_analog_inputs: ClassVar[int] = 3
+    number_of_analog_outputs: ClassVar[int] = 3
 
     @staticmethod
     def parse(serialized_configuration: Dict) -> "HardwareConfiguration":
         digital_inputs = serialized_configuration['io_system']['digital_inputs']
         digital_outputs = serialized_configuration['io_system']['digital_outputs']
         analog_inputs = serialized_configuration['io_system']['analog_inputs']
+        analog_outputs = serialized_configuration['io_system']['analog_outputs']
         return HardwareConfiguration(
             io_system=IOSystemConfiguration(
                 digital_inputs=[ROSIOPointConfiguration(**di) for di in digital_inputs],
                 digital_outputs=[ROSIOPointConfiguration(**do) for do in digital_outputs],
-                analog_inputs=[ROSIOPointConfiguration(**ai) for ai in analog_inputs]
+                analog_inputs=[ROSIOPointConfiguration(**ai) for ai in analog_inputs],
+                analog_outputs=[ROSIOPointConfiguration(**ai) for ai in analog_outputs]
             )
-            
         )
     
     @staticmethod
@@ -174,7 +184,12 @@ class HardwareConfiguration:
         ]
 
         analog_inputs = [
-            ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_VOLTAGE_INPUT)
+            ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_INPUT)
+            for x in range(HardwareConfiguration.number_of_analog_inputs)
+        ]
+
+        analog_outputs = [
+            ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_OUTPUT)
             for x in range(HardwareConfiguration.number_of_analog_inputs)
         ]
 
@@ -182,7 +197,8 @@ class HardwareConfiguration:
             io_system=IOSystemConfiguration(
                 digital_inputs=digital_inputs,
                 digital_outputs=digital_outputs,
-                analog_inputs=analog_inputs
+                analog_inputs=analog_inputs,
+                analog_outputs=analog_outputs
             )
         )
     

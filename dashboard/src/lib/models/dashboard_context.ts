@@ -18,6 +18,28 @@ import {
   UIConfiguration,
 } from "@/lib/models/api_models";
 
+export type ConfigServicesMap = Record<IOPointType, ROSLIB.Service | null>;
+
+export class ConfigServices {
+  private services: ConfigServicesMap = {
+    [IOPointType.DIGITAL_INPUT]: null,
+    [IOPointType.DIGITAL_OUTPUT]: null,
+    [IOPointType.ANALOG_INPUT]: null,
+    [IOPointType.ANALOG_OUTPUT]: null,
+    [IOPointType.NULL]: null,
+  };
+
+  public constructor() {}
+
+  public get_service(io_point_type: IOPointType) {
+    return this.services[io_point_type];
+  }
+
+  public set_service(io_point_type: IOPointType, service: ROSLIB.Service) {
+    this.services[io_point_type] = service;
+  }
+}
+
 export class ApplicationContext {
   latest_document: DatabaseDocument | null = null;
   messages: DatabaseMessageArray | null = null;
@@ -30,19 +52,21 @@ export class ApplicationContext {
   ra_ros_websocket: ROSLIB.Ros | null = null;
   // analog_input_config_service: ROSLIB.Service | null = null;
   // digital_input_config_service: ROSLIB.Service | null = null;
-  IO_config_services: Record<IOPointType, ROSLIB.Service | null> = {
-    [IOPointType.DIGITAL_INPUT]: null,
-    [IOPointType.DIGITAL_OUTPUT]: null,
-    [IOPointType.ANALOG_INPUT]: null,
-    [IOPointType.ANALOG_OUTPUT]: null,
-    [IOPointType.NULL]: null
-  };
+  // IO_config_services: ConfigServices = {
+  //   [IOPointType.DIGITAL_INPUT]: null,
+  //   [IOPointType.DIGITAL_OUTPUT]: null,
+  //   [IOPointType.ANALOG_INPUT]: null,
+  //   [IOPointType.ANALOG_OUTPUT]: null,
+  //   [IOPointType.NULL]: null,
+  // };
+  IO_config_services: ConfigServices;
 
   constructor() {
     this.latest_document = new DatabaseDocument();
     this.configuration = new UIConfiguration();
     this.messages = new DatabaseMessageArray();
     this.io_state = new DatabaseIOStateDocumentArray();
+    this.IO_config_services = new ConfigServices();
   }
 }
 

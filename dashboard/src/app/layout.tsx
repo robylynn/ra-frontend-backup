@@ -13,6 +13,7 @@ import LinksColumn from "@/lib/components/server_components/links_column";
 import RAWebSocket from "@/lib/components/client_components/WebsocketClient";
 import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
 import { DigitalInputProvider } from "@/lib/components/client_components/DigitalInputContext";
+import { IOPointContextProvider } from "@/lib/components/client_components/IOPointContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,8 +31,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <NextAuthProvider>
         <DashboardContextProvider>
-          <AnalogInputProvider>
-            <DigitalInputProvider>
+          {/* <AnalogInputProvider> */}
+          <IOPointContextProvider>
             <DataUpdater
               update_period_seconds={1}
               configuration_update_period_seconds={5}
@@ -51,8 +52,8 @@ export default function RootLayout({
                 <ConnectionStateIndicator />
               </div>
             </body>
-            </DigitalInputProvider>
-          </AnalogInputProvider>
+          </IOPointContextProvider>
+          {/* </AnalogInputProvider> */}
         </DashboardContextProvider>
       </NextAuthProvider>
     </html>

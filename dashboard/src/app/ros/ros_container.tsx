@@ -7,6 +7,8 @@ import { Dispatch, SetStateAction } from "react";
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import AnalogInputGroup from "@/lib/components/client_components/AnalogInputGroup";
 import DigitalInputGroup from "@/lib/components/client_components/DigitalInputGroup";
+import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
+import { IOPointType } from "@/lib/models/api_models";
 
 export default function ROSContainer(props: {
   id: string;
@@ -23,8 +25,16 @@ export default function ROSContainer(props: {
       fill_tile_callback={props.fill_tile_callback}
     >
         <div className="flex flex-col">
-          <AnalogInputGroup />
-          <DigitalInputGroup />
+          {/* <AnalogInputGroup />
+          <DigitalInputGroup /> */}
+          <IOPointGroup
+            point_type={IOPointType.ANALOG_INPUT}
+            group_name="Analog Input"
+          />
+          <IOPointGroup
+            point_type={IOPointType.DIGITAL_INPUT}
+            group_name="Digital Input"
+          />
         </div>
     </DashboardHeaderContainer>
   );

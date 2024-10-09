@@ -21,7 +21,8 @@ import DashboardContext from "@/lib/models/dashboard_context";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 import { ROSAnalogIOStateInterface, DatabaseROSAnalogIOStateArray } from "@/lib/models/database_models";
 import { R2Button } from "@/lib/components/client_components/ClickButton";
-import { DataSource, NextAPIResponseInterface, PlotConfiguration } from "@/lib/models/api_models";
+import { DataSource, IOPointType, NextAPIResponseInterface, PlotConfiguration } from "@/lib/models/api_models";
+import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
 
 interface AnalogInputDataPoint {
   time: number;
@@ -84,7 +85,8 @@ const PlotContainer = (props: { data: Array<AnalogInputDataPoint>, data_name: st
 }
 
 const AnalogInputPlot = (props: { length: number }) => {
-  const { inputs } = useContext(AnalogInputContext);
+  // const { inputs } = useContext(AnalogInputContext);
+  const { IOPoints } = useContext(IOPointContext);
   const { dashboardContext, setContext } = useContext(DashboardContext);
   const [selectedPlot, setSelectedPlot] = useState<string>();
   const [analogInData, setAnalogInData] = useState<Array<AnalogInputDataPoint>>(
@@ -201,12 +203,12 @@ const AnalogInputPlot = (props: { length: number }) => {
     };
   }, [dashboardContext.ra_ros_websocket]);
 
-  useEffect(() => {
-    console.log(inputs)
-    setSelectedPlot(() => inputs[0]?.channel.toString())
-  }, [inputs])
+  // useEffect(() => {
+  //   console.log(inputs)
+  //   setSelectedPlot(() => inputs[0]?.channel.toString())
+  // }, [inputs])
 
-  let a = 5;
+  // let a = 5;
 
   return (
     analogInData.length == 0 ? 
@@ -218,7 +220,8 @@ const AnalogInputPlot = (props: { length: number }) => {
             <div className="flex flex-row justify-between">
               <select className="w-[40%]" value={selectedPlot} onChange={e => setSelectedPlot(e.target.value)}>
                 {
-                  inputs.map((input, index) => {
+                  // IOPoints[IOPointType.ANALOG_INPUT].map((input, index) => {
+                  IOPoints.getIOPoints(IOPointType.ANALOG_INPUT).map((input, index) => {
                     const label = input.label != "" ? `${input.label} (Input ${input.channel})` : `Input ${input.channel}`
                     return <option key={input.channel.toString()} value={input.channel}>{label}</option>
                   })
@@ -250,10 +253,12 @@ const AnalogInputPlot = (props: { length: number }) => {
                   <PlotContainer
                     key={plot_index.toString()} 
                     data_name={
-                      inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
+                      // inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
+                      IOPoints[IOPointType.ANALOG_INPUT]?.[plot_configuration.data_sources[0]]?.label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : IOPoints[IOPointType.ANALOG_INPUT]?.[plot_configuration.data_sources[0]]?.label
                     }
                     data={filter_plot_data(analogInData, parseInt(plot_configuration.data_sources[0]))}
-                    y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
+                    // y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
+                    y_label={IOPoints[IOPointType.ANALOG_INPUT]?.[plot_configuration.data_sources[0]]?.measurement_unit == "" ? null : IOPoints[IOPointType.ANALOG_INPUT]?.[plot_configuration.data_sources[0]]?.measurement_unit}
                     plot_index={plot_index}
                   />
                 </div>

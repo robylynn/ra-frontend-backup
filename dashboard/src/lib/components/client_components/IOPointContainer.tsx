@@ -3,7 +3,7 @@ import React, { useState, useContext, Dispatch, SetStateAction } from "react";
 import Modal from "@/lib/components/client_components/Modal";
 import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
 import DashboardContext from "@/lib/models/dashboard_context";
-import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
+import { AnalogIOPointType, IOPointConfiguration, IOPointType, TransferFunctionType } from "@/lib/models/api_models";
 // import { useRos } from '../ros/RosContext';
 import {
   R2Button,
@@ -37,11 +37,11 @@ const IOPointContainer = ({
   const { IOPoints } = useContext(IOPointContext);
   //   const { configDigitalInService } = useRos();
 
-  const handleConfigSave = (updatedIOPoint) => {
+  const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
     console.log("Updated input:", updatedIOPoint);
 
     // Validate the channel
-    const isChannelUsed = IOPoints[updatedIOPoint.type].some(
+    const isChannelUsed = IOPoints.getIOPoints(updatedIOPoint.type).some(
       (p) =>
         p.channel === updatedIOPoint.channel &&
         p.id !== io_point.id &&
@@ -52,9 +52,12 @@ const IOPointContainer = ({
       return;
     }
 
+    // let z = dashboardContext;
+    // let a = 5;
+
     // Check if the config service is available
-    if (!dashboardContext.IO_config_services[io_point.type]) {
-      console.error(`Service for point type ${io_point.type} not defined`);
+    if (!dashboardContext.IO_config_services?.get_service(io_point.type)) {
+      console.error(`Service for point type ${IOPointType[io_point.type]} not defined`);
       return;
     }
 
@@ -72,7 +75,8 @@ const IOPointContainer = ({
 
     // Call the config service with timeout
     timeoutServiceCall(
-      dashboardContext.IO_config_services[io_point.type],
+      // dashboardContext.IO_config_services[io_point.type],
+      dashboardContext.IO_config_services.get_service(io_point.type),
       request,
       3000
     )
@@ -84,12 +88,12 @@ const IOPointContainer = ({
           setIsConfigOpen(false); // Notify parent component that config is closed
         } else {
           console.error("Failed to update configuration");
-          setErrorMessage("Failed to update configuration");
+          setErrorMessage(`Failed to update configuration: ${(result as any).message}`);
         }
       })
       .catch((error) => {
-        console.error("Service call failed:", error);
-        setErrorMessage("Service call failed: " + error.message);
+        console.error("Configuration update failed: ", error);
+        setErrorMessage("Configuration update failed: " + error);
       })
       .finally(() => {
         setIsLoading(false); // Set loading state to false
@@ -167,8 +171,8 @@ const IOPointContainer = ({
           </div>
         )} */}
         {errorMessage && (
-          <div className="flex fixed inset-0 bg-red/[0.5] z-[10000] items-center justify-center">
-            <div className="bg-white p-[20px] rounded-[5px] shadow-[0px,2px,10px] shadow-black/0.1">
+          <div className="flex fixed inset-0 bg-red-600/[0.5] z-[10000] items-center justify-center">
+            <div className="bg-white p-[20px] rounded-[5px] border shadow-[0px,2px,10px] shadow-black/0.1 max-w-[50%]">
               <p>{errorMessage}</p>
               <R2Button text={"Close"} onClick={() => setErrorMessage("")} />
             </div>
@@ -196,6 +200,7 @@ const IOPointContainer = ({
       <R2SliderToggle
         text={""}
         state={io_point.enabled}
+        // onChange={() => {}}
         onClick={handleToggleChange}
       />
 
@@ -207,7 +212,7 @@ const IOPointContainer = ({
   );
 };
 
-interface DigitalInputConfigDialogInterface {
+interface IOPointConfigDialogInterface {
   io_point: IOPointConfiguration;
   onSave: (updatedInput: IOPointConfiguration) => void;
   onDelete: () => void;
@@ -217,11 +222,11 @@ const IOPointConfigDialog = ({
   io_point,
   onSave,
   onDelete,
-}: DigitalInputConfigDialogInterface) => {
+}: IOPointConfigDialogInterface) => {
   const [localPoint, setLocalPoint] = useState(io_point);
   const { dashboardContext } = useContext(DashboardContext);
 
-  const handleChange = (e) => {
+  const handleStringChange = (e) => {
     const { name, value } = e.target;
     setLocalPoint({ ...localPoint, [name]: value });
   };
@@ -230,6 +235,28 @@ const IOPointConfigDialog = ({
     const { value } = e.target;
     setLocalPoint({ ...localPoint, channel: parseInt(value) });
   };
+
+  const handleNumericChange = (e) => {
+    const { name, value } = e.target;
+    let numeric_value = parseFloat(value);
+    if (numeric_value) {
+      setLocalPoint({ ...localPoint, [name]: numeric_value });
+    } else {
+      setLocalPoint({ ...localPoint, [name]: "" });
+    }
+  };
+
+  const handleAnalogTypeChange = (e) => {
+    const value = AnalogIOPointType[e.target.value as keyof typeof AnalogIOPointType];
+    setLocalPoint({ ...localPoint, analog_type: value });
+  };
+
+  const handleTransferFunctionChange = (e) => {
+    const value = TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
+    setLocalPoint({ ...localPoint, transfer_function_type: value });
+  };
+
+  const unitLabel = localPoint.analog_type === AnalogIOPointType.CURRENT ? "(mA)" : "(V)";
 
   // const handleTypeChange = (e) => {
   //   const { value } = e.target;
@@ -244,7 +271,7 @@ const IOPointConfigDialog = ({
           type="text"
           name="label"
           value={localPoint.label}
-          onChange={handleChange}
+          onChange={handleStringChange}
           className="w-full p-[5px] box-border"
         />
       </div>
@@ -259,8 +286,11 @@ const IOPointConfigDialog = ({
           {
             [
               ...Array(
-                dashboardContext.hardware_configuration.io_system
-                  .configuration_constants[io_point.type]
+                // dashboardContext.hardware_configuration?.io_system
+                //   .configuration_constants[io_point.type]
+                  dashboardContext.hardware_configuration?.io_system
+                  .getMaximumChannels(io_point.type)
+                  // .get_maximum_channels(io_point.type)
               ).keys(),
             ].map((i) => (
               <option value={i}>{i}</option>
@@ -277,6 +307,79 @@ const IOPointConfigDialog = ({
           <option value="7">7</option> */}
         </select>
       </div>
+      {
+        ((localPoint.type == IOPointType.ANALOG_INPUT) || (localPoint.type == IOPointType.ANALOG_OUTPUT)) ? 
+          <div>
+            <div className="flex flex-col mb-[10px]">
+              <label>Type</label>
+              <select name="analog_type" value={IOPointType[localPoint.analog_type]} onChange={handleAnalogTypeChange}>
+                {/* <option value={IOPointType[IOPointType.ANALOG_VOLTAGE_INPUT]}>Voltage</option>
+                <option value={IOPointType[IOPointType.ANALOG_CURRENT_INPUT]}>Current</option> */}
+                <option value={AnalogIOPointType[AnalogIOPointType.VOLTAGE]}>Voltage</option>
+                <option value={AnalogIOPointType[AnalogIOPointType.CURRENT]}>Current</option>
+              </select>
+            </div>
+            
+            <div className="flex flex-col mb-[10px]">
+              <label>Transfer Function</label>
+              <select
+                name="transferFunction"
+                value={TransferFunctionType[localPoint.transfer_function_type]}
+                onChange={handleTransferFunctionChange}
+              >
+                <option value={TransferFunctionType[TransferFunctionType.LINEAR]}>Linear</option>
+                <option value={TransferFunctionType[TransferFunctionType.CUSTOM]}>Custom</option>
+              </select>
+            </div>
+            <div className="flex flex-col mb-[10px]">
+              <label>Measurement Unit</label>
+              <input
+                type="text"
+                name="measurement_unit"
+                value={localPoint.measurement_unit}
+                onChange={handleStringChange}
+              />
+            </div>
+            <div className="flex flex-col mb-[10px]">
+              <label>Min Electrical Value {unitLabel}</label>
+              <input
+                type="text"
+                name="min_signal_v"
+                value={localPoint.min_signal_v}
+                onChange={handleNumericChange}
+              />
+            </div>
+            <div className="flex flex-col mb-[10px]">
+              <label>Min Measurement Value{localPoint.measurement_unit != '' ? ` (${ localPoint.measurement_unit})` : ''}</label>
+              <input
+                type="text"
+                name="min_value"
+                value={localPoint.min_value}
+                onChange={handleNumericChange}
+              />
+            </div>
+            <div className="flex flex-col mb-[10px]">
+              <label>Max Electrical Value {unitLabel}</label>
+              <input
+                type="text"
+                name="max_signal_v"
+                value={localPoint.max_signal_v}
+                onChange={handleNumericChange}
+              />
+            </div>
+            <div className="flex flex-col mb-[10px]">
+              <label>Max Measurement Value{localPoint.measurement_unit != '' ? ` (${localPoint.measurement_unit})` : ''}</label>
+              <input
+                type="text"
+                name="max_value"
+                value={localPoint.max_value}
+                onChange={handleNumericChange}
+              />
+            </div>
+          </div>
+        :
+        <></>
+      }
       <div className="flex justify-between mt-[20px]">
         <button onClick={onDelete}>Delete</button>
         <button onClick={() => onSave(localPoint)}>Save</button>
@@ -284,5 +387,143 @@ const IOPointConfigDialog = ({
     </div>
   );
 };
+
+// const AnalogInputConfigDialog = ({ input, onSave, onDelete }: AnalogInputConfigDialogInterface) => {
+//   const [localInput, setLocalInput] = useState(input);
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setLocalInput({ ...localInput, [name]: value });
+//   };
+
+//   const handleNumericChange = (e) => {
+//     const { name, value } = e.target;
+//     let numeric_value = parseFloat(value);
+//     if (numeric_value) {
+//       setLocalInput({ ...localInput, [name]: numeric_value });
+//     } else {
+//       setLocalInput({ ...localInput, [name]: "" });
+//     }
+//   };
+
+//   const handleTransferFunctionChange = (e) => {
+//     const value = TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
+//     setLocalInput({ ...localInput, transfer_function_type: value });
+//   };
+
+//   const handleChannelChange = (e) => {
+//     const { value } = e.target;
+//     setLocalInput({ ...localInput, channel: parseInt(value) });
+//   };
+
+//   const handleTypeChange = (e) => {
+//     const value = IOPointType[e.target.value as keyof typeof IOPointType];
+//     setLocalInput({ ...localInput, type: value });
+//   };
+
+//   const unitLabel = localInput.type === IOPointType.ANALOG_CURRENT_INPUT ? "(mA)" : "(V)";
+
+//   return (
+//     <div className="flex flex-col w-full">
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Label</label>
+//         <input
+//           type="text"
+//           name="label"
+//           value={localInput.label}
+//           onChange={handleChange}
+//         />
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Channel</label>
+//         <select
+//           name="channel"
+//           value={localInput.channel}
+//           onChange={handleChannelChange}
+//         >
+//           <option value="0">0</option>
+//           <option value="1">1</option>
+//           <option value="2">2</option>
+//           <option value="3">3</option>
+//         </select>
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Type</label>
+//         <select name="type" value={IOPointType[localInput.type]} onChange={handleTypeChange}>
+//           <option value={IOPointType[IOPointType.ANALOG_VOLTAGE_INPUT]}>Voltage</option>
+//           <option value={IOPointType[IOPointType.ANALOG_CURRENT_INPUT]}>Current</option>
+//         </select>
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Transfer Function</label>
+//         <select
+//           name="transferFunction"
+//           value={TransferFunctionType[localInput.transfer_function_type]}
+//           onChange={handleTransferFunctionChange}
+//         >
+//           <option value={TransferFunctionType[TransferFunctionType.LINEAR]}>Linear</option>
+//           <option value={TransferFunctionType[TransferFunctionType.CUSTOM]}>Custom</option>
+//         </select>
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Measurement Unit</label>
+//         <input
+//           type="text"
+//           name="measurement_unit"
+//           value={localInput.measurement_unit}
+//           onChange={handleChange}
+//         />
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Min Electrical Value {unitLabel}</label>
+//         <input
+//           type="text"
+//           name="min_signal_v"
+//           value={localInput.min_signal_v}
+//           onChange={handleNumericChange}
+//         />
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Min Measurement Value ({localInput.min_value})</label>
+//         <input
+//           type="text"
+//           name="min_value"
+//           value={localInput.min_value}
+//           onChange={handleNumericChange}
+//         />
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Max Electrical Value {unitLabel}</label>
+//         <input
+//           type="text"
+//           name="max_signal_v"
+//           value={localInput.max_signal_v}
+//           onChange={handleNumericChange}
+//         />
+//       </div>
+//       <div className="flex flex-col mb-[10px]">
+//         <label>Max Measurement Value ({localInput.measurement_unit})</label>
+//         <input
+//           type="text"
+//           name="max_value"
+//           value={localInput.max_value}
+//           onChange={handleNumericChange}
+//         />
+//       </div>
+//       <div className="flex justify-between mt-[20px]">
+//         <R2Button
+//           className="w-[60px]"
+//           text={"Delete"}
+//           onClick={onDelete}
+//         />
+//         <R2Button
+//           className="w-[60px]"
+//           text={"Save"}
+//           onClick={() => onSave(localInput)}
+//         />
+//       </div>
+//     </div>
+//   );
+// };
 
 export default IOPointContainer;

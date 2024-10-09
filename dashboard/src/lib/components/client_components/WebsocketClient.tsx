@@ -4,9 +4,10 @@
 "use client";
 
 import { useContext, useEffect, useState, useRef } from "react";
-import DashboardContext from "@/lib/models/dashboard_context";
+import DashboardContext, { ConfigServices } from "@/lib/models/dashboard_context";
 import { getSession } from "next-auth/react";
 import ROSLIB from "roslib";
+import { IOPointType } from "@/lib/models/api_models";
 
 function connectWebSocket(url: string, timeout: number): Promise<WebSocket> {
   timeout = timeout || 2000;
@@ -88,10 +89,10 @@ export default function RAWebSocket(props: {
   const ra_ros_websocket: React.MutableRefObject<null | ROSLIB.Ros> = useRef(null);
   const websocket_connecting: React.MutableRefObject<boolean> = useRef(false);
 
-  const set_ROS_context = (config_service: ROSLIB.Service | null) => {
+  const set_ROS_context = (config_services: ConfigServices) => {
     setContext((c) => {
       c.ra_ros_websocket = ra_ros_websocket.current;
-      c.analog_input_config_service = config_service
+      c.IO_config_services = config_services
       return c;
     });
   }
@@ -133,16 +134,26 @@ export default function RAWebSocket(props: {
                 close_websocket();
               });
 
-              const config_service = new ROSLIB.Service({
+              const digital_in_config_service = new ROSLIB.Service({
+                ros: socket,
+                name: '/configure_digital_in',
+                serviceType: 'r2c_interfaces/ConfigureDigitalIn'
+              });
+
+              const analog_in_config_service = new ROSLIB.Service({
                 ros: socket,
                 name: '/gpio/configure_analog_in',
                 serviceType: 'r2c_interfaces/ConfigureAnalogIn'
               });
 
+              let config_services: ConfigServices = new ConfigServices()
+              config_services.set_service(IOPointType.ANALOG_INPUT, analog_in_config_service);
+              config_services.set_service(IOPointType.DIGITAL_INPUT, digital_in_config_service);
+
               ra_ros_websocket.current = socket;
               websocket_connecting.current = false;
 
-              set_ROS_context(config_service);
+              set_ROS_context(config_services);
             })
             .catch((err) => {
               console.error("ROSBRIDGE WEBSOCKET: ROS Websocket connection error: " + err);
