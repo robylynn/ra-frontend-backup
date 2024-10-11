@@ -223,7 +223,7 @@ const AnalogInputPlot = (props: { length: number }) => {
                   // IOPoints[IOPointType.ANALOG_INPUT].map((input, index) => {
                   IOPoints.getIOPoints(IOPointType.ANALOG_INPUT).map((input, index) => {
                     const label = input.label != "" ? `${input.label} (Input ${input.channel})` : `Input ${input.channel}`
-                    return <option key={input.channel.toString()} value={input.channel}>{label}</option>
+                    return <option key={input.channel?.toString()} value={input.channel}>{label}</option>
                   })
                 }
               </select>

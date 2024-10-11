@@ -19,12 +19,12 @@ from auth.jwt_handler import signJWT
 from api.models import (
     AuthenticationResponse,
     APIResponse,
-    IOPointType,
     FrontendConfiguration,
     IOConfigurationRequestData,
     AnalogIOStatePostData,
     APIException,
-    UIConfiguration
+    UIConfiguration,
+    AnalogIOConfigurationRequestData
 )
 
 from api.helpers import (
@@ -32,7 +32,9 @@ from api.helpers import (
 )
 
 from config.models import (
-    TransferFunctionType
+    TransferFunctionType,
+    IOPointType,
+    AnalogIOPointType
 )
 
 from database.models import (
@@ -161,7 +163,7 @@ def get_ui_io_configuration():
     config = initializer.ra_database.get_latest_system_configuration(timeout=1)
     return APIResponse(
         error=False,
-        data=config.serialize()
+        data=config.serialize() if config is not None else None
     )
 
 ###############################################################################
@@ -243,9 +245,79 @@ def push_io_state(data: Dict) -> APIResponse:
         data="Successful insertion of ROS analog input data"
     )
 
+@historian_router.post("/analog_in")
+def push_analog_input_state(data: List[Dict]) -> APIResponse:
+    for record in data:
+        initializer.ra_database.enqueue_record(
+            data=create_database_document(
+                timestamp=datetime.timestamp(datetime.utcnow()),
+                document_type=DocumentType.ANALOG_INPUT_STATE,
+                data=dict(record)
+            )
+        )
+
+    return APIResponse(
+        error=False,
+        data="Successful insertion of ROS analog input data"
+    )
+
+@historian_router.post("/digital_in")
+def push_digital_input_state(data: List[Dict]) -> APIResponse:
+    for record in data:
+        initializer.ra_database.enqueue_record(
+            data=create_database_document(
+                timestamp=datetime.timestamp(datetime.utcnow()),
+                document_type=DocumentType.DIGITAL_INPUT_STATE,
+                data=dict(record)
+            )
+        )
+
+    return APIResponse(
+        error=False,
+        data="Successful insertion of ROS digital input data"
+    )
+
+@historian_router.post("/realtime_sys_state")
+def push_realtime_system_state(data: List[Dict]) -> APIResponse:
+    initializer.ra_database.enqueue_record(
+        data=create_database_document(
+            timestamp=datetime.timestamp(datetime.utcnow()),
+            document_type=DocumentType.IO_STATE,
+            data=dict(data)
+        )
+    )
+
+    return APIResponse(
+        error=False,
+        data="Successful insertion of ROS realtime system state data"
+    )
+
 ###############################################################################
 ################################ CONFIGURATION ################################
 ###############################################################################
+
+@config_router.post("/io/analog_in_config")
+def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) -> APIResponse:
+# def configure_analog_in(configurations: List[Dict]) -> APIResponse:
+    logger.info(f"Got analog input configuration request: {configurations}")
+
+    for config_entry in configurations:
+        point = initializer.ra_interface.io_system.analog_inputs.points[config_entry.channel]
+        point.configuration.type = IOPointType.ANALOG_INPUT
+        point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
+        point.configuration.label = config_entry.label
+        point.configuration.max_signal_v = config_entry.max_electrical_value
+        point.configuration.min_signal_v = config_entry.min_electrical_value
+        point.configuration.max_value = config_entry.max_measurement_value
+        point.configuration.min_value = config_entry.min_measurement_value
+        point.configuration.measurement_unit = config_entry.unit
+        point.configuration.transfer_function_type = TransferFunctionType.LINEAR
+        initializer.ra_interface.save_system_configuration()
+
+    return APIResponse(
+        error=False,
+        data=f"Got analog input configuration request: {configurations}"
+    )
 
 @config_router.post("/io/configure_point")
 def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:

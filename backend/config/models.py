@@ -24,6 +24,8 @@ class DocumentType(Enum):
     EVENT = auto()
     FRONTEND_MESSAGE = auto()
     IO_STATE = auto()
+    ANALOG_INPUT_STATE = auto()
+    DIGITAL_INPUT_STATE = auto()
     SYSTEM_CONFIGURATION = auto()
     UI_CONFIGURATION = auto()
 
@@ -51,6 +53,8 @@ class DatabaseCollectionsConfiguration:
     events: CollectionConfiguration
     frontend_messages: CollectionConfiguration
     io_state: CollectionConfiguration
+    digital_input_state: CollectionConfiguration
+    analog_input_state: CollectionConfiguration
     hardware_configuration: CollectionConfiguration
     ui_configuration: CollectionConfiguration
 
@@ -113,8 +117,8 @@ class IOPointType(Enum):
     # ANALOG_CURRENT_OUTPUT = auto()
 
 class AnalogIOPointType(Enum):
-    CURRENT = auto()
-    VOLTAGE = auto()
+    VOLTAGE = 0
+    CURRENT = 1
 
 class TransferFunctionType(Enum):
     LINEAR = auto()

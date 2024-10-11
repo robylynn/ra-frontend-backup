@@ -3,7 +3,12 @@ import React, { useState, useContext, Dispatch, SetStateAction } from "react";
 import Modal from "@/lib/components/client_components/Modal";
 import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
 import DashboardContext from "@/lib/models/dashboard_context";
-import { AnalogIOPointType, IOPointConfiguration, IOPointType, TransferFunctionType } from "@/lib/models/api_models";
+import {
+  AnalogIOPointType,
+  IOPointConfiguration,
+  IOPointType,
+  TransferFunctionType,
+} from "@/lib/models/api_models";
 // import { useRos } from '../ros/RosContext';
 import {
   R2Button,
@@ -12,6 +17,7 @@ import {
 import ROSLIB from "roslib";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall";
 import { IOPointContext } from "./IOPointContext";
+import { AnalogInConfig, DigitalInConfig } from "@/lib/models/ros_models";
 // import "./AnalogInput.css"; // TODO: Rename this css to be more general
 
 type IOPointContainerProps = {
@@ -57,18 +63,76 @@ const IOPointContainer = ({
 
     // Check if the config service is available
     if (!dashboardContext.IO_config_services?.get_service(io_point.type)) {
-      console.error(`Service for point type ${IOPointType[io_point.type]} not defined`);
+      console.error(
+        `Service for point type ${IOPointType[io_point.type]} not defined`
+      );
       return;
     }
 
+    let request_data: { config: AnalogInConfig | DigitalInConfig };
+    switch (io_point.type) {
+      case IOPointType.ANALOG_INPUT: {
+        request_data = {
+          config: {
+            channel: updatedIOPoint.channel,
+            hardware_config: {
+              configure: true,
+              enable: false,
+              channel_type: updatedIOPoint.analog_type,
+            },
+            label: updatedIOPoint.label,
+            unit: updatedIOPoint.measurement_unit,
+            max_electrical_value: updatedIOPoint.max_signal_v,
+            min_electrical_value: updatedIOPoint.min_signal_v,
+            max_measurement_value: updatedIOPoint.max_value,
+            min_measurement_value: updatedIOPoint.min_value,
+            transfer_function_type: updatedIOPoint.transfer_function_type,
+          },
+        };
+      }
+      case IOPointType.DIGITAL_INPUT: {
+        request_data = {
+          config: {
+            channel: updatedIOPoint.channel,
+            hardware_config: {
+              configure: true,
+              enable: false,
+            },
+            label: updatedIOPoint.label,
+          },
+        };
+      }
+    }
+    // let request_data: AnalogInConfig = {
+    //   channel: updatedIOPoint.channel,
+    //   hardware_config: {
+    //     configure: true,
+    //     enable: false,
+    //     channel_type: updatedIOPoint.analog_type
+    //   },
+    //   label: updatedIOPoint.label,
+    //   unit: updatedIOPoint.measurement_unit,
+    //   max_electrical_value: updatedIOPoint.max_signal_v,
+    //   min_electrical_value: updatedIOPoint.min_signal_v,
+    //   max_measurement_value: updatedIOPoint.max_value,
+    //   min_measurement_value: updatedIOPoint.min_value,
+    //   transfer_function_type: updatedIOPoint.transfer_function_type
+    // }
+
     // Define the request
-    const request = new ROSLIB.ServiceRequest({
-      channel: updatedIOPoint.channel,
-      config: {
-        configure: true,
-        enable: updatedIOPoint.enabled,
-      },
-    });
+    const request = new ROSLIB.ServiceRequest(request_data);
+    //   {
+    //   // channel: updatedIOPoint.channel,
+    //   // config: {
+    //   //   configure: true,
+    //   //   enable: updatedIOPoint.enabled,
+    //   // },
+    //   channel: updatedIOPoint.channel,
+    //   hardware_config: {
+    //     configure: true,
+    //     enable: updatedIOPoint.enabled,
+    //   },
+    // }: AnalogInConfig);
 
     // Set loading state to true
     setIsLoading(true);
@@ -88,7 +152,9 @@ const IOPointContainer = ({
           setIsConfigOpen(false); // Notify parent component that config is closed
         } else {
           console.error("Failed to update configuration");
-          setErrorMessage(`Failed to update configuration: ${(result as any).message}`);
+          setErrorMessage(
+            `Failed to update configuration: ${(result as any).message}`
+          );
         }
       })
       .catch((error) => {
@@ -223,12 +289,14 @@ const IOPointConfigDialog = ({
   onSave,
   onDelete,
 }: IOPointConfigDialogInterface) => {
-  const [localPoint, setLocalPoint] = useState(io_point);
+  const [localPoint, setLocalPoint] = useState<IOPointConfiguration>(io_point);
   const { dashboardContext } = useContext(DashboardContext);
 
   const handleStringChange = (e) => {
     const { name, value } = e.target;
-    setLocalPoint({ ...localPoint, [name]: value });
+    localPoint[name] = value;
+    setLocalPoint(localPoint);
+    // setLocalPoint({ ...localPoint, [name]: value });
   };
 
   const handleChannelChange = (e) => {
@@ -247,16 +315,19 @@ const IOPointConfigDialog = ({
   };
 
   const handleAnalogTypeChange = (e) => {
-    const value = AnalogIOPointType[e.target.value as keyof typeof AnalogIOPointType];
+    const value =
+      AnalogIOPointType[e.target.value as keyof typeof AnalogIOPointType];
     setLocalPoint({ ...localPoint, analog_type: value });
   };
 
   const handleTransferFunctionChange = (e) => {
-    const value = TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
+    const value =
+      TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
     setLocalPoint({ ...localPoint, transfer_function_type: value });
   };
 
-  const unitLabel = localPoint.analog_type === AnalogIOPointType.CURRENT ? "(mA)" : "(V)";
+  const unitLabel =
+    localPoint.analog_type === AnalogIOPointType.CURRENT ? "(mA)" : "(V)";
 
   // const handleTypeChange = (e) => {
   //   const { value } = e.target;
@@ -288,9 +359,10 @@ const IOPointConfigDialog = ({
               ...Array(
                 // dashboardContext.hardware_configuration?.io_system
                 //   .configuration_constants[io_point.type]
-                  dashboardContext.hardware_configuration?.io_system
-                  .getMaximumChannels(io_point.type)
-                  // .get_maximum_channels(io_point.type)
+                dashboardContext.hardware_configuration?.io_system.getMaximumChannels(
+                  io_point.type
+                )
+                // .get_maximum_channels(io_point.type)
               ).keys(),
             ].map((i) => (
               <option value={i}>{i}</option>
@@ -307,79 +379,101 @@ const IOPointConfigDialog = ({
           <option value="7">7</option> */}
         </select>
       </div>
-      {
-        ((localPoint.type == IOPointType.ANALOG_INPUT) || (localPoint.type == IOPointType.ANALOG_OUTPUT)) ? 
-          <div>
-            <div className="flex flex-col mb-[10px]">
-              <label>Type</label>
-              <select name="analog_type" value={IOPointType[localPoint.analog_type]} onChange={handleAnalogTypeChange}>
-                {/* <option value={IOPointType[IOPointType.ANALOG_VOLTAGE_INPUT]}>Voltage</option>
+      {localPoint.type == IOPointType.ANALOG_INPUT ||
+      localPoint.type == IOPointType.ANALOG_OUTPUT ? (
+        <div>
+          <div className="flex flex-col mb-[10px]">
+            <label>Type</label>
+            <select
+              name="analog_type"
+              value={IOPointType[localPoint.analog_type]}
+              onChange={handleAnalogTypeChange}
+            >
+              {/* <option value={IOPointType[IOPointType.ANALOG_VOLTAGE_INPUT]}>Voltage</option>
                 <option value={IOPointType[IOPointType.ANALOG_CURRENT_INPUT]}>Current</option> */}
-                <option value={AnalogIOPointType[AnalogIOPointType.VOLTAGE]}>Voltage</option>
-                <option value={AnalogIOPointType[AnalogIOPointType.CURRENT]}>Current</option>
-              </select>
-            </div>
-            
-            <div className="flex flex-col mb-[10px]">
-              <label>Transfer Function</label>
-              <select
-                name="transferFunction"
-                value={TransferFunctionType[localPoint.transfer_function_type]}
-                onChange={handleTransferFunctionChange}
-              >
-                <option value={TransferFunctionType[TransferFunctionType.LINEAR]}>Linear</option>
-                <option value={TransferFunctionType[TransferFunctionType.CUSTOM]}>Custom</option>
-              </select>
-            </div>
-            <div className="flex flex-col mb-[10px]">
-              <label>Measurement Unit</label>
-              <input
-                type="text"
-                name="measurement_unit"
-                value={localPoint.measurement_unit}
-                onChange={handleStringChange}
-              />
-            </div>
-            <div className="flex flex-col mb-[10px]">
-              <label>Min Electrical Value {unitLabel}</label>
-              <input
-                type="text"
-                name="min_signal_v"
-                value={localPoint.min_signal_v}
-                onChange={handleNumericChange}
-              />
-            </div>
-            <div className="flex flex-col mb-[10px]">
-              <label>Min Measurement Value{localPoint.measurement_unit != '' ? ` (${ localPoint.measurement_unit})` : ''}</label>
-              <input
-                type="text"
-                name="min_value"
-                value={localPoint.min_value}
-                onChange={handleNumericChange}
-              />
-            </div>
-            <div className="flex flex-col mb-[10px]">
-              <label>Max Electrical Value {unitLabel}</label>
-              <input
-                type="text"
-                name="max_signal_v"
-                value={localPoint.max_signal_v}
-                onChange={handleNumericChange}
-              />
-            </div>
-            <div className="flex flex-col mb-[10px]">
-              <label>Max Measurement Value{localPoint.measurement_unit != '' ? ` (${localPoint.measurement_unit})` : ''}</label>
-              <input
-                type="text"
-                name="max_value"
-                value={localPoint.max_value}
-                onChange={handleNumericChange}
-              />
-            </div>
+              <option value={AnalogIOPointType[AnalogIOPointType.VOLTAGE]}>
+                Voltage
+              </option>
+              <option value={AnalogIOPointType[AnalogIOPointType.CURRENT]}>
+                Current
+              </option>
+            </select>
           </div>
-        :
+
+          <div className="flex flex-col mb-[10px]">
+            <label>Transfer Function</label>
+            <select
+              name="transferFunction"
+              value={TransferFunctionType[localPoint.transfer_function_type]}
+              onChange={handleTransferFunctionChange}
+            >
+              <option value={TransferFunctionType[TransferFunctionType.LINEAR]}>
+                Linear
+              </option>
+              <option value={TransferFunctionType[TransferFunctionType.CUSTOM]}>
+                Custom
+              </option>
+            </select>
+          </div>
+          <div className="flex flex-col mb-[10px]">
+            <label>Measurement Unit</label>
+            <input
+              type="text"
+              name="measurement_unit"
+              value={localPoint.measurement_unit}
+              onChange={handleStringChange}
+            />
+          </div>
+          <div className="flex flex-col mb-[10px]">
+            <label>Min Electrical Value {unitLabel}</label>
+            <input
+              type="text"
+              name="min_signal_v"
+              value={localPoint.min_signal_v}
+              onChange={handleNumericChange}
+            />
+          </div>
+          <div className="flex flex-col mb-[10px]">
+            <label>
+              Min Measurement Value
+              {localPoint.measurement_unit != ""
+                ? ` (${localPoint.measurement_unit})`
+                : ""}
+            </label>
+            <input
+              type="text"
+              name="min_value"
+              value={localPoint.min_value}
+              onChange={handleNumericChange}
+            />
+          </div>
+          <div className="flex flex-col mb-[10px]">
+            <label>Max Electrical Value {unitLabel}</label>
+            <input
+              type="text"
+              name="max_signal_v"
+              value={localPoint.max_signal_v}
+              onChange={handleNumericChange}
+            />
+          </div>
+          <div className="flex flex-col mb-[10px]">
+            <label>
+              Max Measurement Value
+              {localPoint.measurement_unit != ""
+                ? ` (${localPoint.measurement_unit})`
+                : ""}
+            </label>
+            <input
+              type="text"
+              name="max_value"
+              value={localPoint.max_value}
+              onChange={handleNumericChange}
+            />
+          </div>
+        </div>
+      ) : (
         <></>
-      }
+      )}
       <div className="flex justify-between mt-[20px]">
         <button onClick={onDelete}>Delete</button>
         <button onClick={() => onSave(localPoint)}>Save</button>

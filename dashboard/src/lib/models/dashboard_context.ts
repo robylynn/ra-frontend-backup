@@ -50,15 +50,6 @@ export class ApplicationContext {
   database_online: boolean = false;
   ra_websocket: WebSocket | null = null;
   ra_ros_websocket: ROSLIB.Ros | null = null;
-  // analog_input_config_service: ROSLIB.Service | null = null;
-  // digital_input_config_service: ROSLIB.Service | null = null;
-  // IO_config_services: ConfigServices = {
-  //   [IOPointType.DIGITAL_INPUT]: null,
-  //   [IOPointType.DIGITAL_OUTPUT]: null,
-  //   [IOPointType.ANALOG_INPUT]: null,
-  //   [IOPointType.ANALOG_OUTPUT]: null,
-  //   [IOPointType.NULL]: null,
-  // };
   IO_config_services: ConfigServices;
 
   constructor() {

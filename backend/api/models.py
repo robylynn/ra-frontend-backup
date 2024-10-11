@@ -14,6 +14,10 @@ from dataclasses import (
 from enum import Enum, auto
 
 from utils.utils import websocket_message_dict_factory
+# from config.models import (
+#     AnalogIOPointType,
+#     IOPointType
+# )
 
 class APIException(Exception):
     pass
@@ -39,6 +43,25 @@ class IOConfigurationRequestData(BaseModel):
     measurement_unit: str
     # point_type: str
 
+class AnalogInputHardwareConfigurationRequestData(BaseModel):
+    configure: bool
+    enable: bool
+    channel_type: int
+
+class AnalogIOConfigurationRequestData(BaseModel):
+    hardware_config: AnalogInputHardwareConfigurationRequestData
+    channel: int
+    # point_type: int
+    label: str
+    max_electrical_value: float
+    min_electrical_value: float
+    max_measurement_value: float
+    min_measurement_value: float
+    transfer_function_type: int
+    # custom_transfer_function: str
+    # channel: int
+    unit: str
+
 class AnalogIOStatePostData(BaseModel):
     # read_channel: bool
     # value: float
@@ -47,15 +70,15 @@ class AnalogIOStatePostData(BaseModel):
     time_nsec: int
     values: Dict[int, float]
 
-class IOPointType(Enum):
-    NULL_POINT = auto()
-    DIGITAL_INPUT = auto()
-    ANALOG_VOLTAGE_INPUT = auto()
-    ANALOG_CURRENT_INPUT = auto()
-    DIGITAL_OUTPUT = auto()
-    ANALOG_VOLTAGE_OUTPUT = auto()
-    ANALOG_CURRENT_OUTPUT = auto()
-    THERMOCOUPLE_INPUT = auto()
+# class IOPointType(Enum):
+#     NULL_POINT = auto()
+#     DIGITAL_INPUT = auto()
+#     ANALOG_VOLTAGE_INPUT = auto()
+#     ANALOG_CURRENT_INPUT = auto()
+#     DIGITAL_OUTPUT = auto()
+#     ANALOG_VOLTAGE_OUTPUT = auto()
+#     ANALOG_CURRENT_OUTPUT = auto()
+#     THERMOCOUPLE_INPUT = auto()
 
 @dataclass
 class FrontendConfiguration:
