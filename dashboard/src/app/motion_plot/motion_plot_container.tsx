@@ -9,6 +9,8 @@ import { DashboardHeaderContainer } from "@/lib/components/client_components/Das
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import DashboardContext from "@/lib/models/dashboard_context";
 import VelocityPlot from '@/lib/components/client_components/MotionPlot';
+// import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
+// import { IOPointType } from "@/lib/models/api_models";
 
 export default function MotionPlotContainer(props: {
   id: string;

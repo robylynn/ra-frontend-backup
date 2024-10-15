@@ -17,6 +17,7 @@ import {
   IOPointType,
   UIConfiguration,
 } from "@/lib/models/api_models";
+import { AnalogInData } from "./ros_models";
 
 export type ConfigServicesMap = Record<IOPointType, ROSLIB.Service | null>;
 
@@ -47,10 +48,15 @@ export class ApplicationContext {
   io_state: DatabaseIOStateDocumentArray | null = null;
   hardware_configuration: HardwareConfiguration | null = null;
   heartbeat: boolean = false;
+  heartbeat_counter: number = 0;
   database_online: boolean = false;
   ra_websocket: WebSocket | null = null;
   ra_ros_websocket: ROSLIB.Ros | null = null;
   IO_config_services: ConfigServices;
+
+  // Machine State
+  analog_in_data: AnalogInData = null;
+  digital_in_data: object | null = null;
 
   constructor() {
     this.latest_document = new DatabaseDocument();

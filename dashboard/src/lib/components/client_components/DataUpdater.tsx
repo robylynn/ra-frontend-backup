@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useMemo } from "react";
 
 import {
   HardwareConfiguration,
@@ -19,6 +19,7 @@ export default function DataUpdater(props: {
   configuration_update_period_seconds: number;
 }) {
   const [updateCounter, setUpdateCounter] = useState(0);
+  const [testUpdateCounter, setTestUpdateCounter] = useState(0);
   const [configurationUpdateCounter, setConfigurationUpdateCounter] =
     useState(0);
   const { dashboardContext: context, setContext } = useContext(DashboardContext);
@@ -36,6 +37,14 @@ export default function DataUpdater(props: {
     }, props.configuration_update_period_seconds * 1000);
     return () => clearInterval(intervalId);
   }, []);
+
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //     setTestUpdateCounter((counter) => counter + 1);
+  //     console.log("test ionterval")
+  //   }, 0.1 * 1000);
+  //   return () => clearInterval(intervalId);
+  // }, []);
 
   useEffect(() => {
     const fetch_ui_configuration = async () => {
@@ -104,6 +113,8 @@ export default function DataUpdater(props: {
     fetch_io_configuration();
   }, [configurationUpdateCounter]);
 
+  const heartbeatWorker: Worker = useMemo(() => new Worker(new URL("@/lib/utils/heartbeatWorker.ts", import.meta.url)), []);
+
   useEffect(() => {
     const heartbeat = async () => {
       let heartbeat = await timeoutFetch<string>(
@@ -117,12 +128,39 @@ export default function DataUpdater(props: {
       }
 
       setContext((c) => {
-        return { ...c, heartbeat: heartbeat_valid };
+        return { ...c, heartbeat: heartbeat_valid, heartbeat_counter: c.heartbeat_counter + 1 };
       });
     };
 
-    heartbeat();
+    // heartbeat();
+    heartbeatWorker.postMessage("heartbeat")
   }, [updateCounter]);
+  // }, []);
+
+  
+  
+
+  useEffect(() => {
+    heartbeatWorker.onmessage = (m: MessageEvent<boolean>) => {
+      setContext((c) => {
+        return { ...c, heartbeat: m.data, heartbeat_counter: c.heartbeat_counter + 1 };
+      });
+    }
+    // setContext((c) => {
+    //   return { ...c, heartbeat: true, heartbeat_counter: c.heartbeat_counter + 1 };
+    // })
+  }, [])
+
+  // useEffect(() => {
+  //   console.log("Analog in data updated")
+  // }, [context.analog_in_data?.values?.[0]])
+
+  // useEffect(() => {
+  //   console.log("hearbeat inc")
+  // }, [context.heartbeat_counter])
+  
+  // let z: Worker = new Worker()
+  // console.log("running updater")
 
   return <></>;
 }

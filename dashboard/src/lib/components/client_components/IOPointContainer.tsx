@@ -1,7 +1,7 @@
 // DigitalInput.js
-import React, { useState, useContext, Dispatch, SetStateAction } from "react";
+import React, { useState, useContext, Dispatch, SetStateAction, useEffect } from "react";
 import Modal from "@/lib/components/client_components/Modal";
-import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
+// import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
 import DashboardContext from "@/lib/models/dashboard_context";
 import {
   AnalogIOPointType,
@@ -36,12 +36,15 @@ const IOPointContainer = ({
   setIsConfigOpen,
 }: IOPointContainerProps) => {
   const { dashboardContext } = useContext(DashboardContext);
+  const { IOPoints } = useContext(IOPointContext);
   const [showConfig, setShowConfig] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [errorMessage, setErrorMessage] = useState(""); // Add error message state
   // const { inputs } = useContext(DigitalInputContext);
-  const { IOPoints } = useContext(IOPointContext);
+  
   //   const { configDigitalInService } = useRos();
+
+  
 
   const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
     console.log("Updated input:", updatedIOPoint);
@@ -103,43 +106,15 @@ const IOPointContainer = ({
         };
       }
     }
-    // let request_data: AnalogInConfig = {
-    //   channel: updatedIOPoint.channel,
-    //   hardware_config: {
-    //     configure: true,
-    //     enable: false,
-    //     channel_type: updatedIOPoint.analog_type
-    //   },
-    //   label: updatedIOPoint.label,
-    //   unit: updatedIOPoint.measurement_unit,
-    //   max_electrical_value: updatedIOPoint.max_signal_v,
-    //   min_electrical_value: updatedIOPoint.min_signal_v,
-    //   max_measurement_value: updatedIOPoint.max_value,
-    //   min_measurement_value: updatedIOPoint.min_value,
-    //   transfer_function_type: updatedIOPoint.transfer_function_type
-    // }
 
     // Define the request
     const request = new ROSLIB.ServiceRequest(request_data);
-    //   {
-    //   // channel: updatedIOPoint.channel,
-    //   // config: {
-    //   //   configure: true,
-    //   //   enable: updatedIOPoint.enabled,
-    //   // },
-    //   channel: updatedIOPoint.channel,
-    //   hardware_config: {
-    //     configure: true,
-    //     enable: updatedIOPoint.enabled,
-    //   },
-    // }: AnalogInConfig);
 
     // Set loading state to true
     setIsLoading(true);
 
     // Call the config service with timeout
     timeoutServiceCall(
-      // dashboardContext.IO_config_services[io_point.type],
       dashboardContext.IO_config_services.get_service(io_point.type),
       request,
       3000
@@ -147,6 +122,7 @@ const IOPointContainer = ({
       .then((result) => {
         if ((result as any).success) {
           console.log("Service call successful:", result);
+          updatedIOPoint.configured = true;
           updatePoint(updatedIOPoint);
           setShowConfig(false); // Hide the config dialog only on success
           setIsConfigOpen(false); // Notify parent component that config is closed
@@ -164,6 +140,89 @@ const IOPointContainer = ({
       .finally(() => {
         setIsLoading(false); // Set loading state to false
       });
+  };
+
+  const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
+    // Check if the config service is available
+    if (!dashboardContext.IO_config_services?.get_service(io_point.type)) {
+      console.error(
+        `Service for point type ${IOPointType[io_point.type]} not defined`
+      );
+      return;
+    }
+
+    if (deletableIOPoint.configured) {
+      let request_data: { config: AnalogInConfig | DigitalInConfig };
+      switch (io_point.type) {
+        case IOPointType.ANALOG_INPUT: {
+          request_data = {
+            config: {
+              channel: deletableIOPoint.channel,
+              hardware_config: {
+                configure: false,
+                enable: false,
+                channel_type: 0,
+              },
+              label: "",
+              unit: "",
+              max_electrical_value: 0,
+              min_electrical_value: 0,
+              max_measurement_value: 0,
+              min_measurement_value: 0,
+              transfer_function_type: 0,
+            },
+          };
+        }
+        case IOPointType.DIGITAL_INPUT: {
+          request_data = {
+            config: {
+              channel: deletableIOPoint.channel,
+              hardware_config: {
+                configure: false,
+                enable: false,
+              },
+              label: "",
+            },
+          };
+        }
+      }
+
+      // Define the request
+      const request = new ROSLIB.ServiceRequest(request_data);
+
+      // Set loading state to true
+      setIsLoading(true);
+
+      // Call the config service with timeout
+      timeoutServiceCall(
+        dashboardContext.IO_config_services.get_service(io_point.type),
+        request,
+        3000
+      )
+        .then((result) => {
+          if ((result as any).success) {
+            console.log("Service call successful:", result);
+            // updatePoint(updatedIOPoint);
+            deletePoint();
+            setShowConfig(false); // Hide the config dialog only on success
+            setIsConfigOpen(false); // Notify parent component that config is closed
+          } else {
+            console.error("Failed to update configuration");
+            setErrorMessage(
+              `Failed to update configuration: ${(result as any).message}`
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Configuration update failed: ", error);
+          setErrorMessage("Configuration update failed: " + error);
+        })
+        .finally(() => {
+          setIsLoading(false); // Set loading state to false
+        });
+    } else {
+      deletePoint();
+    }
   };
 
   const handleToggleChange = (e) => {
@@ -184,8 +243,12 @@ const IOPointContainer = ({
       }
     }
 
-    updatePoint({ ...io_point, enabled: checked });
+    io_point.enabled = checked;
+    updatePoint(io_point)
+    // updatePoint({ ...io_point, enabled: checked });
   };
+
+  // console.log("rendering point")
 
   return (
     // <div style={{ display: "flex", alignItems: "center", height: "40px" }}>
@@ -248,7 +311,34 @@ const IOPointContainer = ({
           io_point={io_point}
           onSave={handleConfigSave}
           onDelete={() => {
-            deletePoint();
+            // timeoutServiceCall(
+            //   // dashboardContext.IO_config_services[io_point.type],
+            //   dashboardContext.IO_config_services.get_service(io_point.type),
+            //   request,
+            //   3000
+            // )
+            //   .then((result) => {
+            //     if ((result as any).success) {
+            //       console.log("Service call successful:", result);
+            //       updatePoint(updatedIOPoint);
+            //       setShowConfig(false); // Hide the config dialog only on success
+            //       setIsConfigOpen(false); // Notify parent component that config is closed
+            //     } else {
+            //       console.error("Failed to update configuration");
+            //       setErrorMessage(
+            //         `Failed to update configuration: ${(result as any).message}`
+            //       );
+            //     }
+            //   })
+            //   .catch((error) => {
+            //     console.error("Configuration update failed: ", error);
+            //     setErrorMessage("Configuration update failed: " + error);
+            //   })
+            //   .finally(() => {
+            //     setIsLoading(false); // Set loading state to false
+            //   });
+            handleDelete(io_point);
+            // deletePoint();
             setShowConfig(false);
             setIsConfigOpen(false);
           }}
@@ -290,40 +380,55 @@ const IOPointConfigDialog = ({
   onDelete,
 }: IOPointConfigDialogInterface) => {
   const [localPoint, setLocalPoint] = useState<IOPointConfiguration>(io_point);
+  // const [localPoint, setLocalPoint] = useState<IOPointConfiguration>(new IOPointConfiguration({channel: 0, type: IOPointType.ANALOG_INPUT, enabled: false, configured: false}));
   const { dashboardContext } = useContext(DashboardContext);
 
   const handleStringChange = (e) => {
     const { name, value } = e.target;
     localPoint[name] = value;
-    setLocalPoint(localPoint);
+    setLocalPoint((p) => (
+      {...p, [name]: value}
+    ));
+    console.log("setting string to " + value)
     // setLocalPoint({ ...localPoint, [name]: value });
   };
 
   const handleChannelChange = (e) => {
     const { value } = e.target;
-    setLocalPoint({ ...localPoint, channel: parseInt(value) });
+    localPoint.channel = parseInt(value);
+    setLocalPoint(localPoint);
+    // setLocalPoint({ ...localPoint, channel: parseInt(value) });
   };
 
   const handleNumericChange = (e) => {
     const { name, value } = e.target;
     let numeric_value = parseFloat(value);
     if (numeric_value) {
-      setLocalPoint({ ...localPoint, [name]: numeric_value });
+      localPoint[name] = value;
+      setLocalPoint(localPoint)
+      // setLocalPoint({ ...localPoint, [name]: numeric_value });
     } else {
-      setLocalPoint({ ...localPoint, [name]: "" });
+      localPoint[name] = "";
+      setLocalPoint(localPoint);
+      // setLocalPoint({ ...localPoint, [name]: "" });
     }
   };
 
   const handleAnalogTypeChange = (e) => {
     const value =
       AnalogIOPointType[e.target.value as keyof typeof AnalogIOPointType];
-    setLocalPoint({ ...localPoint, analog_type: value });
+    localPoint.analog_type = value;
+    setLocalPoint(localPoint);
+      // setLocalPoint({ ...localPoint, analog_type: value });
   };
 
   const handleTransferFunctionChange = (e) => {
     const value =
       TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
-    setLocalPoint({ ...localPoint, transfer_function_type: value });
+    localPoint.transfer_function_type = value;
+    setLocalPoint(localPoint);
+
+      // setLocalPoint({ ...localPoint, transfer_function_type: value });
   };
 
   const unitLabel =
@@ -333,6 +438,11 @@ const IOPointConfigDialog = ({
   //   const { value } = e.target;
   //   setLocalInput({ ...localInput, type: value });
   // };
+  // console.log("rendering dialog")
+
+  const tester = useEffect(() => {
+    console.log("changed")
+  }, [localPoint.label])
 
   return (
     <div className="flex flex-col w-full">
@@ -365,10 +475,18 @@ const IOPointConfigDialog = ({
                 // .get_maximum_channels(io_point.type)
               ).keys(),
             ].map((i) => (
-              <option value={i}>{i}</option>
+              <option key={i} value={i}>{i}</option>
             ))
             // [...Array(max_number_of_channels).keys()]
           }
+                    {/* {
+            [
+              [0, 1, 2, 3, 4, 5, 6, 7, 8].keys(),
+            ].map((i) => (
+              <option value={i.toString()}>{i}</option>
+            ))
+            // [...Array(max_number_of_channels).keys()]
+          } */}
           {/* <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>

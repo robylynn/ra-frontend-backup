@@ -34,7 +34,7 @@ interface IOPointContextInterface {
   //   SetStateAction<Record<IOPointType, Array<IOPointConfiguration>>>
   // >;
   setIOPoints: Dispatch<SetStateAction<IOConfiguration>>;
-  addIOPoint: (point: IOPointConfigurationInterface) => void;
+  addIOPoint: (point: IOPointConfiguration) => void;
   updateIOPoint: (index: number, updatedPoint: IOPointConfiguration) => void;
   deleteIOPoint: (index: number, point_type: IOPointType) => void;
 }
@@ -42,16 +42,9 @@ interface IOPointContextInterface {
 // export const DigitalInputContext = createContext();
 export const IOPointContext = createContext<IOPointContextInterface>(null);
 
-// enum IOPointContextClass {
-//   DIGITAL_INPUT,
-//   DIGITAL_OUTPUT,
-//   ANALOG_INPUT,
-//   ANALOG_OUTPUT,
-// }
-
 export const IOPointContextProvider = ({ children }) => {
   //   const [inputs, setInputs] = useState<Array<IOPointConfiguration>>([]);
-  const { dashboardContext } = useContext(DashboardContext);
+  // const { dashboardContext } = useContext(DashboardContext);
   const [IOPoints, setIOPoints] = useState<IOConfiguration>(
     new IOConfiguration()
   );
@@ -63,6 +56,13 @@ export const IOPointContextProvider = ({ children }) => {
   //   [IOPointType.ANALOG_OUTPUT]: [],
   //   [IOPointType.NULL]: [],
   // });
+  const replaceIOPoint = (point: IOPointConfiguration) => {
+    let point_index = IOPoints.getIOPoints(point.type).findIndex((p) => p.channel === point.channel);
+    setIOPoints((c) => {
+      IOPoints.insertPointByIndex(point, point_index);
+      return IOPoints;
+    })
+  }
 
   const addIOPoint = (point: IOPointConfiguration) => {
     // let max_number_of_channels =
@@ -74,7 +74,7 @@ export const IOPointContextProvider = ({ children }) => {
     // if (inputs.length >= 8) return; // TODO: Add a global var for number of inputs
 
     // Find the first available channel
-    const usedChannels = IOPoints.getIOPoints(point.type).map(
+    const usedChannels = IOPoints.getIOPoints(point.type).filter(p => p.label).map(
       (point) => point.channel
     );
     // let channels = [...Array(max_number_of_inputs).keys()]
@@ -85,12 +85,15 @@ export const IOPointContextProvider = ({ children }) => {
     //   (channel) => !usedChannels.includes(channel)
     // );
 
-    setIOPoints((c) => {
-      point.id = uuidv4();
-      point.channel = availableChannel;
-      c.insertPoint(point);
-      return c;
-    });
+    point.id = uuidv4();
+    point.channel = availableChannel;
+    updateIOPoint(availableChannel, point)
+    // setIOPoints((c) => {
+    //   point.id = uuidv4();
+    //   point.channel = availableChannel;
+    //   c.insertPoint(point);
+    //   return c;
+    // });
 
     // setIOPoints({
     //   ...IOPoints,

@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useContext } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Topic } from 'roslib';
 import DashboardContext from "@/lib/models/dashboard_context";
+import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
 
 const VelocityPlot = () => {
   // Initialize state with an object of four arrays for velocity data
@@ -17,6 +18,8 @@ const VelocityPlot = () => {
   
   const subscriptions = useRef<Map<number, Topic>>(new Map<number, Topic>());
   const { dashboardContext } = useContext(DashboardContext);
+  const { IOPoints, setIOPoints, addIOPoint, updateIOPoint, deleteIOPoint } =
+    useContext(IOPointContext);
 
   // Subscribe to the topics and update state
   // NOTE: If you pass a function to the state update function, React passes
@@ -74,9 +77,18 @@ const VelocityPlot = () => {
     axis_3: velocityData.axis_3[index]?.velocity,
   }));
 
+  // let z = dashboardContext;
+
+  // useEffect(() => {
+  //   console.log("analog data updated in plot")
+  // }, [dashboardContext.analog_in_data?.values?.[0]])
+
   return (
+    // dashboardContext.configuration?.configured ? 
     <div>
       <h2>Axes Velocities (rev/s)</h2>
+      <p>{velocityData.axis_0[0]?.velocity}</p>
+      <p>{dashboardContext.analog_in_data?.values?.[0]}</p>
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={combinedData}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -102,7 +114,9 @@ const VelocityPlot = () => {
           <Line type="monotone" dataKey="axis_3" stroke="#ff7300" isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
+
     </div>
+    // : <></>
   );
 };
 

@@ -84,6 +84,9 @@ export default function IOStateContainer(props: {
       fill_tile_callback={props.fill_tile_callback}
     >
       {/* <AnalogInDisplay/> */}
+      
+      {/* <AnalogInDisplay/> */}
+
       {context.configuration?.configured ? (
         <AnalogInDisplay/>
         // <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>

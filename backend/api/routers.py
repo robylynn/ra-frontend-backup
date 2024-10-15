@@ -20,11 +20,12 @@ from api.models import (
     AuthenticationResponse,
     APIResponse,
     FrontendConfiguration,
-    IOConfigurationRequestData,
+    # IOConfigurationRequestData,
     AnalogIOStatePostData,
     APIException,
     UIConfiguration,
-    AnalogIOConfigurationRequestData
+    AnalogIOConfigurationRequestData,
+    DigitalIOConfigurationRequestData
 )
 
 from api.helpers import (
@@ -209,26 +210,26 @@ def get_sensor_data(number_of_data_points: int) -> APIResponse:
 
 # TODO Accept ROS AnalogIn message instead
 # TODO actually, just accept JSON from ROS2JSON
-@historian_router.post("/io_data")
-def push_io_state(data: AnalogIOStatePostData) -> APIResponse:
-    initializer.ra_interface.io_system.analog_inputs.points[0].state = data.values[0]
-    initializer.ra_interface.io_system.analog_inputs.points[1].state = data.values[1]
-    initializer.ra_interface.io_system.analog_inputs.points[2].state = data.values[2]
-    for ndx, ai in enumerate(initializer.ra_interface.io_system.analog_inputs.points):
-        ai.state = data.values[ndx]
+# @historian_router.post("/io_data")
+# def push_io_state(data: AnalogIOStatePostData) -> APIResponse:
+#     initializer.ra_interface.io_system.analog_inputs.points[0].state = data.values[0]
+#     initializer.ra_interface.io_system.analog_inputs.points[1].state = data.values[1]
+#     initializer.ra_interface.io_system.analog_inputs.points[2].state = data.values[2]
+#     for ndx, ai in enumerate(initializer.ra_interface.io_system.analog_inputs.points):
+#         ai.state = data.values[ndx]
 
-    initializer.ra_database.enqueue_record(
-        data=create_database_document(
-            timestamp=data.time_sec + data.time_nsec / 1e9,
-            document_type=DocumentType.IO_STATE,
-            data=initializer.ra_interface.io_system.serialize()
-        )
-    )
+#     initializer.ra_database.enqueue_record(
+#         data=create_database_document(
+#             timestamp=data.time_sec + data.time_nsec / 1e9,
+#             document_type=DocumentType.IO_STATE,
+#             data=initializer.ra_interface.io_system.serialize()
+#         )
+#     )
 
-    return APIResponse(
-        error=False,
-        data="Successful insertion of analog input data"
-    )
+#     return APIResponse(
+#         error=False,
+#         data="Successful insertion of analog input data"
+#     )
 
 @historian_router.post("/ros_io_data")
 def push_io_state(data: Dict) -> APIResponse:
@@ -304,6 +305,7 @@ def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) 
     for config_entry in configurations:
         point = initializer.ra_interface.io_system.analog_inputs.points[config_entry.channel]
         point.configuration.type = IOPointType.ANALOG_INPUT
+        point.configuration.configured = config_entry.hardware_config.configure
         point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
         point.configuration.label = config_entry.label
         point.configuration.max_signal_v = config_entry.max_electrical_value
@@ -319,35 +321,59 @@ def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) 
         data=f"Got analog input configuration request: {configurations}"
     )
 
-@config_router.post("/io/configure_point")
-def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
-    logger.info(f"Got configuration request: {config}")
+@config_router.post("/io/digital_in_config")
+def configure_analog_in(configurations: List[DigitalIOConfigurationRequestData]) -> APIResponse:
+# def configure_analog_in(configurations: List[Dict]) -> APIResponse:
+    logger.info(f"Got digital input configuration request: {configurations}")
 
-    # TODO FIXME to match point types
-    if config.point_type == 0 or config.point_type == 1:
-        # Analog voltage or current input
-        point = initializer.ra_interface.io_system.analog_inputs.points[config.channel]
-        point.configuration.type = IOPointType.ANALOG_VOLTAGE_INPUT if config.point_type == 0 else IOPointType.ANALOG_CURRENT_INPUT
-        point.configuration.label = config.label
-        point.configuration.max_signal_v = config.max_electrical_value
-        point.configuration.min_signal_v = config.min_electrical_value
-        point.configuration.max_value = config.max_measurement_value
-        point.configuration.min_value = config.min_measurement_value
-        point.configuration.measurement_unit = config.measurement_unit
-        
-        # FIXME to match transfer function types
-        point.configuration.transfer_function_type = TransferFunctionType(config.transfer_function_type + 1)
-        point.configuration.transfer_function_callback = config.custom_transfer_function if point.configuration.transfer_function_type == TransferFunctionType.CUSTOM else None
-        
+    for config_entry in configurations:
+        point = initializer.ra_interface.io_system.digital_inputs.points[config_entry.channel]
+        point.configuration.type = IOPointType.DIGITAL_INPUT
+        point.configuration.configured = config_entry.hardware_config.configure
+        # point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
+        point.configuration.label = config_entry.label
+        # point.configuration.max_signal_v = config_entry.max_electrical_value
+        # point.configuration.min_signal_v = config_entry.min_electrical_value
+        # point.configuration.max_value = config_entry.max_measurement_value
+        # point.configuration.min_value = config_entry.min_measurement_value
+        # point.configuration.measurement_unit = config_entry.unit
+        # point.configuration.transfer_function_type = TransferFunctionType.LINEAR
         initializer.ra_interface.save_system_configuration()
-
-    else:
-        raise APIException(f"Unknown point type {config.point_type}")
 
     return APIResponse(
         error=False,
-        data=f"Got configuration request: {config}"
+        data=f"Got analog input configuration request: {configurations}"
     )
+
+# @config_router.post("/io/configure_point")
+# def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
+#     logger.info(f"Got configuration request: {config}")
+
+#     # TODO FIXME to match point types
+#     if config.point_type == 0 or config.point_type == 1:
+#         # Analog voltage or current input
+#         point = initializer.ra_interface.io_system.analog_inputs.points[config.channel]
+#         point.configuration.type = IOPointType.ANALOG_VOLTAGE_INPUT if config.point_type == 0 else IOPointType.ANALOG_CURRENT_INPUT
+#         point.configuration.label = config.label
+#         point.configuration.max_signal_v = config.max_electrical_value
+#         point.configuration.min_signal_v = config.min_electrical_value
+#         point.configuration.max_value = config.max_measurement_value
+#         point.configuration.min_value = config.min_measurement_value
+#         point.configuration.measurement_unit = config.measurement_unit
+        
+#         # FIXME to match transfer function types
+#         point.configuration.transfer_function_type = TransferFunctionType(config.transfer_function_type + 1)
+#         point.configuration.transfer_function_callback = config.custom_transfer_function if point.configuration.transfer_function_type == TransferFunctionType.CUSTOM else None
+        
+#         initializer.ra_interface.save_system_configuration()
+
+#     else:
+#         raise APIException(f"Unknown point type {config.point_type}")
+
+#     return APIResponse(
+#         error=False,
+#         data=f"Got configuration request: {config}"
+#     )
 
 ###############################################################################
 ################################## STREAMING ##################################

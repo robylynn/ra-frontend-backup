@@ -48,6 +48,10 @@ class AnalogInputHardwareConfigurationRequestData(BaseModel):
     enable: bool
     channel_type: int
 
+class DigitalInputHardwareConfigurationRequestData(BaseModel):
+    configure: bool
+    enable: bool
+
 class AnalogIOConfigurationRequestData(BaseModel):
     hardware_config: AnalogInputHardwareConfigurationRequestData
     channel: int
@@ -61,6 +65,20 @@ class AnalogIOConfigurationRequestData(BaseModel):
     # custom_transfer_function: str
     # channel: int
     unit: str
+
+class DigitalIOConfigurationRequestData(BaseModel):
+    hardware_config: DigitalInputHardwareConfigurationRequestData
+    channel: int
+    # point_type: int
+    label: str
+    # max_electrical_value: float
+    # min_electrical_value: float
+    # max_measurement_value: float
+    # min_measurement_value: float
+    # transfer_function_type: int
+    # # custom_transfer_function: str
+    # # channel: int
+    # unit: str
 
 class AnalogIOStatePostData(BaseModel):
     # read_channel: bool

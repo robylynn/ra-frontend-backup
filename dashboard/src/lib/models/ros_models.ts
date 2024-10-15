@@ -26,3 +26,15 @@ export interface DigitalInConfig {
     hardware_config: DigitalInHardwareConfig
     label: string
 }
+
+export interface ROSTimestamp {
+    sec: number
+    nanosec: number
+}
+
+export interface AnalogInData {
+    stamp: ROSTimestamp
+    read_channels: Array<boolean>
+    values: Array<number>
+    types: string
+}

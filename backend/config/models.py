@@ -128,6 +128,7 @@ class TransferFunctionType(Enum):
 class ROSIOPointConfiguration:
     channel: int
     label: str = None
+    configured: bool = False
     enabled: bool = False
     type: IOPointType = None
     analog_type: AnalogIOPointType = None
