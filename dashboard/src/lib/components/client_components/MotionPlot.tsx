@@ -18,8 +18,8 @@ const VelocityPlot = () => {
   
   const subscriptions = useRef<Map<number, Topic>>(new Map<number, Topic>());
   const { dashboardContext } = useContext(DashboardContext);
-  const { IOPoints, setIOPoints, addIOPoint, updateIOPoint, deleteIOPoint } =
-    useContext(IOPointContext);
+  // const { IOPoints, setIOPoints, addIOPoint, updateIOPoint, deleteIOPoint } =
+  //   useContext(IOPointContext);
 
   // Subscribe to the topics and update state
   // NOTE: If you pass a function to the state update function, React passes
@@ -87,8 +87,8 @@ const VelocityPlot = () => {
     // dashboardContext.configuration?.configured ? 
     <div>
       <h2>Axes Velocities (rev/s)</h2>
-      <p>{velocityData.axis_0[0]?.velocity}</p>
-      <p>{dashboardContext.analog_in_data?.values?.[0]}</p>
+      {/* <p>{velocityData.axis_0[0]?.velocity}</p>
+      <p>{dashboardContext.analog_in_data?.values?.[0]}</p> */}
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={combinedData}>
           <CartesianGrid strokeDasharray="3 3" />

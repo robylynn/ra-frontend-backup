@@ -2,13 +2,12 @@
 // Developed by R2 Labs
 
 import React, { useEffect, useContext, useState } from "react";
-// import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
-// import DigitalInput from "@/lib/components/client_components/DigitalInput";
 import IOPointContainer from "@/lib/components/client_components/IOPointContainer";
 import DashboardContext from "@/lib/models/dashboard_context";
 import {
   AnalogIOPointType,
   HardwareConfiguration,
+  IOConfiguration,
   IOPointConfiguration,
   IOPointType,
   TransferFunctionType,
@@ -17,7 +16,6 @@ import { R2Button } from "@/lib/components/client_components/ClickButton";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { DropResult } from "react-beautiful-dnd";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
-// import { v4 as uuidv4 } from "uuid"; // Import uuid to generate unique IDs
 
 interface IOPointGroupInterface {
   point_type: IOPointType;
@@ -25,81 +23,46 @@ interface IOPointGroupInterface {
 }
 
 const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
-  const { IOPoints, setIOPoints, addIOPoint, updateIOPoint, deleteIOPoint } =
+  const { IOPoints, setIOPoints } =
     useContext(IOPointContext);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const { dashboardContext } = useContext(DashboardContext);
-  const [testUpdateCounter, setTestUpdateCounter] = useState(0);
-  // const [localHardwareConfiguration, setLocalHardwareConfiguration] =
-  //   useState<HardwareConfiguration | null>(null);
 
   useEffect(() => {
-    // setLocalHardwareConfiguration((c) => (
-    //   dashboardContext.hardware_configuration
-    // )
     if (dashboardContext.hardware_configuration) {
       if (!IOPoints.initialized) {
-        setIOPoints(() => {
-          dashboardContext.hardware_configuration.io_system.assignUUIDs();
-          // dashboardContext.hardware_configuration.io_system.getIOPoints(IOPointType.ANALOG_INPUT).forEach((p) => {
-          //   p.id = uuidv4()
-          // })
-          return dashboardContext.hardware_configuration.io_system;
-        });
+        let config = dashboardContext.hardware_configuration.io_system.copy();
+        config.assignUUIDs();
+        setIOPoints({ payload: { configuration: config }, type: "config/set" });
       }
-      
     }
   }, [dashboardContext.heartbeat_counter]);
-  // }, [dashboardContext.heartbeat]);
-
-  // const get_io_configuration = async () => {
-  //   await timeoutFetch<HardwareConfigurationInterface>(
-  //     `/api/backend/ui/io_configuration`,
-  //     5000
-  //   )
-  //     .then((data) => {
-  //       if (data) {
-  //         let configuration = new HardwareConfiguration(data);
-  //         console.log("Got IO configuration");
-  //         setLocalHardwareConfiguration(() => configuration);
-
-  //         let io_points: Array<IOPointConfiguration> =
-  //           configuration.io_system.analog_inputs.map(
-  //             (v, i) => new IOPointConfiguration(v)
-  //           );
-  //         io_points.forEach((i) => (i.enabled = true));
-  //         setInputs(io_points);
-  //       }
-  //     })
-  //     .catch((e) => {
-  //       console.error(`Error acquiring IO configuration: ${e}`);
-  //     });
-  // };
-  // get_io_configuration();
-  // }, [dashboardContext.heartbeat]);
 
   const addDigitalInput = () => {
     let point_index = IOPoints.getNextAvailablePointIndex(
       IOPointType.DIGITAL_INPUT
     );
     if (point_index >= 0) {
-      addIOPoint(
-        new IOPointConfiguration({
-          id: "",
-          label: "Digital Input",
-          type: IOPointType.DIGITAL_INPUT,
-          channel: point_index,
-          configured: false,
-          // transfer_function_type: TransferFunctionType.LINEAR,
-          measurement_unit: "",
-          min_value: 0,
-          min_signal_v: 0,
-          max_value: 0,
-          max_signal_v: 0,
-          value: 0,
-          enabled: false,
-        })
-      );
+      setIOPoints({
+        payload: {
+          point: new IOPointConfiguration({
+            id: "",
+            label: "Digital Input",
+            type: IOPointType.DIGITAL_INPUT,
+            channel: point_index,
+            configured: false,
+            // transfer_function_type: TransferFunctionType.LINEAR,
+            measurement_unit: "",
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: 0,
+            enabled: false,
+          }),
+        },
+        type: "config/add",
+      });
     }
   };
 
@@ -108,24 +71,27 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
       IOPointType.ANALOG_INPUT
     );
     if (point_index >= 0) {
-      addIOPoint(
-        new IOPointConfiguration({
-          id: "",
-          label: "Analog Input",
-          type: IOPointType.ANALOG_INPUT,
-          analog_type: AnalogIOPointType.VOLTAGE,
-          channel: point_index,
-          configured: false,
-          transfer_function_type: TransferFunctionType.LINEAR,
-          measurement_unit: "",
-          min_value: 0,
-          min_signal_v: 0,
-          max_value: 0,
-          max_signal_v: 0,
-          value: 0,
-          enabled: false,
-        })
-      );
+      setIOPoints({
+        payload: {
+          point: new IOPointConfiguration({
+            id: "",
+            label: "Analog Input",
+            type: IOPointType.ANALOG_INPUT,
+            analog_type: AnalogIOPointType.VOLTAGE,
+            channel: point_index,
+            configured: false,
+            transfer_function_type: TransferFunctionType.LINEAR,
+            measurement_unit: "",
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: 0,
+            enabled: false,
+          }),
+        },
+        type: "config/add",
+      });
     }
   };
 
@@ -143,38 +109,19 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
     }
   };
 
-  //   const IOPointComponents: Record<IOPointType, ReactElement> = {
-  //     [IOPointType.DIGITAL_INPUT]: DigitalInput,
-  //   };
-
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
-    setIOPoints((c) => {
-      c.reorderPointByIndex(
-        point_type,
-        result.source.index,
-        result.destination.index
-      );
-      return c;
+    setIOPoints({
+      payload: {
+        destination_index: result.destination.index,
+        source_index: result.source.index,
+        point_type: point_type,
+      },
+      type: "config/reorder",
     });
-
-    // const newIOPoints = Array.from(IOPoints[point_type]);
-    // const [movedIOPoint] = newIOPoints.splice(result.source.index, 1);
-    // newIOPoints.splice(result.destination.index, 0, movedIOPoint);
-
-    // setIOPoints({ ...IOPoints, [point_type]: newIOPoints });
-
-    // const newInputs = Array.from(inputs);
-    // const [movedInput] = newInputs.splice(result.source.index, 1);
-    // newInputs.splice(result.destination.index, 0, movedInput);
-
-    // setInputs(newInputs);
   };
 
-  //   const grid = 8;
-
-  //   const getItemStyle = (isDragging: boolean, draggableStyle: StylePropertyMap) => ({
   const getItemStyle = (
     isDragging: boolean,
     draggableStyle: React.CSSProperties
@@ -193,29 +140,12 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
     ...draggableStyle,
   });
 
-  //   const getListStyle = (isDraggingOver: boolean) => ({
-  //     background: isDraggingOver ? "lightblue" : "lightgrey",
-  //     padding: grid,
-  //     width: 400,
-  //     borderRadius: '4px'
-  //   });
-
-  //   useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     setTestUpdateCounter((counter) => counter + 1);
-  //     console.log("test ionterval")
-  //   }, 0.1 * 1000);
-  //   return () => clearInterval(intervalId);
-  // }, []);
-
   useEffect(() => {
-    console.log("updates points")
-  }, [IOPoints.analog_inputs])
+    console.log("updates points");
+  }, [IOPoints.analog_inputs]);
 
-  // console.log("rendering froup")
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      {/* <div className="input-group-container"> */}
       <div className="w-full">
         <div className="flex flex-row justify-between">
           <p className="text-white font-bold">{`${group_name}s`}</p>
@@ -224,20 +154,6 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
             className="w-[180px]"
             onClick={
               () => addButtonCallback(point_type)()
-              //     addInput({
-              //     id: "",
-              //     label: "Digital Input",
-              //     type: IOPointType.DIGITAL_INPUT,
-              //     channel: 0,
-              //     // transfer_function_type: TransferFunctionType.LINEAR,
-              //     measurement_unit: "",
-              //     min_value: 0,
-              //     min_signal_v: 0,
-              //     max_value: 0,
-              //     max_signal_v: 0,
-              //     value: 0,
-              //     enabled: false,
-              //   })
             }
           />
         </div>
@@ -246,17 +162,14 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              //   style={getListStyle(snapshot.isDraggingOver)}
               className={`${snapshot.isDraggingOver ? "bg-sky-300" : "bg-slate-300"} grid grid-cols-1 w-full rounded-[4px]`}
             >
-              {/* {IOPoints[point_type].map((input, index) => ( */}
               {IOPoints?.getIOPoints(point_type)
                 .filter((p) => p.label)
-                .map((input, index) => (
-                  // {IOPoints?.getIOPoints(point_type).map((input, index) => (
+                .map((point, index) => (
                   <Draggable
-                    key={input.id}
-                    draggableId={input.id}
+                    key={point.id}
+                    draggableId={point.id}
                     index={index}
                     isDragDisabled={isConfigOpen}
                   >
@@ -272,12 +185,24 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
                       >
                         <IOPointContainer
                           index={index}
-                          io_point={input}
-                          updatePoint={(updatedInput) =>
-                            updateIOPoint(index, updatedInput)
+                          io_point={point}
+                          updatePoint={(updatedPoint) =>
+                            setIOPoints({
+                              payload: {
+                                point: updatedPoint,
+                                index: index
+                              },
+                              type: 'config/update'
+                            })
                           }
                           deletePoint={() => {
-                            deleteIOPoint(index, input.type);
+                            setIOPoints({
+                              payload: {
+                                point_type: point.type,
+                                index: index
+                              },
+                              type: 'config/delete'
+                            })
                           }}
                           setIsConfigOpen={setIsConfigOpen}
                         />
@@ -289,14 +214,6 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
             </div>
           )}
         </Droppable>
-
-        {/* <button onClick={() => addInput({
-          label: 'Digital Input',
-          channel: 0,
-          value: 0,
-          enabled: false })}>
-            Add Input
-        </button> */}
       </div>
     </DragDropContext>
   );

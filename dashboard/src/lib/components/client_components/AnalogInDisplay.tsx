@@ -95,7 +95,7 @@ const AnalogInDisplay = () => {
   return (
     <div className="grow">
       <h2>Analog Inputs</h2>
-      <h2>{dashboardContext.analog_in_data?.values?.[0]}</h2>
+      {/* <h2>{dashboardContext.analog_in_data?.values?.[0]}</h2> */}
       {dashboardContext.ra_ros_websocket ? (
         <div
           key="v2"

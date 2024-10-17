@@ -33,7 +33,7 @@ database:
       collection_size_bytes: 10000
     hardware_configuration:
       document_type: SYSTEM_CONFIGURATION
-      drop_on_start: True
+      drop_on_start: False
     ui_configuration:
       document_type: UI_CONFIGURATION
       drop_on_start: False

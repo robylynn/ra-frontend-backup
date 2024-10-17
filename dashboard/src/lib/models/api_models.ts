@@ -208,6 +208,12 @@ export class IOConfiguration implements IOConfigurationInterface {
 
   initialized: boolean = false;
 
+  public copy() : IOConfiguration {
+    let config = new IOConfiguration();
+    Object.assign(config, this);
+    return config;
+  }
+
   constructor(input?: IOConfigurationInterface) {
     input?.digital_inputs?.forEach((i) => {
       this.digital_inputs.push(new IOPointConfiguration(i));

@@ -6,6 +6,7 @@
 import React, {
   createContext,
   useContext,
+  useReducer,
   useState,
   Dispatch,
   SetStateAction,
@@ -17,142 +18,101 @@ import {
   IOPointConfigurationInterface,
   IOPointType,
 } from "@/lib/models/api_models";
-import DashboardContext from "@/lib/models/dashboard_context";
-
-// interface IOPointContextInterface {
-//   points: Array<IOPointConfiguration>;
-//   setPoints: Dispatch<SetStateAction<Array<IOPointConfiguration>>>;
-//   addPoint: (input: IOPointConfigurationInterface) => void;
-//   updatePoint: (index: number, updatedInput: IOPointConfiguration) => void;
-//   deletePoint: (index: number) => void;
-// }
+import { createAction, createReducer, ActionCreatorWithOptionalPayload, Reducer, Action } from '@reduxjs/toolkit'
 
 interface IOPointContextInterface {
-  // IOPoints: Record<IOPointType, Array<IOPointConfiguration>>;
   IOPoints: IOConfiguration;
-  // setIOPoints: Dispatch<
-  //   SetStateAction<Record<IOPointType, Array<IOPointConfiguration>>>
-  // >;
-  setIOPoints: Dispatch<SetStateAction<IOConfiguration>>;
-  addIOPoint: (point: IOPointConfiguration) => void;
-  updateIOPoint: (index: number, updatedPoint: IOPointConfiguration) => void;
-  deleteIOPoint: (index: number, point_type: IOPointType) => void;
+  setIOPoints: Dispatch<SetStateAction<setIOPointsDispatchInterface>>;
 }
 
-// export const DigitalInputContext = createContext();
+interface IOPointContextReducerInterface {
+  point: IOPointConfiguration,
+  index?: number,
+}
+
+interface IOPointContextReducerDeleteInterface {
+  point_type: IOPointType,
+  index: number,
+}
+
+interface IOPointContextReducerReorderInterface {
+  point_type: IOPointType,
+  source_index: number,
+  destination_index: number
+}
+
+interface IOConfigurationContextReducerInterface {
+  configuration: IOConfiguration
+}
+
+interface setIOPointsDispatchInterface {
+  payload: IOPointContextReducerInterface | IOPointContextReducerDeleteInterface | IOPointContextReducerReorderInterface | IOConfigurationContextReducerInterface
+  type: string
+}
+
 export const IOPointContext = createContext<IOPointContextInterface>(null);
 
 export const IOPointContextProvider = ({ children }) => {
-  //   const [inputs, setInputs] = useState<Array<IOPointConfiguration>>([]);
-  // const { dashboardContext } = useContext(DashboardContext);
-  const [IOPoints, setIOPoints] = useState<IOConfiguration>(
-    new IOConfiguration()
-  );
-  // Record<IOPointType, Array<IOPointConfiguration>>
-  // >({
-  //   [IOPointType.DIGITAL_INPUT]: [],
-  //   [IOPointType.DIGITAL_OUTPUT]: [],
-  //   [IOPointType.ANALOG_INPUT]: [],
-  //   [IOPointType.ANALOG_OUTPUT]: [],
-  //   [IOPointType.NULL]: [],
-  // });
-  const replaceIOPoint = (point: IOPointConfiguration) => {
-    let point_index = IOPoints.getIOPoints(point.type).findIndex((p) => p.channel === point.channel);
-    setIOPoints((c) => {
-      IOPoints.insertPointByIndex(point, point_index);
-      return IOPoints;
+  const updateIOPointAction = createAction<IOPointContextReducerInterface>('config/update');
+  const addIOPointAction = createAction<IOPointContextReducerInterface>('config/add');
+  const deleteIOPointAction = createAction<IOPointContextReducerDeleteInterface>('config/delete');
+  const setIOPointsAction = createAction<IOConfigurationContextReducerInterface>('config/set');
+  const reorderIOPointsAction = createAction<IOPointContextReducerReorderInterface>('config/reorder')
+
+  const initialIOPoints = new IOConfiguration();
+  
+  const setIOPointsReducer = createReducer(initialIOPoints, (builder) => {
+    builder.addCase(updateIOPointAction, (state, action) => {
+      console.log("updated")
+      state.insertPointByIndex(action.payload.point, action.payload.index)
+      return state;
     })
-  }
+    .addCase(setIOPointsAction, (state, action) => {
+      console.log("points set")
+      state = action.payload.configuration;
+      return state;
+    })
+    .addCase(addIOPointAction, (state, action) => {
+      console.log("points added")
+      let point = action.payload.point;
 
-  const addIOPoint = (point: IOPointConfiguration) => {
-    // let max_number_of_channels =
-    //   dashboardContext.hardware_configuration?.io_system.get_maximum_channels(
-    //     point.type
-    //   );
-    // if (IOPoints[point.type].length > max_number_of_channels) return;
-    if (point.channel > IOPoints.getMaximumChannels(point.type)) return;
-    // if (inputs.length >= 8) return; // TODO: Add a global var for number of inputs
+      if (point.channel > state.getMaximumChannels(point.type)) return;
 
-    // Find the first available channel
-    const usedChannels = IOPoints.getIOPoints(point.type).filter(p => p.label).map(
-      (point) => point.channel
-    );
-    // let channels = [...Array(max_number_of_inputs).keys()]
-    const availableChannel = [
-      ...Array(IOPoints.getMaximumChannels(point.type)).keys(),
-    ].find((channel) => !usedChannels.includes(channel));
-    // const availableChannel = [0, 1, 2, 3, 4, 5, 6, 7].find(
-    //   (channel) => !usedChannels.includes(channel)
-    // );
+      // Find the first available channel
+      const usedChannels = state.getIOPoints(point.type).filter(p => p.label).map(
+        (point) => point.channel
+      );
+      
+      const availableChannel = [
+        ...Array(state.getMaximumChannels(point.type)).keys(),
+      ].find((channel) => !usedChannels.includes(channel));
 
-    point.id = uuidv4();
-    point.channel = availableChannel;
-    updateIOPoint(availableChannel, point)
-    // setIOPoints((c) => {
-    //   point.id = uuidv4();
-    //   point.channel = availableChannel;
-    //   c.insertPoint(point);
-    //   return c;
-    // });
+      point.id = uuidv4();
+      point.channel = availableChannel;
+      state.insertPointByIndex(point, availableChannel)
+      console.log("added")
+      return state;
+    })
+    .addCase(deleteIOPointAction, (state, action) => {
+      console.log("point deleted")
+      state.deletePointByIndex(action.payload.point_type, action.payload.index)
+    })
+    .addCase(reorderIOPointsAction, (state, action) => {
+      state.reorderPointByIndex(
+        action.payload.point_type,
+        action.payload.source_index,
+        action.payload.destination_index
+      );
+    })
+  })
 
-    // setIOPoints({
-    //   ...IOPoints,
-    //   [point.type]: [
-    //     ...IOPoints[point.type],
-    //     { ...point, id: uuidv4(), channel: availableChannel },
-    //   ],
-    //   // { ...input, id: uuidv4(), channel: availableChannel },
-    // });
-
-    // setInputs([
-    //   ...inputs,
-    //   { ...input, id: uuidv4(), channel: availableChannel },
-    // ]);
-  };
-
-  //   const updateInput = (index: number, updatedInput: IOPointConfiguration) => {
-  //     const newInputs = inputs.map((input, i) =>
-  //       i === index ? updatedInput : input
-  //     );
-  //     setInputs(newInputs);
-  //   };
-
-  const updateIOPoint = (index: number, updatedPoint: IOPointConfiguration) => {
-    // const newPoints = IOPoints[updatedPoint.type].map((input, i) =>
-    //   i === index ? updatedPoint : input
-    // );
-
-    setIOPoints((c) => {
-      // c.getPointByIndex(updatedPoint.type, index);
-      c.insertPointByIndex(updatedPoint, index);
-      return c;
-    });
-
-    // setIOPoints({ ...IOPoints, [updatedPoint.type]: newPoints });
-  };
-
-  //   const deleteInput = (index: number) => {
-  //     const newInputs = inputs.filter((_, i) => i !== index);
-  //     setInputs(newInputs);
-  //   };
-
-  const deleteIOPoint = (index: number, point_type: IOPointType) => {
-    // const newInputs = IOPoints[point_type].filter((_, i) => i !== index);
-    // setIOPoints({ ...IOPoints, [point_type]: newInputs });
-    setIOPoints((c) => {
-      c.deletePointByIndex(point_type, index);
-      return c;
-    });
-  };
+  const [IOPoints, setIOPoints] = useReducer<IOConfiguration, (arg: setIOPointsDispatchInterface) => void>(setIOPointsReducer, initialIOPoints)
 
   return (
     <IOPointContext.Provider
       value={{
         IOPoints,
-        setIOPoints,
-        addIOPoint,
-        updateIOPoint,
-        deleteIOPoint,
+        setIOPoints
       }}
     >
       {children}

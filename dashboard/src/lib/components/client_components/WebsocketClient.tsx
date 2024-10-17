@@ -97,11 +97,14 @@ export default function RAWebSocket(props: {
   const analog_in_subscription = useRef<Topic | null>();
 
   const set_ROS_context = (config_services: ConfigServices) => {
-    setContext((c) => {
-      c.ra_ros_websocket = ra_ros_websocket.current;
-      c.IO_config_services = config_services;
-      return c;
-    });
+    setContext((c) => (
+      {...c, ra_ros_websocket: ra_ros_websocket.current, IO_config_services: config_services}
+    ))
+    // setContext((c) => {
+    //   c.ra_ros_websocket = ra_ros_websocket.current;
+    //   c.IO_config_services = config_services;
+    //   return c;
+    // });
   };
 
   const close_websocket = () => {
@@ -194,18 +197,18 @@ export default function RAWebSocket(props: {
     }
   }, [reconnectCounter]);
 
-  const [analogInState, setAnalogInState] = useState<AnalogInData>();
+  // const [analogInState, setAnalogInState] = useState<AnalogInData>();
 
-  useEffect(() => {
-    // setContext((c) => {
-    //   console.log("setting analog in data");
-    //   c.analog_in_data = analogInState;
-    //   return c;
-    // })
-    setContext((c) => (
-      {...c, analog_in_data: analogInState}
-    ))
-  }, [analogInState])
+  // useEffect(() => {
+  //   // setContext((c) => {
+  //   //   console.log("setting analog in data");
+  //   //   c.analog_in_data = analogInState;
+  //   //   return c;
+  //   // })
+  //   setContext((c) => (
+  //     {...c, analog_in_data: analogInState}
+  //   ))
+  // }, [analogInState])
 
   // useEffect(() => {
   //   console.log("got new context")
@@ -227,9 +230,14 @@ export default function RAWebSocket(props: {
             //   c.analog_in_data = message as AnalogInData;
             //   return c;
             // });
-            setContext((c) => (
-              {...c, analog_in_data: message as AnalogInData}
-            ))
+            // setContext((c) => (
+            //   {...c, analog_in_data: message as AnalogInData}
+            // ))
+
+            setContext((c) => {
+              console.log("got analog in data")
+              return {...c, analog_in_data: message as AnalogInData}
+            })
 
             // setAnalogInState(message as AnalogInData);
             // setAnalogInData((prevData) => {

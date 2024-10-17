@@ -76,8 +76,9 @@ const AnalogInputGroup = () => {
               () => addInput({
                 id: '',
                 label: 'Analog Input',
-                type: IOPointType.ANALOG_VOLTAGE_INPUT,
+                type: IOPointType.ANALOG_INPUT,
                 channel: 0,
+                configured: false,
                 transfer_function_type: TransferFunctionType.LINEAR,
                 measurement_unit: '',
                 min_value: 0,
