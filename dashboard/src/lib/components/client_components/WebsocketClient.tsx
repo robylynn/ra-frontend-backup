@@ -10,7 +10,8 @@ import DashboardContext, {
 import { getSession } from "next-auth/react";
 import ROSLIB, { Topic } from "roslib";
 import { IOPointType } from "@/lib/models/api_models";
-import { AnalogInData } from "@/lib/models/ros_models";
+import { AnalogInData, AxisData } from "@/lib/models/ros_models";
+import { ELEVATION_0 } from "@blueprintjs/core/lib/esm/common/classes";
 // import { Topic } from "roslib";
 
 function connectWebSocket(url: string, timeout: number): Promise<WebSocket> {
@@ -94,17 +95,17 @@ export default function RAWebSocket(props: {
   const ra_ros_websocket: React.MutableRefObject<null | ROSLIB.Ros> =
     useRef(null);
   const websocket_connecting: React.MutableRefObject<boolean> = useRef(false);
+
   const analog_in_subscription = useRef<Topic | null>();
+  const digital_in_subscription = useRef<Topic | null>();
+  const axis_velocity_subscriptions = useRef<Array<Topic> | null>(new Array(4));
 
   const set_ROS_context = (config_services: ConfigServices) => {
-    setContext((c) => (
-      {...c, ra_ros_websocket: ra_ros_websocket.current, IO_config_services: config_services}
-    ))
-    // setContext((c) => {
-    //   c.ra_ros_websocket = ra_ros_websocket.current;
-    //   c.IO_config_services = config_services;
-    //   return c;
-    // });
+    setContext((c) => ({
+      ...c,
+      ra_ros_websocket: ra_ros_websocket.current,
+      IO_config_services: config_services,
+    }));
   };
 
   const close_websocket = () => {
@@ -214,64 +215,146 @@ export default function RAWebSocket(props: {
   //   console.log("got new context")
   // }, [dashboardContext.analog_in_data?.values?.[0]])
 
-  useEffect(() => {
-    const subscribeToAnalogInputs = () => {
-      if (!analog_in_subscription.current) {
-        if (dashboardContext.ra_ros_websocket) {
-          analog_in_subscription.current = new Topic({
-            ros: dashboardContext.ra_ros_websocket,
-            name: `/gpio/analog_in_electrical_units`,
-            messageType: "r2c_interfaces/AnalogInData",
+  const subscribeToAnalogInputs = () => {
+    console.log("running subscription effect");
+    if (!analog_in_subscription.current) {
+      console.log("no subscription");
+      if (dashboardContext.ra_ros_websocket) {
+        console.log("websocket active");
+        analog_in_subscription.current = new Topic({
+          ros: dashboardContext.ra_ros_websocket,
+          name: `/gpio/analog_in_electrical_units`,
+          messageType: "r2c_interfaces/AnalogInData",
+        });
+
+        analog_in_subscription.current.subscribe((message) => {
+          setContext((c) => {
+            console.log("got analog in data");
+            return { ...c, analog_in_data: message as AnalogInData };
           });
+        });
 
-          analog_in_subscription.current.subscribe((message) => {
-            // setContext((c) => {
-            //   console.log("got analog in data");
-            //   c.analog_in_data = message as AnalogInData;
-            //   return c;
-            // });
-            // setContext((c) => (
-            //   {...c, analog_in_data: message as AnalogInData}
-            // ))
-
-            setContext((c) => {
-              console.log("got analog in data")
-              return {...c, analog_in_data: message as AnalogInData}
-            })
-
-            // setAnalogInState(message as AnalogInData);
-            // setAnalogInData((prevData) => {
-            //   let time =
-            //     (message as any).stamp.sec +
-            //     (message as any).stamp.nanosec / 1e9;
-            //   let data_point: AnalogInputDataPoint = {
-            //     time: time,
-            //   };
-            //   (message as any).values.forEach((v, i) => {
-            //     data_point[i] = v;
-            //   });
-            //   if (initial_data_acquired.current == true) {
-            //     prevData.push(data_point);
-            //     prevData = prevData.reverse().slice(0, props.length).reverse();
-            //   }
-            //   return prevData;
-            // });
-          });
-
-          console.log(`Subscribed to /gpio/analog_in_electrical_units`);
-        }
+        console.log(`Subscribed to /gpio/analog_in_electrical_units`);
       }
-    };
+    }
+  };
 
+  // const subscribeToMotionData = () => {};
+
+  const subscribeToMotionData = (axisIndex: number) => {
+    if (!axis_velocity_subscriptions.current[axisIndex]) {
+      if (dashboardContext.ra_ros_websocket) {
+        axis_velocity_subscriptions.current[axisIndex] = new Topic({
+          ros: dashboardContext.ra_ros_websocket,
+          name: `/axis_${axisIndex}/pos_vel`,
+          messageType: "r2c_interfaces/EncoderEstimates",
+        });
+
+        axis_velocity_subscriptions.current[axisIndex].subscribe(
+          (message: AxisData) => {
+            setContext((c) => {
+              const data_point: AxisData = {
+                stamp: message.stamp,
+                position: message.position,
+                velocity: message.velocity,
+                axis_index: axisIndex,
+              };
+              let newAxisData;
+              if (!c.axis_data || !(axisIndex in c.axis_data)) {
+                newAxisData = {
+                  ...c.axis_data,
+                  [axisIndex]: [data_point].slice(-50),
+                };
+              } else {
+                newAxisData = {
+                  ...c.axis_data,
+                  [axisIndex]: [...c.axis_data?.[axisIndex], data_point].slice(
+                    -50
+                  ),
+                };
+              }
+              return { ...c, axis_data: newAxisData };
+            });
+            // setVelocityData((prevData) => {
+            //   const newVelocityData = {
+            //     ...prevData,
+            //     [`axis_${axisIndex}`]: [
+            //       ...prevData[`axis_${axisIndex}`],
+            //       { time: new Date(), velocity: (message as any).velocity },
+            //     ].slice(-50), // Keep only the latest 50 data points
+            //   };
+            //   return newVelocityData;
+            // });
+          }
+        );
+
+        console.log(`Subscribed to /axis_${axisIndex}/pos_vel`);
+      }
+    }
+  };
+
+  const unsubscribeFromData = () => {
+    if (!dashboardContext.ra_ros_websocket) {
+      if (analog_in_subscription.current) {
+        analog_in_subscription.current.unsubscribe();
+        analog_in_subscription.current = null;
+        console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
+      }
+
+      axis_velocity_subscriptions.current.forEach((s, i) => {
+        s.unsubscribe();
+        console.log(`Unsubscribed from ${s.name}`);
+        axis_velocity_subscriptions.current[i] = null;
+      });
+    }
+  };
+
+  useEffect(() => {
     subscribeToAnalogInputs();
+    [0, 1, 2, 3].forEach((i) => subscribeToMotionData(i));
     // Cleanup function to unsubscribe on component unmount
     return () => {
-      if (analog_in_subscription.current)
-        analog_in_subscription.current.unsubscribe();
-      analog_in_subscription.current = null;
-      console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
+      unsubscribeFromData();
+      // if (analog_in_subscription.current)
+      //   analog_in_subscription.current.unsubscribe();
+      // analog_in_subscription.current = null;
+      // console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
     };
-  }, [dashboardContext.ra_ros_websocket]);
+  }, [reconnectCounter]);
+  // }, [dashboardContext.ra_ros_websocket]);
+
+  // useEffect(() => {
+  //   const subscribeToAnalogInputs = () => {
+  //     if (!analog_in_subscription.current) {
+  //       if (dashboardContext.ra_ros_websocket) {
+  //         analog_in_subscription.current = new Topic({
+  //           ros: dashboardContext.ra_ros_websocket,
+  //           name: `/gpio/analog_in_electrical_units`,
+  //           messageType: "r2c_interfaces/AnalogInData",
+  //         });
+
+  //         analog_in_subscription.current.subscribe((message) => {
+  //           setContext((c) => {
+  //             console.log("got analog in data")
+  //             return {...c, analog_in_data: message as AnalogInData}
+  //           })
+
+  //         });
+
+  //         console.log(`Subscribed to /gpio/analog_in_electrical_units`);
+  //       }
+  //     }
+  //   };
+
+  //   subscribeToAnalogInputs();
+  //   // Cleanup function to unsubscribe on component unmount
+  //   return () => {
+  //     if (analog_in_subscription.current)
+  //       analog_in_subscription.current.unsubscribe();
+  //     analog_in_subscription.current = null;
+  //     console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
+  //   };
+  // }, [dashboardContext.ra_ros_websocket]);
 
   useEffect(() => {
     return () => {

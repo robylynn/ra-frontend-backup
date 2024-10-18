@@ -38,3 +38,10 @@ export interface AnalogInData {
     values: Array<number>
     types: string
 }
+
+export interface AxisData {
+    stamp: ROSTimestamp
+    axis_index: number
+    position: number
+    velocity: number
+}

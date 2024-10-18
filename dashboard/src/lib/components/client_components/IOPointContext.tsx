@@ -96,6 +96,7 @@ export const IOPointContextProvider = ({ children }) => {
     .addCase(deleteIOPointAction, (state, action) => {
       console.log("point deleted")
       state.deletePointByIndex(action.payload.point_type, action.payload.index)
+      return state;
     })
     .addCase(reorderIOPointsAction, (state, action) => {
       state.reorderPointByIndex(
@@ -103,6 +104,7 @@ export const IOPointContextProvider = ({ children }) => {
         action.payload.source_index,
         action.payload.destination_index
       );
+      return state;
     })
   })
 

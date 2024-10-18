@@ -17,7 +17,7 @@ import {
   IOPointType,
   UIConfiguration,
 } from "@/lib/models/api_models";
-import { AnalogInData } from "./ros_models";
+import { AnalogInData, AxisData } from "./ros_models";
 
 export type ConfigServicesMap = Record<IOPointType, ROSLIB.Service | null>;
 
@@ -57,6 +57,7 @@ export class ApplicationContext {
   // Machine State
   analog_in_data: AnalogInData = null;
   digital_in_data: object | null = null;
+  axis_data: Record<number, Array<AxisData>> = null;
 
   constructor() {
     this.latest_document = new DatabaseDocument();

@@ -67,6 +67,12 @@ export class UIConfiguration implements UIConfigurationInterface {
 
   configured: boolean = false;
 
+  public copy() : UIConfiguration {
+    let config = new UIConfiguration();
+    Object.assign(config, this);
+    return config;
+  }
+
   constructor(input?: UIConfigurationInterface) {
     if (input != undefined) {
       this.client_id = input.client_id;

@@ -90,6 +90,7 @@ const IOPointContainer = ({
             transfer_function_type: updatedIOPoint.transfer_function_type,
           },
         };
+        break;
       }
       case IOPointType.DIGITAL_INPUT: {
         request_data = {
@@ -102,6 +103,7 @@ const IOPointContainer = ({
             label: updatedIOPoint.label,
           },
         };
+        break;
       }
     }
 
@@ -245,9 +247,10 @@ const IOPointContainer = ({
   };
 
   return (
-    <div className="flex items-center h-[40px]">
+    <div className="flex items-center justify-between h-[40px]">
+      <div className="grid grid-cols-3 w-[40%] items-center">
       <div
-        className="bg-slate-200 rounded-[50%] width-[40px] height-[20px] flex justify-center items-center m-[8px]"
+        className="bg-slate-200 rounded-[50%] w-[20px] h-[20px] flex justify-center items-center"
         style={{
           backgroundColor: io_point.value
             ? "rgb(59, 136, 195)"
@@ -265,6 +268,16 @@ const IOPointContainer = ({
       >
         ⚙️
       </button>
+
+      <R2SliderToggle
+        text={""}
+        state={io_point.enabled}
+        // onChange={() => {}}
+        onClick={handleToggleChange}
+      />
+      </div>
+
+      <span className="m-[8px]">{io_point.label}</span>
 
       <Modal
         isOpen={showConfig}
@@ -297,14 +310,6 @@ const IOPointContainer = ({
         />
       </Modal>
 
-      <R2SliderToggle
-        text={""}
-        state={io_point.enabled}
-        // onChange={() => {}}
-        onClick={handleToggleChange}
-      />
-
-      <span className="m-[8px]">{io_point.label}</span>
     </div>
   );
 };
@@ -408,7 +413,7 @@ const IOPointConfigDialog = ({
             <label>Type</label>
             <select
               name="analog_type"
-              value={IOPointType[localPoint.analog_type]}
+              value={AnalogIOPointType[localPoint.analog_type]}
               onChange={handleAnalogTypeChange}
             >
               <option value={AnalogIOPointType[AnalogIOPointType.VOLTAGE]}>

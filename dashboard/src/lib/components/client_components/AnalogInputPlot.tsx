@@ -98,11 +98,18 @@ const PlotContainer = (props: {
           text="Remove Plot"
           onClick={() => {
             setContext((c) => {
-              delete c.configuration.plots[props.plot_index];
-              c.configuration.plots = c.configuration.plots.filter(
-                (plot) => plot
-              );
-              return c;
+              let new_config = c.configuration.copy();
+              delete new_config.plots[props.plot_index];
+              new_config.plots = new_config.plots.filter((plot) => plot);
+              return {
+                ...c,
+                configuration: new_config,
+              };
+
+              // c.configuration.plots = c.configuration.plots.filter(
+              //   (plot) => plot
+              // );
+              // return c;
             });
           }}
         />
@@ -121,7 +128,7 @@ const AnalogInputPlot = (props: { length: number }) => {
     []
   );
 
-  const analog_in_subscription = useRef<Topic | null>();
+  // const analog_in_subscription = useRef<Topic | null>();
   const initial_data_acquired = useRef<boolean>();
 
   const filter_plot_data = (
@@ -274,6 +281,24 @@ const AnalogInputPlot = (props: { length: number }) => {
     IOPointType.ANALOG_INPUT
   );
 
+  useEffect(() => {
+    // Assign default selected plot so it isn't undefined
+    if (!selectedPlot && configured_IO_points.length)
+      setSelectedPlot(configured_IO_points[0].channel.toString());
+  }, [configured_IO_points.length]);
+
+  const handleAddPlot = () => {
+    let config = dashboardContext.configuration.copy();
+    config.plots.push(
+      new PlotConfiguration({
+        enabled: true,
+        data_sources: [selectedPlot.toString()],
+      })
+    );
+
+    setContext((c) => ({ ...c, configuration: config }));
+  };
+
   // return <></>
   return analogInData.length == 0 ? (
     <LoadingIndicator />
@@ -309,17 +334,18 @@ const AnalogInputPlot = (props: { length: number }) => {
             text="Add Plot"
             className="w-[40%]"
             onClick={() => {
-              let plots = dashboardContext.configuration.plots;
-              plots.push(
-                new PlotConfiguration({
-                  enabled: true,
-                  data_sources: [selectedPlot.toString()],
-                })
-              );
-              setContext((c) => {
-                c.configuration.plots = plots;
-                return c;
-              });
+              handleAddPlot();
+              // let plots = dashboardContext.configuration.plots;
+              // plots.push(
+              //   new PlotConfiguration({
+              //     enabled: true,
+              //     data_sources: [selectedPlot.toString()],
+              //   })
+              // );
+              // setContext((c) => {
+              //   c.configuration.plots = plots;
+              //   return c;
+              // });
             }}
           />
         </div>
@@ -332,38 +358,56 @@ const AnalogInputPlot = (props: { length: number }) => {
       </div>
       <div key={"plots"}>
         {dashboardContext.configuration.plots.map(
-          (plot_configuration, plot_index) => (
+          (plot_configuration, plot_index) => {
             // <div>
-            <PlotContainer
-              key={plot_index.toString()}
-              data_name={
-                // inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
-                IOPoints[IOPointType.ANALOG_INPUT]?.[
-                  plot_configuration.data_sources[0]
-                ]?.label == ""
-                  ? `Analog Input ${plot_configuration.data_sources[0]}`
-                  : IOPoints[IOPointType.ANALOG_INPUT]?.[
-                      plot_configuration.data_sources[0]
-                    ]?.label
-              }
-              data={filter_plot_data(
-                analogInData,
-                parseInt(plot_configuration.data_sources[0])
-              )}
-              // y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
-              y_label={
-                IOPoints[IOPointType.ANALOG_INPUT]?.[
-                  plot_configuration.data_sources[0]
-                ]?.measurement_unit == ""
-                  ? null
-                  : IOPoints[IOPointType.ANALOG_INPUT]?.[
-                      plot_configuration.data_sources[0]
-                    ]?.measurement_unit
-              }
-              plot_index={plot_index}
-            />
+            let point = IOPoints.getIOPoints(IOPointType.ANALOG_INPUT)?.[
+              parseInt(plot_configuration.data_sources[0])
+            ];
+            if (point) {
+              let point_label = point?.label;
+              let data_name =
+                point_label ??
+                `Analog Input ${plot_configuration.data_sources[0]}`;
+
+              let y_label =
+                point?.measurement_unit != "" ? point.measurement_unit : null;
+              return (
+                <PlotContainer
+                  key={plot_index.toString()}
+                  data_name={data_name}
+                  // inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
+                  // IOPoints.getIOPoints(IOPointType.ANALOG_INPUT)?.[]
+                  // {let data_label = 5}
+                  // IOPoints.getIOPoints(IOPointType.ANALOG_INPUT)?.[plot_configuration.data_sources[0]]?.label == ""
+                  //   // plot_configuration.data_sources[0]
+                  //   // label == ""
+                  //   ? `Analog Input ${plot_configuration.data_sources[0]}`
+                  //   : IOPoints[IOPointType.ANALOG_INPUT]?.[
+                  //       plot_configuration.data_sources[0]
+                  //     ]?.label
+
+                  data={filter_plot_data(
+                    analogInData,
+                    parseInt(plot_configuration.data_sources[0])
+                  )}
+                  // y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
+                  y_label={y_label}
+                  // y_label={
+                  //   IOPoints[IOPointType.ANALOG_INPUT]?.[
+                  //     plot_configuration.data_sources[0]
+                  //   ]?.measurement_unit == ""
+                  //     ? null
+                  //     : IOPoints[IOPointType.ANALOG_INPUT]?.[
+                  //         plot_configuration.data_sources[0]
+                  //       ]?.measurement_unit
+                  // }
+                  plot_index={plot_index}
+                />
+              );
+            }
+
             ///* </div> */}
-          )
+          }
         )}
       </div>
     </div>
