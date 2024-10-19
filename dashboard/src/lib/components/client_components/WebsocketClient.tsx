@@ -275,16 +275,6 @@ export default function RAWebSocket(props: {
               }
               return { ...c, axis_data: newAxisData };
             });
-            // setVelocityData((prevData) => {
-            //   const newVelocityData = {
-            //     ...prevData,
-            //     [`axis_${axisIndex}`]: [
-            //       ...prevData[`axis_${axisIndex}`],
-            //       { time: new Date(), velocity: (message as any).velocity },
-            //     ].slice(-50), // Keep only the latest 50 data points
-            //   };
-            //   return newVelocityData;
-            // });
           }
         );
 
@@ -302,8 +292,10 @@ export default function RAWebSocket(props: {
       }
 
       axis_velocity_subscriptions.current.forEach((s, i) => {
-        s.unsubscribe();
-        console.log(`Unsubscribed from ${s.name}`);
+        if (s) {
+          s.unsubscribe();
+          console.log(`Unsubscribed from ${s.name}`);
+        }
         axis_velocity_subscriptions.current[i] = null;
       });
     }

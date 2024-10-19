@@ -4,7 +4,7 @@
 "use client";
 
 import { useContext, useEffect, useState, useMemo } from "react";
-
+// import { Worker } from "worker_threads";
 import {
   HardwareConfiguration,
   HardwareConfigurationInterface,

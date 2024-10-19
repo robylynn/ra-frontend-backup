@@ -1,216 +1,111 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState, useRef, useContext } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Topic } from 'roslib';
+import React, { useEffect, useState, useRef, useContext } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+// import { Topic } from "roslib";
 import DashboardContext from "@/lib/models/dashboard_context";
-import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
+// import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
+import WaitingIndicator from "@/lib/components/server_components/waiting_indicator";
+import { plotDateFormatter } from "@/lib/utils/plotDateFormatter";
 
-const VelocityPlot = () => {
-  // Initialize state with an object of four arrays for velocity data
-  const [velocityData, setVelocityData] = useState({
-    axis_0: [],
-    axis_1: [],
-    axis_2: [],
-    axis_3: []
-  });
-  
-  
-  // const subscriptions = useRef<Map<number, Topic>>(new Map<number, Topic>());
+const MotionPlot = (props: {title: string, data_key: "velocity" | "position", unit: string, axes: Array<number>, y_axis_transformation: (value: number) => number}) => {
   const { dashboardContext } = useContext(DashboardContext);
-  // const { IOPoints, setIOPoints, addIOPoint, updateIOPoint, deleteIOPoint } =
-  //   useContext(IOPointContext);
 
-  // Subscribe to the topics and update state
-  // NOTE: If you pass a function to the state update function, React passes
-  // the current state to the function and expects the new state to be returned. 
-  // useEffect(() => {
-  //   const subscribeToVelocities = (axisIndex: number) => {
-  //     if (!subscriptions.current[axisIndex]) {
-  //       if (dashboardContext.ra_ros_websocket) {
-  //           subscriptions.current[axisIndex] = new Topic({
-  //               ros: dashboardContext.ra_ros_websocket,
-  //               name: `/axis_${axisIndex}/pos_vel`,
-  //               messageType: 'r2c_interfaces/EncoderEstimates'
-  //           });
-
-  //           subscriptions.current[axisIndex].subscribe((message) => {
-  //               setVelocityData((prevData) => {
-  //                   const newVelocityData = {
-  //                   ...prevData,
-  //                   [`axis_${axisIndex}`]: [
-  //                       ...prevData[`axis_${axisIndex}`],
-  //                       { time: new Date(), velocity: message.velocity }
-  //                   ].slice(-50) // Keep only the latest 50 data points
-  //                   };
-  //                   return newVelocityData;
-  //               });
-  //           });
-
-  //           console.log(`Subscribed to /axis_${axisIndex}/pos_vel`);
-  //       }
-        
-  //     }
-  //   };
-
-  //   // Subscribe to all 4 axis topics
-  //   [0, 1, 2, 3].forEach(subscribeToVelocities);
-
-  //   // Cleanup function to unsubscribe on component unmount
-  //   return () => {
-  //     [0, 1, 2, 3].forEach((axisIndex) => {
-  //       if (subscriptions.current[axisIndex]) {
-  //         subscriptions.current[axisIndex].unsubscribe();
-  //         subscriptions.current[axisIndex] = null;
-  //         console.log(`Unsubscribed from /axis_${axisIndex}/pos_vel`);
-  //       }
-  //     });
-  //   };
-  // }, [dashboardContext.ra_ros_websocket]); 
-
-  // Combine data for plotting
-  // const combinedDataOrig = velocityData.axis_0.map((_, index) => ({
-  //   time: velocityData.axis_0[index]?.time,
-  //   axis_0: velocityData.axis_0[index]?.velocity,
-  //   axis_1: velocityData.axis_1[index]?.velocity,
-  //   axis_2: velocityData.axis_2[index]?.velocity,
-  //   axis_3: velocityData.axis_3[index]?.velocity,
-  // }));
-
-  interface axisPlotDataInterface {
-    time: number,
-    // time_1?: number,
-    axis_0?: number
-    axis_1?: number
-    axis_2?: number
-    axis_3?: number
+  interface axisTimeDataInterface {
+    time: number;
   }
-  
-  const combinedData = () => {
-    let combined_axis_data: Array<axisPlotDataInterface> = [];
-    // let data_point: axisPlotDataInterface;
+
+  const timeData = () => {
+    let x_axis_data: Array<axisTimeDataInterface> = [];
     dashboardContext.axis_data?.[0]?.forEach((p, i) => {
-      let data_point: axisPlotDataInterface = {
+      let data_point: axisTimeDataInterface = {
         time: p.stamp.sec + p.stamp.nanosec / 1e9,
-        // time_1: dashboardContext.axis_data[1]?.[i]?.stamp.sec + dashboardContext.axis_data[0]?.[i]?.stamp.nanosec / 1e9,
-        // axis_0: dashboardContext.axis_data[0]?.[i]?.velocity,
-        // axis_1: dashboardContext.axis_data[1]?.[i]?.velocity,
-        // axis_2: dashboardContext.axis_data[2]?.[i]?.velocity,
-        // axis_3: dashboardContext.axis_data[3]?.[i]?.velocity,
-      }
-      combined_axis_data.push(data_point)
-      
-      // for (const axis_index in )
-      // combined_axis_data.push({
-      //   time: p.stamp.sec + p.stamp.nanosec / 1e9,
-      //   //for (const axis_index in dashboardContext.axis_data)
-      //   [Object.keys(dashboardContext.axis_data).map((k) => [k]: dashboardContext.axis_data[k][i])]
-      //   // axis_0: 
-      // })
-    })
-    // for (const axis_index in dashboardContext.axis_data) {
-    //   combined_axis_data.push({
-    //     time: dashboardContext.axis_data[axis_index].map((v) => v.stamp.sec),
-    //     axis_1: dashboardContext.axis_data[axis_index].map((v) => v.velocity),
-    //     axis_2: dashboardContext.axis_data[axis_index].map((v) => v.velocity),
-    //     axis_3: dashboardContext.axis_data[axis_index].map((v) => v.velocity)
-    //   })
-    // }
-    return combined_axis_data
-    // dashboardContext.axis_data.map((_, index) => ({
-    // time: velocityData.axis_0[index]?.time,
-    // axis_0: velocityData.axis_0[index]?.velocity,
-    // axis_1: velocityData.axis_1[index]?.velocity,
-    // axis_2: velocityData.axis_2[index]?.velocity,
-    // axis_3: velocityData.axis_3[index]?.velocity,
+      };
+      x_axis_data.push(data_point);
+    });
+
+    return x_axis_data;
   };
 
-  // const axis0data = dashboardContext.axis_data?.[0]?.map((p) => (
-  //   {
-  //     time: p.stamp.sec + p.stamp.nanosec / 1e9,
-  //     velocity: p.velocity,
-  //     position: p.position
-  //   }
-  // ))
-
-  let axisVelocities: Array<Array<axisPlotDataInterface>> = [];
-  if (dashboardContext.axis_data) {
-    axisVelocities = Object.keys(dashboardContext.axis_data).map((axis_index) => (
-      
-        dashboardContext.axis_data[axis_index].map(p => (
-          {
-            time: p.stamp.sec + p.stamp.nanosec / 1e9,
-            velocity: p.velocity,
-            position: p.position
-          }
-        ))
-      
-    ))
-    let a = 5;
+  interface axisDataInterface {
+    time: number,
+    postiion: number,
+    velocity: number
   }
-  
-  // }));
 
-  // let z = dashboardContext;
+  let axisData: Array<Array<axisDataInterface>> = [];
+  if (dashboardContext.axis_data) {
+    axisData = Object.keys(dashboardContext.axis_data).filter((k) => k in props.axes).map((axis_index) =>
+      dashboardContext.axis_data[axis_index].map((p) => ({
+        time: p.stamp.sec + p.stamp.nanosec / 1e9,
+        [props.data_key]: props.y_axis_transformation(p[props.data_key])
+        // velocity: p.velocity,
+        // position: p.position,
+      }))
+    );
+  }
 
-  // useEffect(() => {
-  //   console.log("analog data updated in plot")
-  // }, [dashboardContext.analog_in_data?.values?.[0]])
+  const tailwind_colors: Array<string> = [
+    "DC2626",
+    "EA580C",
+    "D97706",
+    "C026D3",
+    "9333EA",
+    "CA8A04",
+    "65A30D",
+    "16A34A",
+    "059669",
+    "2563EB",
+    "9333EA",
+    "E11D48",
+    "0284C7",
+  ];
+
+  const strokeColor = (line_index: number): string => {
+    return tailwind_colors[line_index % tailwind_colors.length];
+  };
 
   return (
-    // dashboardContext.configuration?.configured ? 
     <div>
-      <h2>Axis Velocities (rev/s)</h2>
-      {/* <p>{velocityData.axis_0[0]?.velocity}</p>
-      <p>{dashboardContext.analog_in_data?.values?.[0]}</p> */}
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={combinedData()}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis xAxisId="0" dataKey="time" />
-          {/* <XAxis xAxisId="1" dataKey="time_1" allowDuplicatedCategory={false}/> */}
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          {/* <Line type="monotone"
-                dataKey="axis_0"
-                stroke="#8884d8"
-                isAnimationActive={false}
-                animationBegin={0}
-                animationDuration={50}
-                animationEasing="ease-in-out" />
-          <Line type="monotone"
-                dataKey="axis_1"
-                stroke="#82ca9d"
-                isAnimationActive={false}
-                animationBegin={0}
-                animationDuration={50}
-                animationEasing="ease-in-out" />
-          <Line type="monotone" dataKey="axis_2" stroke="#ffc658" isAnimationActive={false} />
-          <Line type="monotone" dataKey="axis_3" stroke="#ff7300" isAnimationActive={false} /> */}
-          {/* <Line type="monotone" dataKey="velocity" data={axis0data} stroke="#557300" isAnimationActive={false} /> */}
-          {
-            axisVelocities.length ?
-            axisVelocities.map((v, i) => (
-              <Line type="monotone" label={`Axis ${i} Velocity`} dataKey="velocity" data={v} stroke="#557300" isAnimationActive={false} />
-            ))
-            :
-            <></>
-            // dashboardContext.axis_data ?
-            // Object.keys(dashboardContext.axis_data).forEach((axis_index) => {
-            //   // <Line/>
-            //   <Line type="monotone" label={`Axis ${axis_index} Velocity`} dataKey="velocity" data={axis0data} stroke="#557300" isAnimationActive={false} />
-            // })
-            // if (dashboardContext.axis_data) {
-
-            // }
-            // dashboardContext.axis_data
-          }
-        </LineChart>
-      </ResponsiveContainer>
-
+      {axisData.length ? (
+        <>
+          <h2>{`${props.title} (${props.unit})`}</h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={timeData()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis xAxisId="0" dataKey="time" tickFormatter={plotDateFormatter}/>
+              <YAxis label={{ value: props.unit ?? "", angle: -90 }}/>
+              <Tooltip />
+              <Legend />
+              {axisData.map((v, i) => (
+                <Line
+                  type="monotone"
+                  name={`Axis ${i}`}
+                  dataKey={props.data_key}
+                  data={v}
+                  stroke={`#${strokeColor(i)}`}
+                  isAnimationActive={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </>
+      ) : (
+        <>
+          <WaitingIndicator text="WAITING FOR DATA" />
+        </>
+      )}
     </div>
-    // : <></>
   );
 };
 
-export default VelocityPlot;
+export default MotionPlot;

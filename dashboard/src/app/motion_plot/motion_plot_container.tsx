@@ -8,7 +8,7 @@ import { useContext, Dispatch, SetStateAction } from "react";
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import DashboardContext from "@/lib/models/dashboard_context";
-import VelocityPlot from '@/lib/components/client_components/MotionPlot';
+import MotionPlot from '@/lib/components/client_components/MotionPlot';
 // import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
 // import { IOPointType } from "@/lib/models/api_models";
 
@@ -29,7 +29,22 @@ export default function MotionPlotContainer(props: {
       fill_tile_callback={props.fill_tile_callback}
     >
       {context.configuration?.configured ? (
-        <VelocityPlot/>
+        <>
+        <MotionPlot
+          title={"Axis Velocities"}
+          data_key="velocity"
+          unit="rev/s"
+          axes={[0, 1]}
+          y_axis_transformation={(v) => v + 10}
+        />
+        <MotionPlot
+          title={"Axis Positions"}
+          data_key="position"
+          unit="rev"
+          axes={[0, 1]}
+          y_axis_transformation={(v) => v + 10}
+        />
+        </>
       ) : (
         <LoadingIndicator />
       )}

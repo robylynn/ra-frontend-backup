@@ -31,25 +31,27 @@ import {
   PlotConfiguration,
 } from "@/lib/models/api_models";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
+import { plotDateFormatter } from "@/lib/utils/plotDateFormatter";
 
 interface AnalogInputDataPoint {
   time: number;
   [key: number]: number;
 }
 
-const dateFormatter = (timestamp: number) => {
-  let date = new Date(timestamp * 1000.0);
-  // let formatted_date = date.toLocaleString("en-US", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  let formatted_date = date.toLocaleString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  return formatted_date;
-};
+// const dateFormatter = (timestamp: number) => {
+//   let date = new Date(timestamp * 1000.0);
+//   // let formatted_date = date.toLocaleString("en-US", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+//   let formatted_date = date.toLocaleString("en-US", {
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     second: "2-digit",
+//   });
+//   return formatted_date;
+// };
 
 const Plot = (props: {
   data: Array<AnalogInputDataPoint>;
+  data_sources: Array<number>;
   y_label?: string;
 }) => {
   return (
@@ -59,7 +61,8 @@ const Plot = (props: {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="time"
-            tickFormatter={dateFormatter}
+            name={"Time"}
+            tickFormatter={plotDateFormatter}
             tickCount={2}
             interval={"equidistantPreserveStart"}
           />
@@ -67,6 +70,17 @@ const Plot = (props: {
             label={{ value: props.y_label ?? "Input Value", angle: -90 }}
           />
           <Tooltip />
+          {props.data_sources.map((s) => (
+            <Line
+              type="monotone"
+              dataKey={s}
+              stroke="#8884d8"
+              isAnimationActive={false}
+              animationBegin={0}
+              animationDuration={500}
+              animationEasing="ease-in-out"
+            />
+          ))}
           <Line
             type="monotone"
             dataKey={0}
@@ -85,6 +99,7 @@ const Plot = (props: {
 const PlotContainer = (props: {
   data: Array<AnalogInputDataPoint>;
   data_name: string;
+  data_sources: Array<number>;
   y_label?: string;
   plot_index: number;
 }) => {
@@ -105,16 +120,11 @@ const PlotContainer = (props: {
                 ...c,
                 configuration: new_config,
               };
-
-              // c.configuration.plots = c.configuration.plots.filter(
-              //   (plot) => plot
-              // );
-              // return c;
             });
           }}
         />
       </div>
-      <Plot data={props.data} y_label={props.y_label} />
+      <Plot data={props.data} data_sources={props.data_sources} y_label={props.y_label} />
     </div>
   );
 };
@@ -196,59 +206,6 @@ const AnalogInputPlot = (props: { length: number }) => {
     };
     get_initial_data();
   }, []);
-
-  // useEffect(() => {
-  //   const subscribeToAnalogInputs = () => {
-  //     if (!analog_in_subscription.current) {
-  //       if (dashboardContext.ra_ros_websocket) {
-  //         analog_in_subscription.current = new Topic({
-  //           ros: dashboardContext.ra_ros_websocket,
-  //           name: `/gpio/analog_in_electrical_units`,
-  //           messageType: "r2c_interfaces/AnalogInData",
-  //         });
-
-  //         analog_in_subscription.current.subscribe((message) => {
-  //           setAnalogInData((prevData) => {
-  //             let time =
-  //               (message as any).stamp.sec +
-  //               (message as any).stamp.nanosec / 1e9;
-
-  //             let data_point: AnalogInputDataPoint = {
-  //               time: time,
-  //             };
-
-  //             (message as any).values.forEach((v, i) => {
-  //               data_point[i] = v;
-  //             });
-
-  //             if (initial_data_acquired.current == true) {
-  //               prevData.push(data_point);
-  //               prevData = prevData.reverse().slice(0, props.length).reverse();
-  //             }
-
-  //             return prevData;
-  //           });
-  //         });
-
-  //         console.log(`Subscribed to /gpio/analog_in_electrical_units`);
-  //       }
-  //     }
-  //   };
-
-  //   subscribeToAnalogInputs();
-  //   // Cleanup function to unsubscribe on component unmount
-  //   return () => {
-  //     if (analog_in_subscription.current)
-  //       analog_in_subscription.current.unsubscribe();
-  //     analog_in_subscription.current = null;
-  //     console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
-  //   };
-  // }, [dashboardContext.ra_ros_websocket]);
-
-  // useEffect(() => {
-  //   console.log(inputs)
-  //   setSelectedPlot(() => inputs[0]?.channel.toString())
-  // }, [inputs])
 
   useEffect(() => {
     // console.log(dashboardContext.analog_in_data)
@@ -375,6 +332,7 @@ const AnalogInputPlot = (props: { length: number }) => {
                 <PlotContainer
                   key={plot_index.toString()}
                   data_name={data_name}
+                  data_sources={[parseInt(plot_configuration.data_sources[0])]}
                   // inputs?.[plot_configuration.data_sources[0]].label == "" ? `Analog Input ${plot_configuration.data_sources[0]}` : inputs?.[plot_configuration.data_sources[0]].label
                   // IOPoints.getIOPoints(IOPointType.ANALOG_INPUT)?.[]
                   // {let data_label = 5}
@@ -386,10 +344,11 @@ const AnalogInputPlot = (props: { length: number }) => {
                   //       plot_configuration.data_sources[0]
                   //     ]?.label
 
-                  data={filter_plot_data(
-                    analogInData,
-                    parseInt(plot_configuration.data_sources[0])
-                  )}
+                  data={analogInData}
+                  // data={filter_plot_data(
+                  //   analogInData,
+                  //   parseInt(plot_configuration.data_sources[0])
+                  // )}
                   // y_label={inputs?.[plot_configuration.data_sources[0]].measurement_unit == "" ? null : inputs?.[plot_configuration.data_sources[0]].measurement_unit}
                   y_label={y_label}
                   // y_label={
