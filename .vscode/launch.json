@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Backend",
+            "type": "python",
+            "request": "launch",
+            "module": "backend",
+            "justMyCode": false,
+            "env": {
+                "CONFIG_FILE_DIR": "${workspaceFolder}/config",
+                "CONTAINERIZED": "false",
+                "CONFIG_FILE": "system_configuration.yaml",
+                "PYTHONPATH": "${workspaceFolder}/backend",
+            }
+        },
+        {
+            "name": "Next.js: debug server-side frontend app",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "yarn dev",
+            "cwd": "${workspaceFolder}/dashboard",
+            "serverReadyAction": {
+                "pattern": "started server on .+, url: (https?://.+)",
+                "uriFormat": "%s",
+                // "action": "debugWithChrome"
+            },
+            "outFiles": [
+                "${workspaceFolder}/.next/server/**/*.js"
+            ],
+        }
+    ]
+}

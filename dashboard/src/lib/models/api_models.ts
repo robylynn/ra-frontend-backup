@@ -1,0 +1,198 @@
+// Frontend Web Application for RA Products
+// Developed by R2 Labs for Seabound Carbon
+
+import { NextResponse } from "next/server";
+
+export interface BackendAPIResponseInterface {
+  error: boolean;
+  data: string | Array<any> | any;
+}
+
+export interface NextAPIResponseInterface {
+  authenticated: boolean;
+  data?: BackendAPIResponseInterface;
+  error?: boolean;
+  error_string?: string;
+}
+
+export function createAPIResponse(res: NextAPIResponseInterface) {
+  return NextResponse.json(res);
+}
+
+export type LogMessage = {
+  timestamp: Date;
+  message_text: string;
+};
+
+export interface DataSourceInterface {
+  data_source_name: string
+}
+
+export class DataSource implements DataSourceInterface {
+  data_source_name: string
+
+  constructor(input?: DataSourceInterface) {
+    if (input != undefined) {
+      this.data_source_name = input.data_source_name;
+    }
+  }
+}
+
+export interface PlotConfigurationInterface {
+  enabled: boolean
+  data_sources: Array<string>
+}
+
+export class PlotConfiguration implements PlotConfigurationInterface {
+  enabled: boolean
+  data_sources: Array<string> = [];
+
+  constructor(input?: PlotConfigurationInterface) {
+    this.enabled = input.enabled;
+    input.data_sources.forEach((d) => {
+      this.data_sources.push(d);
+    })
+  }
+}
+
+export interface UIConfigurationInterface {
+  client_id: number | undefined;
+  plots: Array<PlotConfigurationInterface>
+}
+
+export class UIConfiguration implements UIConfigurationInterface {
+  client_id: number | undefined;
+  plots: Array<PlotConfiguration> = [];
+
+  configured: boolean = false;
+
+  constructor(input?: UIConfigurationInterface) {
+    if (input != undefined) {
+      this.client_id = input.client_id;
+      input.plots.forEach(p => {
+        this.plots.push(new PlotConfiguration(p))
+      });
+
+      this.configured = true;
+    }
+  }
+
+  public plot_active(plot_index: number) {
+    return this.plots.length > plot_index;
+  }
+
+  serialize(): UIConfigurationInterface {
+    const json_value = JSON.parse(JSON.stringify(this));
+    return json_value;
+  }
+}
+
+////////////////////////////////////////////////
+//////////// HARDWARE CONFIGURATION ////////////
+////////////////////////////////////////////////
+
+export enum IOPointType {
+  NULL,
+  ANALOG_VOLTAGE_INPUT,
+  ANALOG_CURRENT_INPUT,
+  ANALOG_VOLTAGE_OUTPUT,
+  ANALOG_CURRENT_OUTPUT,
+  DIGITAL_INPUT,
+  DIGITAL_OUTPUT,
+}
+
+export enum TransferFunctionType {
+  LINEAR,
+  CUSTOM,
+}
+
+export interface IOPointConfigurationInterface {
+  id?: string;
+  channel: number;
+  type: IOPointType;
+  enabled: boolean;
+  label?: string;
+  transfer_function_type?: TransferFunctionType;
+  measurement_unit?: string;
+  min_value?: number;
+  min_signal_v?: number;
+  max_value?: number;
+  max_signal_v?: number;
+  value?: any
+}
+
+export class IOPointConfiguration implements IOPointConfigurationInterface {
+  id: string;
+  channel: number;
+  type: IOPointType;
+  enabled: boolean;
+  label: string;
+  transfer_function_type: TransferFunctionType;
+  measurement_unit: string;
+  min_value: number;
+  min_signal_v: number;
+  max_value: number;
+  max_signal_v: number;
+  value: any
+
+  constructor(input: IOPointConfigurationInterface) {
+    this.id = input.id;
+    this.channel = input.channel;
+    this.label = input.label ?? "";
+    this.enabled = input.enabled ?? false;
+    this.type =
+      typeof input.type === "string"
+        ? IOPointType[(input.type ?? "NULL") as keyof typeof IOPointType]
+        : (input.type as IOPointType);
+    this.measurement_unit = input.measurement_unit ?? "";
+    this.min_value = input.min_value ?? 0;
+    this.max_value = input.max_value ?? 0;
+    this.min_signal_v = input.min_signal_v ?? 0;
+    this.max_signal_v = input.max_signal_v ?? 0;
+    this.transfer_function_type =
+      typeof input.type === "string"
+        ? TransferFunctionType[
+            (input.type ?? "NULL") as keyof typeof TransferFunctionType
+          ]
+        : (input.transfer_function_type as TransferFunctionType);
+    this.value = input.value;
+  }
+}
+
+export interface IOConfigurationInterface {
+  digital_inputs: Array<IOPointConfigurationInterface>;
+  digital_outputs: Array<IOPointConfigurationInterface>;
+  analog_inputs: Array<IOPointConfigurationInterface>;
+}
+
+export class IOConfiguration implements IOConfigurationInterface {
+  digital_inputs: Array<IOPointConfiguration> = [];
+  digital_outputs: Array<IOPointConfiguration> = [];
+  analog_inputs: Array<IOPointConfigurationInterface> = [];
+
+  constructor(input: IOConfigurationInterface) {
+    input.digital_inputs.forEach((i) => {
+      this.digital_inputs.push(new IOPointConfiguration(i));
+    });
+
+    input.digital_outputs.forEach((o) => {
+      this.digital_outputs.push(new IOPointConfiguration(o));
+    });
+    
+    input.analog_inputs.forEach((i) => {
+      this.analog_inputs.push(new IOPointConfiguration(i));
+    });
+  }
+}
+
+export interface HardwareConfigurationInterface {
+  io_system: IOConfigurationInterface;
+}
+
+export class HardwareConfiguration implements HardwareConfigurationInterface {
+  io_system: IOConfiguration;
+
+  constructor(input: HardwareConfigurationInterface) {
+    this.io_system = new IOConfiguration(input.io_system);
+  }
+}
