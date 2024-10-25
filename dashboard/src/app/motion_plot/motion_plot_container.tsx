@@ -7,7 +7,7 @@ import { useContext, Dispatch, SetStateAction } from "react";
 
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import MotionPlot from '@/lib/components/client_components/MotionPlot';
 // import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
 // import { IOPointType } from "@/lib/models/api_models";
@@ -18,7 +18,7 @@ export default function MotionPlotContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
 
   return (
     <DashboardHeaderContainer
@@ -28,7 +28,7 @@ export default function MotionPlotContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-      {context.configuration?.configured ? (
+      {dashboardContext.configuration?.configured ? (
         <>
         <MotionPlot
           title={"Axis Velocities"}
@@ -42,7 +42,7 @@ export default function MotionPlotContainer(props: {
           data_key="position"
           unit="rev"
           axes={[0, 1]}
-          y_axis_transformation={(v) => v + 10}
+          y_axis_transformation={(v) => v + 5}
         />
         </>
       ) : (

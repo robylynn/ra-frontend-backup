@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useContext } from "react";
-import DashboardContext from "@/lib/models/dashboard_context";
+// import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "./DashboardContextWrapper";
 import { Topic } from "roslib";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 

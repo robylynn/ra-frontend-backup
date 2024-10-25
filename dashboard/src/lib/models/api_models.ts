@@ -42,14 +42,17 @@ export class DataSource implements DataSourceInterface {
 export interface PlotConfigurationInterface {
   enabled: boolean;
   data_sources: Array<string>;
+  data_length: number
 }
 
 export class PlotConfiguration implements PlotConfigurationInterface {
   enabled: boolean;
   data_sources: Array<string> = [];
+  data_length: number
 
   constructor(input?: PlotConfigurationInterface) {
     this.enabled = input.enabled;
+    this.data_length = input?.data_length;
     input.data_sources.forEach((d) => {
       this.data_sources.push(d);
     });

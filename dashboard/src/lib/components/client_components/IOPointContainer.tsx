@@ -8,7 +8,8 @@ import React, {
 } from "react";
 import Modal from "@/lib/components/client_components/Modal";
 // import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
-import DashboardContext from "@/lib/models/dashboard_context";
+// import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import {
   AnalogIOPointType,
   IOPointConfiguration,

@@ -7,9 +7,7 @@ import { Inter } from "next/font/google";
 
 import NextAuthProvider from "@/lib/auth/next_auth_provider";
 import ConnectionStateIndicator from "@/lib/components/client_components/ConnectionStateContainer";
-import DashboardContextProvider, {
-  RAStateContextProvider,
-} from "@/lib/components/client_components/DashboardContextWrapper";
+import DashboardContextProvider from "@/lib/components/client_components/DashboardContextWrapper";
 import DataUpdater from "@/lib/components/client_components/DataUpdater";
 import LinksColumn from "@/lib/components/server_components/links_column";
 import RAWebSocket from "@/lib/components/client_components/WebsocketClient";
@@ -50,7 +48,7 @@ export default function RootLayout({
                       <LinksColumn />
                     </div>
                     <IOPointContextProvider>
-                    {children}
+                      {children}
                     </IOPointContextProvider>
                   </div>
                   <ConnectionStateIndicator />

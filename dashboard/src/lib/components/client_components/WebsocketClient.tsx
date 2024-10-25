@@ -4,14 +4,12 @@
 "use client";
 
 import { useContext, useEffect, useState, useRef } from "react";
-import DashboardContext, {
-  ConfigServices,
-} from "@/lib/models/dashboard_context";
+import { ConfigServices } from "@/lib/models/dashboard_context";
 import { getSession } from "next-auth/react";
 import ROSLIB, { Topic } from "roslib";
 import { IOPointType } from "@/lib/models/api_models";
-import { AnalogInData, AxisData } from "@/lib/models/ros_models";
-import { ELEVATION_0 } from "@blueprintjs/core/lib/esm/common/classes";
+import { AnalogInData, AxisData, DigitalInData } from "@/lib/models/ros_models";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 // import { Topic } from "roslib";
 
 function connectWebSocket(url: string, timeout: number): Promise<WebSocket> {
@@ -88,7 +86,8 @@ export default function RAWebSocket(props: {
   websocket_path: string;
   reconnect_period_seconds: number;
 }) {
-  const { dashboardContext, setContext } = useContext(DashboardContext);
+  const { dashboardContext, setDashboardContext } =
+    useContext(DashboardContext);
   const [reconnectCounter, setReconnectCounter] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -101,11 +100,20 @@ export default function RAWebSocket(props: {
   const axis_velocity_subscriptions = useRef<Array<Topic> | null>(new Array(4));
 
   const set_ROS_context = (config_services: ConfigServices) => {
-    setContext((c) => ({
-      ...c,
-      ra_ros_websocket: ra_ros_websocket.current,
-      IO_config_services: config_services,
-    }));
+    setDashboardContext(
+      {
+        payload: {
+          ros_config_services: config_services,
+          ra_ros_websocket: ra_ros_websocket.current
+        },
+        type: 'ros/set'
+      }
+    )
+    // setContext((c) => ({
+    //   ...c,
+    //   ra_ros_websocket: ra_ros_websocket.current,
+    //   IO_config_services: config_services,
+    // }));
   };
 
   const close_websocket = () => {
@@ -216,7 +224,7 @@ export default function RAWebSocket(props: {
   // }, [dashboardContext.analog_in_data?.values?.[0]])
 
   const subscribeToAnalogInputs = () => {
-    console.log("running subscription effect");
+    // console.log("running subscription effect");
     if (!analog_in_subscription.current) {
       console.log("no subscription");
       if (dashboardContext.ra_ros_websocket) {
@@ -228,10 +236,18 @@ export default function RAWebSocket(props: {
         });
 
         analog_in_subscription.current.subscribe((message) => {
-          setContext((c) => {
-            console.log("got analog in data");
-            return { ...c, analog_in_data: message as AnalogInData };
-          });
+          setDashboardContext(
+            {
+              payload: {
+                analog_in_data: message as AnalogInData
+              },
+              type: 'data/analog_in'
+            }
+          )
+          // setContext((c) => {
+          //   console.log("got analog in data");
+          //   return { ...c, analog_in_data: message as AnalogInData };
+          // });
         });
 
         console.log(`Subscribed to /gpio/analog_in_electrical_units`);
@@ -239,7 +255,32 @@ export default function RAWebSocket(props: {
     }
   };
 
-  // const subscribeToMotionData = () => {};
+  const subscribeToDigitalInputs = () => {
+    if (!digital_in_subscription.current) {
+      if (dashboardContext.ra_ros_websocket) {
+        digital_in_subscription.current = new Topic({
+          ros: dashboardContext.ra_ros_websocket,
+          name: `/gpio/digital_in`,
+          messageType: "r2c_interfaces/DigitalInData",
+        });
+
+        digital_in_subscription.current.subscribe((message) => {
+          setDashboardContext({
+            payload: {
+              digital_in_data: message as DigitalInData
+            },
+            type: 'data/digital_in'
+          })
+          // setContext((c) => {
+          //   console.log("got digital in data");
+          //   return { ...c, digital_in_data: message as DigitalInData };
+          // });
+        });
+
+        console.log(`Subscribed to /gpio/digital_in`);
+      }
+    }
+  };
 
   const subscribeToMotionData = (axisIndex: number) => {
     if (!axis_velocity_subscriptions.current[axisIndex]) {
@@ -252,29 +293,46 @@ export default function RAWebSocket(props: {
 
         axis_velocity_subscriptions.current[axisIndex].subscribe(
           (message: AxisData) => {
-            setContext((c) => {
-              const data_point: AxisData = {
-                stamp: message.stamp,
-                position: message.position,
-                velocity: message.velocity,
-                axis_index: axisIndex,
-              };
-              let newAxisData;
-              if (!c.axis_data || !(axisIndex in c.axis_data)) {
-                newAxisData = {
-                  ...c.axis_data,
-                  [axisIndex]: [data_point].slice(-50),
-                };
-              } else {
-                newAxisData = {
-                  ...c.axis_data,
-                  [axisIndex]: [...c.axis_data?.[axisIndex], data_point].slice(
-                    -50
-                  ),
-                };
+            const data_point: AxisData = {
+              stamp: message.stamp,
+              position: message.position,
+              velocity: message.velocity,
+              axis_index: axisIndex,
+            };
+
+            setDashboardContext(
+              {
+                payload: {
+                  axis_index: axisIndex,
+                  axis_data: data_point
+                },
+                type: 'data/axis'
               }
-              return { ...c, axis_data: newAxisData };
-            });
+            )
+            
+            // setContext((c) => {
+            //   const data_point: AxisData = {
+            //     stamp: message.stamp,
+            //     position: message.position,
+            //     velocity: message.velocity,
+            //     axis_index: axisIndex,
+            //   };
+            //   let newAxisData;
+            //   if (!c.axis_data || !(axisIndex in c.axis_data)) {
+            //     newAxisData = {
+            //       ...c.axis_data,
+            //       [axisIndex]: [data_point].slice(-50),
+            //     };
+            //   } else {
+            //     newAxisData = {
+            //       ...c.axis_data,
+            //       [axisIndex]: [...c.axis_data?.[axisIndex], data_point].slice(
+            //         -50
+            //       ),
+            //     };
+            //   }
+            //   return { ...c, axis_data: newAxisData };
+            // });
           }
         );
 
@@ -291,6 +349,12 @@ export default function RAWebSocket(props: {
         console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
       }
 
+      if (digital_in_subscription.current) {
+        digital_in_subscription.current.unsubscribe();
+        digital_in_subscription.current = null;
+        console.log(`Unsubscribed from /gpio/digital_in`);
+      }
+
       axis_velocity_subscriptions.current.forEach((s, i) => {
         if (s) {
           s.unsubscribe();
@@ -303,6 +367,7 @@ export default function RAWebSocket(props: {
 
   useEffect(() => {
     subscribeToAnalogInputs();
+    subscribeToDigitalInputs();
     [0, 1, 2, 3].forEach((i) => subscribeToMotionData(i));
     // Cleanup function to unsubscribe on component unmount
     return () => {

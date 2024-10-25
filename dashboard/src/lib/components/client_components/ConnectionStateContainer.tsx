@@ -6,10 +6,10 @@
 import { useSession } from "next-auth/react";
 import { useContext, useEffect, useState } from "react";
 
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 
 export default function ConnectionStateIndicator(props: { className?: string }) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
   const [isClient, setIsClient] = useState<boolean>(false);
   const { data: session } = useSession();
 
@@ -18,13 +18,13 @@ export default function ConnectionStateIndicator(props: { className?: string }) 
   }, []);
 
   const connected_color =
-    context.heartbeat && session ? "bg-r2-green-500" : "bg-r2-red-300";
+    dashboardContext.heartbeat && session ? "bg-r2-green-500" : "bg-r2-red-300";
   const connection_text = session
-    ? `BACKEND SERVER ${context.heartbeat ? "ONLINE" : "OFFLINE"}`
+    ? `BACKEND SERVER ${dashboardContext.heartbeat ? "ONLINE" : "OFFLINE"}`
     : "NOT LOGGED IN";
 
   const websocket_text = () => {
-    let websocket_connected = context.ra_ros_websocket ? true : false;
+    let websocket_connected = dashboardContext.ra_ros_websocket ? true : false;
     let text = websocket_connected ? "WEBSOCKET CONNECTED" : "WAITING FOR WEBSOCKET"
 
     return (

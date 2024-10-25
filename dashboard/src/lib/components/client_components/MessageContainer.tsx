@@ -10,23 +10,23 @@ import {
   PagePanel,
 } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "./DashboardContextWrapper";
 
 interface MessageContainerInterface {
   className?: string;
 }
 
 export default function MessageContainer(props: MessageContainerInterface) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
 
   const messages = (): ReactElement[] => {
     const m: ReactElement[] = [];
     let message_index = 0;
-    if (context.messages == undefined) {
+    if (dashboardContext.messages == undefined) {
       return m;
     }
 
-    for (const message_document of context.messages.documents) {
+    for (const message_document of dashboardContext.messages.documents) {
       m.push(
         <p
           key={message_index}
@@ -46,7 +46,7 @@ export default function MessageContainer(props: MessageContainerInterface) {
         icon_path="/icons/messages.svg"
         fill_tile_id={"message_container"}
       >
-        {context.latest_document.document_valid ? (
+        {dashboardContext.latest_document.document_valid ? (
           <div className="">
             <div className="flex flex-col-reverse w-full h-full p-0 px-5 m-0 space-y-0 text-xs rounded-sm grow dark:text-r2-white">
               {messages()}

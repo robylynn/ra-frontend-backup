@@ -1,6 +1,8 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs for Seabound Carbon
 
+import { ROSTimestamp } from "./ros_models";
+
 export interface DocumentMetadataInterface {
   commit_serial_number: number;
   document_type: string;
@@ -141,21 +143,24 @@ export class DatabaseIOState extends DatabaseDocument implements DatabaseIOState
   }
 }
 
-export interface ROSAnalogIOStateInterface extends DatabaseDocumentInterface {
-  values: Record<string, number>
+export interface ROSIOStateInterface extends DatabaseDocumentInterface {
+  values: Record<string, number> | Array<boolean>
+  stamp: ROSTimestamp
   time_sec: number
   time_nsec: number
 }
 
-export class ROSAnalogIOState extends DatabaseDocument implements ROSAnalogIOStateInterface {
-  values: Record<string, number>
+export class ROSIOState extends DatabaseDocument implements ROSIOStateInterface {
+  values: Record<string, number> | Array<boolean>
+  stamp: ROSTimestamp
   time_sec: number
   time_nsec: number
 
-  constructor(document?: ROSAnalogIOStateInterface) {
+  constructor(document?: ROSIOStateInterface) {
     super(document);
     if (document != undefined) {
       this.values = document.values;
+      this.stamp = document.stamp;
       this.time_nsec = document.time_nsec;
       this.time_sec = document.time_sec;
       // this.digital_inputs = new DatabaseDocumentIOPort(document.digital_inputs);
@@ -222,14 +227,14 @@ export class DatabaseMessageArray extends DocumentArray {
   }
 }
 
-export class DatabaseROSAnalogIOStateArray extends DocumentArray {
-  protected _documents: Array<ROSAnalogIOState> = [];
+export class DatabaseROSIOStateArray extends DocumentArray {
+  protected _documents: Array<ROSIOState> = [];
 
   public get documents() {
     return this._documents;
   }
 
-  constructor(input_documents?: Array<ROSAnalogIOStateInterface>) {
+  constructor(input_documents?: Array<ROSIOStateInterface>) {
     super();
     if (input_documents != undefined) {
       input_documents.forEach((input_doc) => {
@@ -238,8 +243,8 @@ export class DatabaseROSAnalogIOStateArray extends DocumentArray {
     }
   }
 
-  add_document(document: ROSAnalogIOStateInterface) {
-    this._documents.push(new ROSAnalogIOState(document));
+  add_document(document: ROSIOStateInterface) {
+    this._documents.push(new ROSIOState(document));
   }
 }
 

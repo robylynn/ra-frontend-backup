@@ -7,11 +7,11 @@ import { useContext, Dispatch, SetStateAction } from "react";
 
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import DashboardContext from "@/lib/models/dashboard_context";
 import { HardwareConfiguration, NextAPIResponseInterface } from "@/lib/models/api_models";
 import { DatabaseIOStateDocumentArray } from "@/lib/models/database_models"
 import { R2Button } from "@/lib/components/client_components/ClickButton";
 import AnalogInDisplay from "@/lib/components/client_components/AnalogInDisplay";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 
 export default function IOStateContainer(props: {
   id: string;
@@ -19,7 +19,7 @@ export default function IOStateContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
 
   const get_IO_state_history = async () => {
     let res: NextAPIResponseInterface = await fetch(
@@ -87,7 +87,7 @@ export default function IOStateContainer(props: {
       
       {/* <AnalogInDisplay/> */}
 
-      {context.configuration?.configured ? (
+      {dashboardContext.configuration?.configured ? (
         <AnalogInDisplay/>
         // <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>
         //   <R2Button

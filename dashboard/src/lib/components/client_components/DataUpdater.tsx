@@ -11,7 +11,7 @@ import {
   NextAPIResponseInterface,
   UIConfiguration,
 } from "@/lib/models/api_models";
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 
 export default function DataUpdater(props: {
@@ -19,10 +19,10 @@ export default function DataUpdater(props: {
   configuration_update_period_seconds: number;
 }) {
   const [updateCounter, setUpdateCounter] = useState(0);
-  const [testUpdateCounter, setTestUpdateCounter] = useState(0);
+  // const [testUpdateCounter, setTestUpdateCounter] = useState(0);
   const [configurationUpdateCounter, setConfigurationUpdateCounter] =
     useState(0);
-  const { dashboardContext: context, setContext } = useContext(DashboardContext);
+  const { dashboardContext, setDashboardContext } = useContext(DashboardContext);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -50,10 +50,10 @@ export default function DataUpdater(props: {
     const fetch_ui_configuration = async () => {
       try {
         const ui_config_params = new URLSearchParams();
-        if (context.configuration?.client_id != undefined) {
+        if (dashboardContext.configuration?.client_id != undefined) {
           ui_config_params.append(
             "client_id",
-            context.configuration.client_id.toString()
+            dashboardContext.configuration.client_id.toString()
           );
         } else {
           ui_config_params.append("client_id", "-1");
@@ -75,9 +75,12 @@ export default function DataUpdater(props: {
               "updating UI configuration for client id " +
                 received_configuration.client_id
             );
-            setContext((c) => {
-              return { ...c, configuration: received_configuration };
-            });
+            
+            setDashboardContext({payload: {configuration: received_configuration}, type: 'ui_config/set'})
+            
+            // setContext((c) => {
+            //   return { ...c, configuration: received_configuration };
+            // });
           }
         }
       } catch (e) {
@@ -85,7 +88,7 @@ export default function DataUpdater(props: {
       }
     };
 
-    if (context.configuration.client_id == undefined)
+    if (dashboardContext.configuration.client_id == undefined)
       fetch_ui_configuration();
   }, [configurationUpdateCounter]);
   // }, []);
@@ -100,10 +103,11 @@ export default function DataUpdater(props: {
         );
         if (config != undefined) {
           console.log("Got hardware configuration");
-          setContext((c) => {
-            c.hardware_configuration = new HardwareConfiguration(config);
-            return c;
-          });
+          setDashboardContext({payload: {hardware_configuration: new HardwareConfiguration(config)}, type: 'hardware_config/set'})
+          // setContext((c) => {
+          //   c.hardware_configuration = new HardwareConfiguration(config);
+          //   return c;
+          // });
         }
       } catch (e) {
         console.error("Error getting hardware configuration: " + e);
@@ -116,21 +120,21 @@ export default function DataUpdater(props: {
   const heartbeatWorker: Worker = useMemo(() => new Worker(new URL("@/lib/utils/heartbeatWorker.ts", import.meta.url)), []);
 
   useEffect(() => {
-    const heartbeat = async () => {
-      let heartbeat = await timeoutFetch<string>(
-        "/api/backend/state/heartbeat",
-        750
-      );
-      let heartbeat_valid = heartbeat == "ACK" ? true : false;
+    // const heartbeat = async () => {
+    //   let heartbeat = await timeoutFetch<string>(
+    //     "/api/backend/state/heartbeat",
+    //     750
+    //   );
+    //   let heartbeat_valid = heartbeat == "ACK" ? true : false;
 
-      if (!heartbeat_valid) {
-        console.log("Error getting heartbeat");
-      }
+    //   if (!heartbeat_valid) {
+    //     console.log("Error getting heartbeat");
+    //   }
 
-      setContext((c) => {
-        return { ...c, heartbeat: heartbeat_valid, heartbeat_counter: c.heartbeat_counter + 1 };
-      });
-    };
+    //   setContext((c) => {
+    //     return { ...c, heartbeat: heartbeat_valid, heartbeat_counter: c.heartbeat_counter + 1 };
+    //   });
+    // };
 
     // heartbeat();
     heartbeatWorker.postMessage("heartbeat")
@@ -142,9 +146,10 @@ export default function DataUpdater(props: {
 
   useEffect(() => {
     heartbeatWorker.onmessage = (m: MessageEvent<boolean>) => {
-      setContext((c) => {
-        return { ...c, heartbeat: m.data, heartbeat_counter: c.heartbeat_counter + 1 };
-      });
+      setDashboardContext({payload: {heartbeat_valid: m.data}, type: 'heartbeat/rx'})
+      // setContext((c) => {
+      //   return { ...c, heartbeat: m.data, heartbeat_counter: c.heartbeat_counter + 1 };
+      // });
     }
     // setContext((c) => {
     //   return { ...c, heartbeat: true, heartbeat_counter: c.heartbeat_counter + 1 };

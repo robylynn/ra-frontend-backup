@@ -7,7 +7,7 @@ import { useContext, Dispatch, SetStateAction } from "react";
 
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import { HardwareConfiguration, NextAPIResponseInterface } from "@/lib/models/api_models";
 import { DatabaseIOStateDocumentArray } from "@/lib/models/database_models"
 import { R2Button } from "@/lib/components/client_components/ClickButton";
@@ -18,7 +18,7 @@ export default function DiagnosticsContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
 
   const get_IO_state_history = async () => {
     let res: NextAPIResponseInterface = await fetch(
@@ -69,8 +69,8 @@ export default function DiagnosticsContainer(props: {
   }
 
   const send_websocket_message = () => {
-    if (context.ra_websocket != null) {
-      context.ra_websocket.send("TEST MESSAGE");
+    if (dashboardContext.ra_websocket != null) {
+      dashboardContext.ra_websocket.send("TEST MESSAGE");
     }
   }
 
@@ -83,7 +83,7 @@ export default function DiagnosticsContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-      {context.configuration?.configured ? (
+      {dashboardContext.configuration?.configured ? (
         <div className={`grid grid-cols-1 p-2 h-full w-full justify-between${props.className ?? ""}`}>
           <R2Button
             text="GET IO STATE HISTORY"

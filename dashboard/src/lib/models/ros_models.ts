@@ -45,3 +45,9 @@ export interface AxisData {
     position: number
     velocity: number
 }
+
+export interface DigitalInData {
+    stamp: ROSTimestamp
+    read_channels: Array<boolean>
+    values: Array<boolean>
+}

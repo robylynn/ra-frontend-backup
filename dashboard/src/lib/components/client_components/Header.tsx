@@ -6,7 +6,7 @@
 import { Icon } from "@blueprintjs/core";
 import { ReactNode, useContext } from "react";
 import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import { DatabaseDocumentInterface } from "@/lib/models/database_models";
 
 function IndicatorLight(props: { text: string; state: boolean }) {

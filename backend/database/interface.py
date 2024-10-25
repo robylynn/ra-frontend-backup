@@ -667,6 +667,22 @@ class MongoInterface(Process):
             logger.error(f"Timed out getting {number_of_points} IO state records from database")
             return []
     
+    def get_analog_in_state(self, number_of_points: int, timeout: float = 10) -> List[IOStateRecord]:
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.ANALOG_INPUT_STATE, number_of_documents=number_of_points, timeout=timeout)
+            return [IOStateRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_points} ANALOG INPUT state records from database")
+            return []
+    
+    def get_digital_in_state(self, number_of_points: int, timeout: float = 10) -> List[IOStateRecord]:
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.DIGITAL_INPUT_STATE, number_of_documents=number_of_points, timeout=timeout)
+            return [IOStateRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_points} DIGITAL INPUT state records from database")
+            return []
+
     def get_messages(self, number_of_messages: int, timeout: float = 10) -> List[FrontendMessageRecord]:
         try:
             message_documents = self.get_documents_from_collection(document_type=DocumentType.FRONTEND_MESSAGE, number_of_documents=number_of_messages)
