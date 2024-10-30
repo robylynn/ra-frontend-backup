@@ -5,6 +5,7 @@
 
 import { useContext, useEffect, useState, useMemo } from "react";
 // import { Worker } from "worker_threads";
+// import { Worker } from "worker_threads";
 import {
   HardwareConfiguration,
   HardwareConfigurationInterface,
@@ -145,16 +146,17 @@ export default function DataUpdater(props: {
   
 
   useEffect(() => {
+    // heartbeatWorker.on("message", (m: MessageEvent<boolean>) => setDashboardContext({payload: {heartbeat_valid: m.data}, type: 'heartbeat/rx'}))
     heartbeatWorker.onmessage = (m: MessageEvent<boolean>) => {
-      setDashboardContext({payload: {heartbeat_valid: m.data}, type: 'heartbeat/rx'})
+      setDashboardContext({payload: {heartbeat_valid: m.data}, type: 'heartbeat/rx'})}
       // setContext((c) => {
       //   return { ...c, heartbeat: m.data, heartbeat_counter: c.heartbeat_counter + 1 };
       // });
-    }
+    },[])
     // setContext((c) => {
     //   return { ...c, heartbeat: true, heartbeat_counter: c.heartbeat_counter + 1 };
     // })
-  }, [])
+   
 
   // useEffect(() => {
   //   console.log("Analog in data updated")

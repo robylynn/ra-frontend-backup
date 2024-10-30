@@ -26,6 +26,8 @@ class DocumentType(Enum):
     IO_STATE = auto()
     ANALOG_INPUT_STATE = auto()
     DIGITAL_INPUT_STATE = auto()
+    AXIS_STATE = auto()
+    # AXIS_1_STATE = auto()
     SYSTEM_CONFIGURATION = auto()
     UI_CONFIGURATION = auto()
 
@@ -57,6 +59,7 @@ class DatabaseCollectionsConfiguration:
     analog_input_state: CollectionConfiguration
     hardware_configuration: CollectionConfiguration
     ui_configuration: CollectionConfiguration
+    axis_state: CollectionConfiguration
 
     @property
     def database_collections(self) -> Dict[str, CollectionConfiguration]:

@@ -169,6 +169,30 @@ export class ROSIOState extends DatabaseDocument implements ROSIOStateInterface 
   }
 }
 
+export interface ROSAxisStateInterface extends DatabaseDocumentInterface {
+  stamp: ROSTimestamp
+  velocity: number
+  position: number
+  axis_index: number
+}
+
+export class ROSAxisState extends DatabaseDocument implements ROSAxisStateInterface {
+  stamp: ROSTimestamp
+  velocity: number
+  position: number
+  axis_index: number
+
+  constructor(document?: ROSAxisStateInterface) {
+    super(document);
+    if (document != undefined) {
+      this.stamp = document.stamp;
+      this.axis_index = document.axis_index;
+      this.velocity = document.velocity;
+      this.position = document.position;
+    }
+  }
+}
+
 //////////////////////////////////////////////////////////////
 //// DATABASE RETURN VALUES
 //////////////////////////////////////////////////////////////
@@ -248,4 +272,23 @@ export class DatabaseROSIOStateArray extends DocumentArray {
   }
 }
 
+export class DatabaseROSAxisStateArray extends DocumentArray {
+  protected _documents: Array<ROSAxisState> = [];
 
+  public get documents() {
+    return this._documents;
+  }
+
+  constructor(input_documents?: Array<ROSAxisStateInterface>) {
+    super();
+    if (input_documents != undefined) {
+      input_documents.forEach((input_doc) => {
+        this.add_document(input_doc);
+      });
+    }
+  }
+
+  add_document(document: ROSAxisStateInterface) {
+    this._documents.push(new ROSAxisState(document));
+  }
+}

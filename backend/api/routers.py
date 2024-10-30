@@ -29,7 +29,8 @@ from api.models import (
 )
 
 from api.helpers import (
-    create_database_document
+    create_database_document,
+    create_database_axis_document
 )
 
 from config.models import (
@@ -220,6 +221,29 @@ def get_sensor_data(number_of_data_points: int) -> APIResponse:
         data=[d.serialize_to_dict() for d in data]
     )
 
+@historian_router.get("/axis/{axis_index}")
+def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
+    points = initializer.ra_database.get_axis_state(axis_index=axis_index, number_of_points=number_of_points, timeout=1)
+    # points = initializer.ra_database.get_digital_in_state(number_of_points=number_of_points, timeout=1)
+    return APIResponse(
+        error=False,
+        data=[p.serialize_to_dict() for p in points]
+    )
+
+    for record in data:
+        initializer.ra_database.enqueue_record(
+            data=create_database_document(
+                timestamp=datetime.timestamp(datetime.utcnow()),
+                document_type=document_type,
+                data=dict(record)
+            )
+        )
+
+    return APIResponse(
+        error=False,
+        data=f"Successful insertion of ROS axis {index} data"
+    )
+
 ###############################################################################
 ############################### DATABASE INSERTS ##############################
 ###############################################################################
@@ -292,6 +316,23 @@ def push_digital_input_state(data: List[Dict]) -> APIResponse:
     return APIResponse(
         error=False,
         data="Successful insertion of ROS digital input data"
+    )
+
+@historian_router.post("/axis/{axis_index}")
+def push_axis_state(axis_index: int, data: List[Dict]) -> APIResponse:
+    for record in data:
+        initializer.ra_database.enqueue_record(
+            data=create_database_axis_document(
+                timestamp=datetime.timestamp(datetime.utcnow()),
+                # document_type=DocumentType.AXIS_STATE,
+                axis_index=axis_index,
+                data=dict(record)
+            )
+        )
+
+    return APIResponse(
+        error=False,
+        data=f"Successful insertion of ROS axis {axis_index} data"
     )
 
 @historian_router.post("/realtime_sys_state")
