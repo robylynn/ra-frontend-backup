@@ -555,13 +555,14 @@ class DatabasePuller(DatabaseThread):
                                     }
                                 },
                                 {
-                                    "$limit": command.number_of_documents
-                                },
-                                {
                                     "$match": {
                                         "axis_index": command.axis_index
                                     }
-                                }
+                                },
+                                {
+                                    "$limit": command.number_of_documents
+                                },
+
 
                             ]
                         )
