@@ -12,8 +12,15 @@ import { HardwareConfiguration, PlotConfiguration, UIConfiguration } from "@/lib
 import { AnalogInData, AxisData, DigitalInData } from "@/lib/models/ros_models";
 import ROSLIB from "roslib";
 
+interface ModifyPlotInterface {
+  plot_index: number
+  data_sources?: Array<number>
+  update_rate?: number
+  length?: number
+}
+
 interface setDashboardContextDispatchInterface {
-  payload: any
+  payload: ModifyPlotInterface | any
   type: string
 }
 
@@ -44,6 +51,7 @@ export default function DashboardContextProvider(props: {
   const setDigitalInDataAction = createAction<{digital_in_data: DigitalInData}>('data/digital_in');
   const setAxisDataAction = createAction<{axis_index: number, axis_data: AxisData}>('data/axis');
   const addPlotAction = createAction<{configuration: PlotConfiguration}>('plots/add')
+  const updatePlotConfiguration = createAction<ModifyPlotInterface>('plots/update')
   const deletePlotAction = createAction<{plot_index: number}>('plots/delete');
 
   const setDashboardContextReducer = createReducer(initialDashboardContext, (builder) => {
@@ -90,66 +98,28 @@ export default function DashboardContextProvider(props: {
       );
       return state;
     })
+    .addCase(updatePlotConfiguration, (state, action) => {
+      if (action.payload.data_sources)
+        state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
+      
+      if (action.payload.update_rate)
+        state.configuration.plots[action.payload.plot_index].update_rate = action.payload.update_rate;
+      // state.configuration.plots.push(
+      //   action.payload.configuration
+      // );
+      if (action.payload.length)
+        state.configuration.plots[action.payload.plot_index].length = action.payload.length;
+
+      return state;
+    })
     .addCase(deletePlotAction, (state, action) => {
       delete state.configuration.plots[action.payload.plot_index];
       state.configuration.plots = state.configuration.plots.filter((plot) => plot);
       return state;
-      // state.configuration.plots
     })
-    // builder.addCase(updateIOPointAction, (state, action) => {
-    //   console.log("updated")
-    //   state.insertPointByIndex(action.payload.point, action.payload.index)
-    //   return state;
-    // })
-    // .addCase(setIOPointsAction, (state, action) => {
-    //   console.log("points set")
-    //   state = action.payload.configuration;
-    //   return state;
-    // })
-    // .addCase(addIOPointAction, (state, action) => {
-    //   console.log("points added")
-    //   let point = action.payload.point;
-  
-    //   if (point.channel > state.getMaximumChannels(point.type)) return;
-  
-    //   // Find the first available channel
-    //   const usedChannels = state.getIOPoints(point.type).filter(p => p.label).map(
-    //     (point) => point.channel
-    //   );
-      
-    //   const availableChannel = [
-    //     ...Array(state.getMaximumChannels(point.type)).keys(),
-    //   ].find((channel) => !usedChannels.includes(channel));
-  
-    //   point.id = uuidv4();
-    //   point.channel = availableChannel;
-    //   state.insertPointByIndex(point, availableChannel)
-    //   console.log("added")
-    //   return state;
-    // })
-    // .addCase(deleteIOPointAction, (state, action) => {
-    //   console.log("point deleted")
-    //   state.deletePointByIndex(action.payload.point_type, action.payload.index)
-    //   return state;
-    // })
-    // .addCase(reorderIOPointsAction, (state, action) => {
-    //   state.reorderPointByIndex(
-    //     action.payload.point_type,
-    //     action.payload.source_index,
-    //     action.payload.destination_index
-    //   );
-    //   return state;
-    // })
   })
 
-  // const [context, setContext] = useReducer<ApplicationContext, (arg: setDashboardContextDispatchInterface) => void>(setDashboardContextReducer, initialDashboardContext, (state, action) : any => {return state})
-  // const [context, setContext] = useReducer<ApplicationContext, (arg: setDashboardContextDispatchInterface) => void>(setDashboardContextReducer, initialDashboardContext)
   const [context, setContext] = useReducer(setDashboardContextReducer, initialDashboardContext)
-
-  // const DashboardContext = createContext({
-  //   dashboardContext: context,
-  //   setDashboardContext: setContext,
-  // });
 
   return (
     <DashboardContext.Provider value={{ dashboardContext: context, setDashboardContext: setContext }}>

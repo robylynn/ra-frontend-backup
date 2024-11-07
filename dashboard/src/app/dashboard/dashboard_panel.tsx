@@ -10,7 +10,8 @@ import ROSContainer from "@/app/ros/ros_container";
 import IOStateContainer from "@/app/io_state/io_state_container";
 import AnalogInputPlotContainer from "@/app/analog_input_plot/analog_input_plot_container";
 import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
-import IOPlotContainer from "../io_plot/io_plot_container";
+// import IOPlotContainer from "../io_plot/io_plot_container";
+import IOPlotPanel from "@/app/io_plot/io_plot_panel";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
@@ -54,13 +55,13 @@ export default function DashboardMainPanel(props: { className?: string }) {
         fill_tile_callback={setFillTile}
       />
       
-      {/* <IOPlotContainer
+      <IOPlotPanel
         id={"io_plot"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "io_plot"
         )}`}
         fill_tile_callback={setFillTile}
-      /> */}
+      />
 
       {/* <AnalogInputPlotContainer
         id={"analog_input_plot"}
@@ -70,13 +71,13 @@ export default function DashboardMainPanel(props: { className?: string }) {
         fill_tile_callback={setFillTile}
       /> */}
       
-      <MotionPlotPanel
+      {/* <MotionPlotPanel
         id={"motion_plot"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "motion_plot"
         )}`}
         fill_tile_callback={setFillTile}
-      />
+      /> */}
 
     </PagePanel>
   );

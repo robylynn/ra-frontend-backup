@@ -13,9 +13,9 @@ import { DashboardContext } from "@/lib/components/client_components/DashboardCo
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import { AxisData } from "@/lib/models/ros_models";
 import {
-  MotionPlotContext,
-  MotionPlotContextProvider,
-} from "@/lib/components/client_components/MotionPlotContext";
+  PlotContext,
+  PlotContextProvider,
+} from "@/lib/components/client_components/PlotContext";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 import { AxisTimeDataInterface } from "@/lib/models/plotting_models";
 import { ROSAxisStateInterface } from "@/lib/models/database_models";
@@ -39,8 +39,8 @@ function MotionPlots(props: {
   default_length: number;
 }): ReactElement {
   const { dashboardContext } = useContext(DashboardContext);
-  const { motionPlotContext, setMotionPlotContext } =
-    useContext(MotionPlotContext);
+  const { plotContext: motionPlotContext, setPlotContext: setMotionPlotContext } =
+    useContext(PlotContext);
 
   const initialCompleteTimeData = props.plot_types.reduce(
     (o, key) => ({ ...o, [key]: {} }),
@@ -117,14 +117,14 @@ function MotionPlots(props: {
           Object.keys(completeAxisData[plot_key]).forEach((axis_index) => {
             axes_data[axis_index] = completeAxisData[plot_key]?.[axis_index]
               .slice(-motionPlotContext.plot_lengths[plot_key])
-              .filter((_, index) => index % 5 === 0);
+              .filter((_, index) => index % 1 === 0);
           });
 
           if (areAllAxesAcquiredForPlot(plot_key)) {
             return {
               time: completeTimeData?.[plot_key]?.[0]
                 ?.slice(-motionPlotContext.plot_lengths[plot_key])
-                .filter((_, index) => index % 5 === 0),
+                .filter((_, index) => index % 1 === 0),
               data: axes_data,
             };
           } else {
@@ -284,7 +284,7 @@ function MotionPlots(props: {
                 ...d,
                 [plot_key]: {
                   ...d[plot_key],
-                  [axis_index]: [...d[plot_key]?.[axis_index], time_data_point],
+                  [axis_index]: [...d[plot_key]?.[axis_index], time_data_point].slice(-motionPlotContext.plot_lengths[plot_key]),
                 },
               }));
 
@@ -292,7 +292,7 @@ function MotionPlots(props: {
                 ...d,
                 [plot_key]: {
                   ...d[plot_key],
-                  [axis_index]: [...d[plot_key]?.[axis_index], axis_data_point],
+                  [axis_index]: [...d[plot_key]?.[axis_index], axis_data_point].slice(-motionPlotContext.plot_lengths[plot_key]),
                 },
               }));
             }
@@ -355,14 +355,14 @@ export function MotionPlotContainer(): ReactElement {
 
   return dashboardContext.configuration?.configured ? (
     <>
-      <MotionPlotContextProvider>
+      <PlotContextProvider>
         <MotionPlots
           available_axes={[0, 1, 2, 3]}
           plot_types={["velocity", "position"]}
           default_update_rate={5}
           default_length={100}
         />
-      </MotionPlotContextProvider>
+      </PlotContextProvider>
     </>
   ) : (
     <LoadingIndicator />

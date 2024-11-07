@@ -110,7 +110,9 @@ class PlotConfiguration(BaseModel):
     # data_sources: Optional[List[str]] = []
 
     enabled: bool = Field(default=False)
-    data_sources: List[str] = Field(default=[])
+    data_sources: List[int] = Field(default=[])
+    length: int = Field(default=100)
+    update_rate: int = Field(default=5)
 
 # @dataclass
 class UIConfiguration(BaseModel):

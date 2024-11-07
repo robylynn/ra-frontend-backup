@@ -6,3 +6,8 @@ export type PlotAxisData = Record<number, Array<AxisData>>;
 export interface AxisTimeDataInterface {
   time: number;
 }
+
+export interface IODataPoint {
+  time: number;
+  [key: number]: number;
+}

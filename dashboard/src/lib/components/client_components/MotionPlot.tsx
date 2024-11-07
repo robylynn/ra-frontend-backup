@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   LineChart,
   Line,
@@ -33,6 +33,17 @@ export const MotionPlot = (props: {
   plot_length_setter: (plot_key: string, plot_length: number) => void;
   plot_update_rate_setter: (plot_key: string, update_rate_secs: number) => void;
 }) => {
+  const [activeSeries, setActiveSeries] = useState<Array<number>>(props.axes);
+  const handleLegendClick = (axis_index: number) => {
+    if (activeSeries.includes(axis_index)) {
+      setActiveSeries(
+        activeSeries.filter((displayed_axis) => displayed_axis !== axis_index)
+      );
+    } else {
+      setActiveSeries((s) => [...s, axis_index]);
+    }
+  };
+
   return (
     <div>
       {Object.keys(props.plot_data)
@@ -89,13 +100,22 @@ export const MotionPlot = (props: {
               />
               <YAxis label={{ value: props.unit ?? "", angle: -90 }} />
               <Tooltip />
-              <Legend onClick={props => handleLegendClick(props.dataKey)}/>
+              <Legend
+                onClick={(props) =>
+                  handleLegendClick(
+                    parseInt((props.payload as any).id as string)
+                  )
+                }
+              />
               {Object.keys(props.plot_data).map((axis_key, axis_index) => (
                 <Line
+                  id={axis_index.toString()}
                   key={axis_index.toString()}
+                  hide={!activeSeries.includes(axis_index)}
                   type="monotone"
                   name={`Axis ${axis_index}`}
                   dataKey={props.data_key}
+                  // dataKey={axis_index}
                   data={props.plot_data[axis_key]}
                   stroke={`#${strokeColor(axis_index)}`}
                   isAnimationActive={false}
