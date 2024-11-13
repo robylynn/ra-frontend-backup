@@ -73,7 +73,7 @@ export class UIConfiguration implements UIConfigurationInterface {
 
   configured: boolean = false;
 
-  public copy() : UIConfiguration {
+  public copy(): UIConfiguration {
     let config = new UIConfiguration();
     Object.assign(config, this);
     return config;
@@ -159,41 +159,49 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
   max_signal_v: number;
   value: any;
 
-  constructor(input: IOPointConfigurationInterface) {
-    this.id = input.id;
-    this.channel = input.channel;
-    this.label = input.label ?? "";
-    this.enabled = input.enabled ?? false;
-    this.configured = input.configured;
-    this.type =
-      typeof input.type === "string"
-        ? IOPointType[(input.type ?? "NULL") as keyof typeof IOPointType]
-        : (input.type as IOPointType);
+  constructor(input?: IOPointConfigurationInterface) {
+    if (input) {
+      this.id = input.id;
+      this.channel = input.channel;
+      this.label = input.label ?? "";
+      this.enabled = input.enabled ?? false;
+      this.configured = input.configured;
+      this.type =
+        typeof input.type === "string"
+          ? IOPointType[(input.type ?? "NULL") as keyof typeof IOPointType]
+          : (input.type as IOPointType);
 
-    if (
-      this.type == IOPointType.ANALOG_INPUT ||
-      this.type == IOPointType.ANALOG_OUTPUT
-    ) {
-      this.analog_type =
-        typeof input.analog_type === "string"
-          ? AnalogIOPointType[
-              (input.analog_type ?? "NULL") as keyof typeof AnalogIOPointType
+      if (
+        this.type == IOPointType.ANALOG_INPUT ||
+        this.type == IOPointType.ANALOG_OUTPUT
+      ) {
+        this.analog_type =
+          typeof input.analog_type === "string"
+            ? AnalogIOPointType[
+                (input.analog_type ?? "NULL") as keyof typeof AnalogIOPointType
+              ]
+            : (input.analog_type as AnalogIOPointType);
+      }
+
+      this.measurement_unit = input.measurement_unit ?? "";
+      this.min_value = input.min_value ?? 0;
+      this.max_value = input.max_value ?? 0;
+      this.min_signal_v = input.min_signal_v ?? 0;
+      this.max_signal_v = input.max_signal_v ?? 0;
+      this.transfer_function_type =
+        typeof input.type === "string"
+          ? TransferFunctionType[
+              (input.type ?? "NULL") as keyof typeof TransferFunctionType
             ]
-          : (input.analog_type as AnalogIOPointType);
+          : (input.transfer_function_type as TransferFunctionType);
+      this.value = input.value;
     }
+  }
 
-    this.measurement_unit = input.measurement_unit ?? "";
-    this.min_value = input.min_value ?? 0;
-    this.max_value = input.max_value ?? 0;
-    this.min_signal_v = input.min_signal_v ?? 0;
-    this.max_signal_v = input.max_signal_v ?? 0;
-    this.transfer_function_type =
-      typeof input.type === "string"
-        ? TransferFunctionType[
-            (input.type ?? "NULL") as keyof typeof TransferFunctionType
-          ]
-        : (input.transfer_function_type as TransferFunctionType);
-    this.value = input.value;
+  public copy() : IOPointConfiguration {
+    let copied_configuration = new IOPointConfiguration();
+    Object.assign(copied_configuration, this);
+    return copied_configuration;
   }
 }
 
@@ -208,7 +216,7 @@ export class IOConfiguration implements IOConfigurationInterface {
   private configuration_constants: Record<IOPointType, number> = {
     [IOPointType.DIGITAL_INPUT]: 8,
     [IOPointType.DIGITAL_OUTPUT]: 8,
-    [IOPointType.ANALOG_INPUT]: 8,
+    [IOPointType.ANALOG_INPUT]: 3,
     [IOPointType.ANALOG_OUTPUT]: 8,
     [IOPointType.NULL]: 8,
   };
@@ -220,7 +228,7 @@ export class IOConfiguration implements IOConfigurationInterface {
 
   initialized: boolean = false;
 
-  public copy() : IOConfiguration {
+  public copy(): IOConfiguration {
     let config = new IOConfiguration();
     Object.assign(config, this);
     return config;
@@ -246,24 +254,32 @@ export class IOConfiguration implements IOConfigurationInterface {
       this.analog_outputs.push(new IOPointConfiguration(o));
       this.initialized = true;
     });
+
+    this.configuration_constants = {
+      [IOPointType.DIGITAL_INPUT]: 8,
+      [IOPointType.DIGITAL_OUTPUT]: 8,
+      [IOPointType.ANALOG_INPUT]: 3,
+      [IOPointType.ANALOG_OUTPUT]: 8,
+      [IOPointType.NULL]: 8,
+    };
   }
 
   public assignUUIDs() {
-    this.analog_inputs.forEach(p => {
-      p.id = uuidv4()
-    })
+    this.analog_inputs.forEach((p) => {
+      p.id = uuidv4();
+    });
 
-    this.analog_outputs.forEach(p => {
-      p.id = uuidv4()
-    })
+    this.analog_outputs.forEach((p) => {
+      p.id = uuidv4();
+    });
 
-    this.digital_inputs.forEach(p => {
-      p.id = uuidv4()
-    })
+    this.digital_inputs.forEach((p) => {
+      p.id = uuidv4();
+    });
 
-    this.digital_outputs.forEach(p => {
-      p.id = uuidv4()
-    })
+    this.digital_outputs.forEach((p) => {
+      p.id = uuidv4();
+    });
   }
 
   public getMaximumChannels(point_type: IOPointType): number {
@@ -311,8 +327,10 @@ export class IOConfiguration implements IOConfigurationInterface {
     }
   }
 
-  public getConfiguredIOPoints(point_type: IOPointType): Array<IOPointConfiguration> {
-    return this.getIOPoints(point_type).filter(p => p.configured);
+  public getConfiguredIOPoints(
+    point_type: IOPointType
+  ): Array<IOPointConfiguration> {
+    return this.getIOPoints(point_type).filter((p) => p.configured);
   }
 
   public insertPoint(point: IOPointConfiguration) {
@@ -418,7 +436,7 @@ export class IOConfiguration implements IOConfigurationInterface {
     let point_array: Array<IOPointConfiguration>;
     try {
       point_array = this.getIOPoints(point_type);
-      
+
       // switch (point_type) {
       //   case IOPointType.DIGITAL_INPUT:
       //     point_array = this.digital_inputs;
@@ -435,7 +453,7 @@ export class IOConfiguration implements IOConfigurationInterface {
       //   default:
       //     return;
       // }
-      
+
       let [moved_point] = point_array.splice(source_index, 1);
       point_array.splice(destination_index, 0, moved_point);
     } catch (e) {
@@ -447,15 +465,35 @@ export class IOConfiguration implements IOConfigurationInterface {
 
   // private getPointArray(point_type)
 
-  public getNextAvailablePointIndex(point_type): number {
-    let point_array = this.getIOPoints(point_type);
+  public isPointAvailable(point_type: IOPointType) {
+    const point_array = this.getIOPoints(point_type);
+    return (
+      point_array.map((p) => p.channel).length >=
+      this.configuration_constants[point_type]
+    );
+  }
+
+  public getNextAvailablePointIndex(point_type: IOPointType): number {
+    const point_array = this.getIOPoints(point_type);
     if (point_array.length > 0) {
-      for (const point of point_array) {
-        if (!point.label) {
-          return point.channel;
-        }
+      const used_channels = point_array.map((p) => p.channel);
+      // this.configuration_constants[point_type];
+      const possible_channels = [
+        ...Array(this.configuration_constants[point_type]).keys(),
+      ]
+        .filter((c) => !used_channels.includes(c))
+        .sort();
+      if (possible_channels.length > 0) {
+        return possible_channels[0];
+      } else {
+        return -1;
       }
-      return -1;
+      // for (const point of point_array) {
+      //   if (!point.label) {
+      //     return point.channel;
+      //   }
+      // }
+      // return -1;
     } else {
       return 0;
     }
@@ -476,7 +514,7 @@ export class IOConfiguration implements IOConfigurationInterface {
     //     default:
     //       return;
     //   }
-      
+
     //   let [moved_point] = point_array.splice(source_index, 1);
     //   point_array.splice(destination_index, 0, moved_point);
     // } catch (e) {

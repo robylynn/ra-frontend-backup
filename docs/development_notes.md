@@ -57,3 +57,6 @@ Fix analog plot
 Parse IO configuration on startup to render frontend
 Create UI configuration structure and store in database
 for UI config, we should think about having a variable number of plots with a variable number of data sources per plot: maybe an array of plot data structures, with an array of data sources in each data structure?
+
+Color code unit labels same color as traces
+Time range for length instead of number of points

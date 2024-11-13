@@ -12,6 +12,7 @@ import { DatabaseIOStateDocumentArray } from "@/lib/models/database_models"
 import { R2Button } from "@/lib/components/client_components/ClickButton";
 import AnalogInDisplay from "@/lib/components/client_components/AnalogInDisplay";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
+import IODisplay from "@/lib/components/client_components/IODisplay";
 
 export default function IOStateContainer(props: {
   id: string;
@@ -88,7 +89,8 @@ export default function IOStateContainer(props: {
       {/* <AnalogInDisplay/> */}
 
       {dashboardContext.configuration?.configured ? (
-        <AnalogInDisplay/>
+        // <AnalogInDisplay/>
+        <IODisplay/>
         // <div className={`grid grid-cols-1 p-2 h-full justify-between${props.className ?? ""}`}>
         //   <R2Button
         //     text="GET IO STATE HISTORY"

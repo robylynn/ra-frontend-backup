@@ -24,7 +24,13 @@ import {
 import ROSLIB from "roslib";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall";
 import { IOPointContext } from "./IOPointContext";
-import { AnalogInConfig, DigitalInConfig } from "@/lib/models/ros_models";
+import {
+  AnalogInConfig,
+  AnalogInConfigurationServiceInterface,
+  DigitalInConfig,
+  DigitalInConfigurationServiceInterface,
+} from "@/lib/models/ros_models";
+import { deepCompareKeys } from "@blueprintjs/core/lib/esm/common/utils";
 // import "./AnalogInput.css"; // TODO: Rename this css to be more general
 
 type IOPointContainerProps = {
@@ -48,21 +54,12 @@ const IOPointContainer = ({
   const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [errorMessage, setErrorMessage] = useState(""); // Add error message state
 
-  const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
-    console.log("Updated input:", updatedIOPoint);
-
-    // Validate the channel
-    const isChannelUsed = IOPoints.getIOPoints(updatedIOPoint.type).some(
-      (p) =>
-        p.channel === updatedIOPoint.channel &&
-        p.id !== io_point.id &&
-        p.enabled
-    );
-    if (isChannelUsed) {
-      alert("This channel is already used by another enabled input.");
-      return;
-    }
-
+  const callConfigService = (
+    updatedIOPoint: IOPointConfiguration,
+    onSuccess = () => {},
+    onComplete = () => {},
+    is_enable_disable_request: boolean = false
+  ) => {
     // Check if the config service is available
     if (!dashboardContext.IO_config_services?.get_service(io_point.type)) {
       console.error(
@@ -71,15 +68,18 @@ const IOPointContainer = ({
       return;
     }
 
-    let request_data: { config: AnalogInConfig | DigitalInConfig };
+    let request_data:
+      | AnalogInConfigurationServiceInterface
+      | DigitalInConfigurationServiceInterface;
     switch (io_point.type) {
       case IOPointType.ANALOG_INPUT: {
         request_data = {
+          is_enable_disable_request: is_enable_disable_request,
           config: {
             channel: updatedIOPoint.channel,
             hardware_config: {
-              configure: true,
-              enable: false,
+              configured: true,
+              enabled: updatedIOPoint.enabled,
               channel_type: updatedIOPoint.analog_type,
             },
             label: updatedIOPoint.label,
@@ -95,11 +95,12 @@ const IOPointContainer = ({
       }
       case IOPointType.DIGITAL_INPUT: {
         request_data = {
+          is_enable_disable_request: is_enable_disable_request,
           config: {
             channel: updatedIOPoint.channel,
             hardware_config: {
-              configure: true,
-              enable: false,
+              configured: true,
+              enabled: updatedIOPoint.enabled,
             },
             label: updatedIOPoint.label,
           },
@@ -111,9 +112,6 @@ const IOPointContainer = ({
     // Define the request
     const request = new ROSLIB.ServiceRequest(request_data);
 
-    // Set loading state to true
-    setIsLoading(true);
-
     // Call the config service with timeout
     timeoutServiceCall(
       dashboardContext.IO_config_services.get_service(io_point.type),
@@ -123,10 +121,13 @@ const IOPointContainer = ({
       .then((result) => {
         if ((result as any).success) {
           console.log("Service call successful:", result);
-          updatedIOPoint.configured = true;
-          updatePoint(updatedIOPoint);
-          setShowConfig(false); // Hide the config dialog only on success
-          setIsConfigOpen(false); // Notify parent component that config is closed
+
+          // updatedIOPoint.configured = true;
+          // updatePoint(updatedIOPoint);
+          // setShowConfig(false); // Hide the config dialog only on success
+          // setIsConfigOpen(false); // Notify parent component that config is closed
+
+          if (onSuccess) onSuccess();
         } else {
           console.error("Failed to update configuration");
           setErrorMessage(
@@ -139,87 +140,62 @@ const IOPointContainer = ({
         setErrorMessage("Configuration update failed: " + error);
       })
       .finally(() => {
-        setIsLoading(false); // Set loading state to false
+        // setIsLoading(false); // Set loading state to false
+        if (onComplete) onComplete();
       });
   };
 
-  const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
-    // Check if the config service is available
-    if (!dashboardContext.IO_config_services?.get_service(io_point.type)) {
-      console.error(
-        `Service for point type ${IOPointType[io_point.type]} not defined`
-      );
+  const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
+    console.log("Updated input:", updatedIOPoint);
+
+    // Validate the channel
+    const isChannelUsed = IOPoints.getIOPoints(updatedIOPoint.type).some(
+      (p) =>
+        p.channel === updatedIOPoint.channel &&
+        p.id !== io_point.id &&
+        p.enabled
+    );
+    if (isChannelUsed) {
+      alert("This channel is already used by another enabled input.");
       return;
     }
 
-    if (deletableIOPoint.configured) {
-      let request_data: { config: AnalogInConfig | DigitalInConfig };
-      switch (io_point.type) {
-        case IOPointType.ANALOG_INPUT: {
-          request_data = {
-            config: {
-              channel: deletableIOPoint.channel,
-              hardware_config: {
-                configure: false,
-                enable: false,
-                channel_type: 0,
-              },
-              label: "",
-              unit: "",
-              max_electrical_value: 0,
-              min_electrical_value: 0,
-              max_measurement_value: 0,
-              min_measurement_value: 0,
-              transfer_function_type: 0,
-            },
-          };
-        }
-        case IOPointType.DIGITAL_INPUT: {
-          request_data = {
-            config: {
-              channel: deletableIOPoint.channel,
-              hardware_config: {
-                configure: false,
-                enable: false,
-              },
-              label: "",
-            },
-          };
-        }
-      }
+    // Set loading state to true
+    setIsLoading(true);
 
-      // Define the request
-      const request = new ROSLIB.ServiceRequest(request_data);
+    callConfigService(
+      updatedIOPoint,
+      () => {
+        updatedIOPoint.configured = true;
+        updatePoint(updatedIOPoint);
+        setShowConfig(false);
+        setIsConfigOpen(false);
+      },
+      () => setIsLoading(false)
+    );
+  };
+
+  const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
+    if (deletableIOPoint.configured) {
+      // const updatedIOPoint: IOPointConfiguration = {
+      //   ...deletableIOPoint,
+      //   configured: false,
+      // };
+      let updatedIOPoint = deletableIOPoint.copy();
+      deletableIOPoint.configured = false;
 
       // Set loading state to true
       setIsLoading(true);
 
-      // Call the config service with timeout
-      timeoutServiceCall(
-        dashboardContext.IO_config_services.get_service(io_point.type),
-        request,
-        3000
-      )
-        .then((result) => {
-          if ((result as any).success) {
-            console.log("Service call successful:", result);
-            deletePoint();
-            setShowConfig(false); // Hide the config dialog only on success
-            setIsConfigOpen(false); // Notify parent component that config is closed
-          } else {
-            console.error("Failed to update configuration");
-            setErrorMessage(
-              `Failed to update configuration: ${(result as any).message}`
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Configuration update failed: ", error);
-          setErrorMessage("Configuration update failed: " + error);
-        })
-        .finally(() => {
-          setIsLoading(false); // Set loading state to false
-        });
+      callConfigService(
+        updatedIOPoint,
+        () => {
+          deletePoint();
+          setShowConfig(false);
+          setIsConfigOpen(false);
+        },
+        () => setIsLoading(false)
+      );
     } else {
       deletePoint();
     }
@@ -231,7 +207,7 @@ const IOPointContainer = ({
 
     // Validate enabling the input
     if (checked) {
-      const isChannelUsed = IOPoints[io_point.type].some(
+      const isChannelUsed = IOPoints.getIOPoints(io_point.type).some(
         (p) =>
           p.channel === io_point.channel && p.id !== io_point.id && p.enabled
       );
@@ -243,39 +219,51 @@ const IOPointContainer = ({
       }
     }
 
-    io_point.enabled = checked;
-    updatePoint(io_point);
+    // const updatedIOPoint: IOPointConfiguration = {
+    //   ...io_point,
+    //   enabled: checked,
+    // };
+    let updatedIOPoint = io_point.copy();
+    updatedIOPoint.enabled = checked;
+    callConfigService(
+      updatedIOPoint,
+      () => {
+        updatePoint(updatedIOPoint);
+      },
+      undefined,
+      true
+    );
   };
 
   return (
     <div className="flex items-center justify-between h-[40px]">
       <div className="grid grid-cols-3 w-[40%] items-center">
-      <div
-        className="bg-slate-200 rounded-[50%] w-[20px] h-[20px] flex justify-center items-center"
-        style={{
-          backgroundColor: io_point.value
-            ? "rgb(59, 136, 195)"
-            : "rgb(200, 200, 200)", // TODO: Global vars for these colors
-        }}
-      >
-        {io_point.channel}
-      </div>
-      <button
-        className="m-[8px]"
-        onClick={() => {
-          setShowConfig(true);
-          setIsConfigOpen(true);
-        }}
-      >
-        ⚙️
-      </button>
+        <div
+          className="bg-slate-200 rounded-[50%] w-[20px] h-[20px] flex justify-center items-center"
+          style={{
+            backgroundColor: io_point.value
+              ? "rgb(59, 136, 195)"
+              : "rgb(200, 200, 200)", // TODO: Global vars for these colors
+          }}
+        >
+          {io_point.channel}
+        </div>
+        <button
+          className="m-[8px]"
+          onClick={() => {
+            setShowConfig(true);
+            setIsConfigOpen(true);
+          }}
+        >
+          ⚙️
+        </button>
 
-      <R2SliderToggle
-        text={""}
-        state={io_point.enabled}
-        // onChange={() => {}}
-        onClick={handleToggleChange}
-      />
+        <R2SliderToggle
+          text={""}
+          state={io_point.enabled}
+          // onChange={() => {}}
+          onClick={handleToggleChange}
+        />
       </div>
 
       <span className="m-[8px]">{io_point.label}</span>
@@ -310,7 +298,6 @@ const IOPointContainer = ({
           }}
         />
       </Modal>
-
     </div>
   );
 };
@@ -331,39 +318,57 @@ const IOPointConfigDialog = ({
 
   const handleStringChange = (e) => {
     const { name, value } = e.target;
-    // localPoint[name] = value;
-    setLocalPoint((p) => ({ ...p, [name]: value }));
+    let newLocalPoint = localPoint.copy();
+    newLocalPoint[name] = value;
+    // Object.assign(newLocalPoint, localPoint);
+    setLocalPoint(() => newLocalPoint);
+    // setLocalPoint((p) => ({ ...p, [name]: value } as IOPointConfiguration));
     console.log("setting string to " + value);
   };
 
   const handleChannelChange = (e) => {
     const { value } = e.target;
-    setLocalPoint((p) => ({ ...p, channel: parseInt(value) }));
+    let newLocalPoint = localPoint.copy();
+    newLocalPoint.channel = parseInt(value);
+    setLocalPoint(() => newLocalPoint);
+    // setLocalPoint((p) => ({ ...p, channel: parseInt(value) }));
   };
 
   const handleNumericChange = (e) => {
     const { name, value } = e.target;
     let numeric_value = parseFloat(value);
+    let newLocalPoint = localPoint.copy();
+
     if (numeric_value) {
-      setLocalPoint((p) => ({ ...p, [name]: numeric_value }));
+      newLocalPoint[name] = numeric_value;
     } else {
-      setLocalPoint((p) => ({ ...p, [name]: "" }));
+      newLocalPoint[name] = 0;
     }
+    setLocalPoint(() => newLocalPoint);
+
+    // if (numeric_value) {
+    //   setLocalPoint((p) => ({ ...p, [name]: numeric_value }));
+    // } else {
+    //   setLocalPoint((p) => ({ ...p, [name]: "" }));
+    // }
   };
 
   const handleAnalogTypeChange = (e) => {
     const value =
       AnalogIOPointType[e.target.value as keyof typeof AnalogIOPointType];
-    setLocalPoint((p) => ({ ...p, analog_type: value }));
+    let newLocalPoint = localPoint.copy();
+    newLocalPoint.analog_type = value;
+    setLocalPoint(() => newLocalPoint)
+      // setLocalPoint((p) => ({ ...p, analog_type: value }));
   };
 
   const handleTransferFunctionChange = (e) => {
     const value =
       TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
-    // localPoint.transfer_function_type = value;
-    // setLocalPoint(localPoint);
-
-    setLocalPoint((p) => ({ ...p, transfer_function_type: value }));
+    let newLocalPoint = localPoint.copy();
+    newLocalPoint.transfer_function_type = value;
+    setLocalPoint(() => newLocalPoint)
+      // setLocalPoint((p) => ({ ...p, transfer_function_type: value }));
   };
 
   const unitLabel =
@@ -389,22 +394,17 @@ const IOPointConfigDialog = ({
           onChange={handleChannelChange}
           className="w-full p-[5px] box-border"
         >
-          {
-            [
-              ...Array(
-                // dashboardContext.hardware_configuration?.io_system
-                //   .configuration_constants[io_point.type]
-                dashboardContext.hardware_configuration?.io_system.getMaximumChannels(
-                  io_point.type
-                )
-                // .get_maximum_channels(io_point.type)
-              ).keys(),
-            ].map((i) => (
-              <option key={i} value={i}>
-                {i}
-              </option>
-            ))
-          }
+          {[
+            ...Array(
+              dashboardContext.hardware_configuration?.io_system.getMaximumChannels(
+                io_point.type
+              )
+            ).keys(),
+          ].map((i) => (
+            <option key={i} value={i}>
+              {i}
+            </option>
+          ))}
         </select>
       </div>
       {localPoint.type == IOPointType.ANALOG_INPUT ||

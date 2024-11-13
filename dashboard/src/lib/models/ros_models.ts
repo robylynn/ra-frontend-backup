@@ -1,10 +1,11 @@
 interface AnalogInHardwareConfig {
-    configure: boolean
-    enable: boolean
+    configured: boolean
+    enabled: boolean
     channel_type: number
 }
 
 export interface AnalogInConfig {
+    // is_enable_disable_request: boolean
     channel: number
     hardware_config: AnalogInHardwareConfig
     label: string
@@ -16,15 +17,26 @@ export interface AnalogInConfig {
     transfer_function_type: number
 }
 
+export interface AnalogInConfigurationServiceInterface {
+    is_enable_disable_request: boolean
+    config: AnalogInConfig
+}
+
 export interface DigitalInHardwareConfig {
-    configure: boolean
-    enable: boolean
+    configured: boolean
+    enabled: boolean
 }
 
 export interface DigitalInConfig {
+    // is_enable_disable_request: boolean
     channel: number
     hardware_config: DigitalInHardwareConfig
     label: string
+}
+
+export interface DigitalInConfigurationServiceInterface {
+    is_enable_disable_request: boolean
+    config: DigitalInConfig
 }
 
 export interface ROSTimestamp {

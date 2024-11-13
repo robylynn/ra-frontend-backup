@@ -3,20 +3,8 @@
 
 "use client";
 
-import React, { useContext, useState, useRef, useEffect, useMemo } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import { Topic } from "roslib";
-import { AnalogInputContext } from "@/lib/components/client_components/AnalogInputContext";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 import {
@@ -24,16 +12,8 @@ import {
   DatabaseROSIOStateArray,
 } from "@/lib/models/database_models";
 import { R2Button } from "@/lib/components/client_components/ClickButton";
-import {
-  DataSource,
-  IOPointConfiguration,
-  IOPointType,
-  NextAPIResponseInterface,
-  PlotConfiguration,
-} from "@/lib/models/api_models";
+import { IOPointType, PlotConfiguration } from "@/lib/models/api_models";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
-import { plotDateFormatter } from "@/lib/utils/plotDateFormatter";
-import { strokeColor } from "@/lib/utils/chartColorPicker";
 import { IODataPoint } from "@/lib/models/plotting_models";
 import { PlotContext, PlotContextProvider } from "./PlotContext";
 import IOPlot from "@/lib/components/client_components/IOPlot";
@@ -52,15 +32,15 @@ const IOPlots = (props: {
   const { dashboardContext, setDashboardContext } =
     useContext(DashboardContext);
   const { plotContext, setPlotContext } = useContext(PlotContext);
-  const [selectedPlot, setSelectedPlot] = useState<string>();
-  const [selectedTraces, setSelectedTraces] = useState<Record<number, number>>(
-    {}
-  );
+  // const [selectedPlot, setSelectedPlot] = useState<string>();
+  // const [selectedTraces, setSelectedTraces] = useState<Record<number, number>>(
+  //   {}
+  // );
   const [completeIOData, setCompleteIOData] = useState<
     Record<number, Array<IODataPoint>>
   >({});
 
-  const initial_data_acquired = useRef<Record<number, boolean>>();
+  const initialDataAcquired = useRef<Record<number, boolean>>();
   //   let plotDataBuffers: Record<number, Array<IODataPoint>> = {};
 
   useEffect(() => {
@@ -92,7 +72,7 @@ const IOPlots = (props: {
       )
     );
 
-    initial_data_acquired.current = dashboardContext.configuration.plots.reduce(
+    initialDataAcquired.current = dashboardContext.configuration.plots.reduce(
       (data_acquired, plot_configuration, plot_index) => ({
         ...data_acquired,
         [plot_index]: false,
@@ -112,11 +92,11 @@ const IOPlots = (props: {
         }
 
         if (
-          !Object.keys(initial_data_acquired.current).includes(
+          !Object.keys(initialDataAcquired.current).includes(
             plot_index.toString()
           )
         ) {
-          initial_data_acquired.current[plot_index] = false;
+          initialDataAcquired.current[plot_index] = false;
         }
       }
     );
@@ -153,9 +133,9 @@ const IOPlots = (props: {
             const initial_chart_data = data_documents.documents.map((d) => {
               // let time = d.time_sec + d.time_nsec / 1e9;
 
-              if (props.point_type == IOPointType.DIGITAL_INPUT) {
-                let a = 5;
-              }
+              // if (props.point_type == IOPointType.DIGITAL_INPUT) {
+              //   let a = 5;
+              // }
 
               let time = d.stamp.sec + d.stamp.nanosec / 1e9;
 
@@ -192,10 +172,10 @@ const IOPlots = (props: {
     };
 
     const fill_initial_data = async () => {
-      Object.keys(initial_data_acquired.current).forEach((plot_index) => {
+      Object.keys(initialDataAcquired.current).forEach((plot_index) => {
         // return
         if (
-          !initial_data_acquired.current[plot_index] &&
+          !initialDataAcquired.current[plot_index] &&
           dashboardContext.configuration.configured
         ) {
           get_initial_data(
@@ -203,7 +183,7 @@ const IOPlots = (props: {
           ).then((data?) => {
             if (data.length) {
               setCompleteIOData((d) => ({ ...d, [plot_index]: data }));
-              initial_data_acquired.current[plot_index] = true;
+              initialDataAcquired.current[plot_index] = true;
             }
           });
         }
@@ -217,10 +197,6 @@ const IOPlots = (props: {
     plotContext.plot_lengths,
     dashboardContext.configuration.plots,
   ]);
-
-  //   if (props.point_type == IOPointType.DIGITAL_INPUT) {
-  //     let a = 5;
-  //   }
 
   useEffect(() => {
     const latest_point = dashboardContext.getIOSState(props.point_type);
@@ -238,8 +214,8 @@ const IOPlots = (props: {
         else data_point[i] = v ? 1 : 0;
       });
 
-      Object.keys(initial_data_acquired.current).forEach((plot_index) => {
-        if (initial_data_acquired.current[plot_index]) {
+      Object.keys(initialDataAcquired.current).forEach((plot_index) => {
+        if (initialDataAcquired.current[plot_index]) {
           setCompleteIOData((data) => ({
             ...data,
             [plot_index]: [...data[plot_index], data_point].slice(
@@ -259,7 +235,7 @@ const IOPlots = (props: {
         configuration: new PlotConfiguration({
           enabled: true,
           length: props.default_length,
-          data_sources: [], //[selectedPlot.toString()],
+          data_sources: [],
           update_rate: 5,
         }),
       },
@@ -273,7 +249,7 @@ const IOPlots = (props: {
         return "Analog Input";
       }
       case IOPointType.DIGITAL_INPUT: {
-        return "Analog Input";
+        return "Digital Input";
       }
       default: {
         return "Unknown Type";
@@ -281,21 +257,12 @@ const IOPlots = (props: {
     }
   };
 
-  // return <></>
   return dashboardContext.configuration.configured ? (
     <>
-      {/* {!Object.keys(completeIOData)
-        .map((io_channel) => completeIOData[io_channel].length != 0)
-        .some((l) => l) ? (
-        <p>WAITING FOR DATA</p> */}
       {!Object.keys(completeIOData) ? (
         <p>WAITING FOR DATA</p>
       ) : (
         <div>
-          {/* <div key={"header"} className="flex flex-col">
-        <div className="flex flex-row justify-between">
-        </div>
-      </div> */}
           <div key={"plots"}>
             {dashboardContext.configuration.plots.map(
               (plot_configuration, plot_index) => {
@@ -327,12 +294,17 @@ const IOPlots = (props: {
                   <>
                     <IOPlot
                       key={plot_index.toString()}
-                      data_name={"data_name"}
-                      data_sources={plot_configuration.data_sources.sort((a, b) => a < b ? -1 : 1)}
+                      point_type={props.point_type}
+                      // point_type_name={point_type_name}
+                      data_sources={plot_configuration.data_sources.sort(
+                        (a, b) => (a < b ? -1 : 1)
+                      )}
                       data={completeIOData[plot_index]}
                       y_label={"y_label"}
                       plot_index={plot_index}
-                      initial_data_acquired={initial_data_acquired.current[plot_index]}
+                      initial_data_acquired={
+                        initialDataAcquired.current?.[plot_index]
+                      }
                       available_io_channels={configured_IO_points.filter(
                         (point) =>
                           !dashboardContext.configuration.plots[
@@ -340,11 +312,10 @@ const IOPlots = (props: {
                           ].data_sources.includes(point.channel)
                       )}
                       selected_io_channels={configured_IO_points
-                        .filter(
-                          (point) =>
-                            dashboardContext.configuration.plots[
-                              plot_index
-                            ].data_sources.includes(point.channel)
+                        .filter((point) =>
+                          dashboardContext.configuration.plots[
+                            plot_index
+                          ].data_sources.includes(point.channel)
                         )
                         .sort((a, b) => (a.channel < b.channel ? -1 : 1))}
                       base_plot_length={100}
@@ -387,8 +358,8 @@ const IOPlots = (props: {
                         });
                       }}
                       change_plot_length_callback={(length: number) => {
-                        initial_data_acquired.current = {
-                          ...initial_data_acquired.current,
+                        initialDataAcquired.current = {
+                          ...initialDataAcquired.current,
                           [plot_index]: false,
                         };
                         setDashboardContext({
@@ -405,17 +376,10 @@ const IOPlots = (props: {
               }
             )}
           </div>
-          {/* <R2Button
-            text="New Plot"
-            className="w-[100%]"
-            onClick={() => {
-              handleAddPlot();
-            }}
-          /> */}
         </div>
       )}
       <R2Button
-        text="New Plot"
+        text={`New ${point_type_name(props.point_type)} Plot`}
         className="w-[100%]"
         onClick={() => {
           handleAddPlot();

@@ -13,12 +13,14 @@ import {
 } from "recharts";
 import { plotDateFormatter } from "@/lib/utils/plotDateFormatter";
 import { strokeColor } from "@/lib/utils/chartColorPicker";
-import { IOPointConfiguration } from "@/lib/models/api_models";
+import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 
 const IOPlot = (props: {
   data: Array<IODataPoint>;
-  data_name: string;
+  // data_name: string;
+  point_type: IOPointType;
+  // point_type_name: string;
   y_label?: string;
   plot_index: number;
   data_sources: Array<number>;
@@ -33,12 +35,14 @@ const IOPlot = (props: {
   change_update_rate_callback: (update_rate: number) => void;
   change_plot_length_callback: (plot_length: number) => void;
 }) => {
-
   const [plotUpdateCounter, setPlotUpdateCounter] = useState<number>(
     props.selected_update_rate
   );
 
-  const plottedData = useMemo(() => props.data, [plotUpdateCounter, props.initial_data_acquired]);
+  const plottedData = useMemo(
+    () => props.data,
+    [plotUpdateCounter, props.initial_data_acquired]
+  );
   const [selectedDataSource, setSelectedDataSource] = useState<number>(
     props.available_io_channels?.[0]?.channel
   );
@@ -53,7 +57,7 @@ const IOPlot = (props: {
   useEffect(() => {
     const intervalId = setInterval(
       () => {
-        console.log(`Update rate for plot is ${props.selected_update_rate}`);
+        // console.log(`Update rate for plot is ${props.selected_update_rate}`);
 
         setPlotUpdateCounter((counter) => counter + 1);
       },
@@ -73,6 +77,51 @@ const IOPlot = (props: {
       setActiveSeries((s) => [...s, data_source_index]);
     }
   };
+
+  const y_axis_label = (): string => {
+    // let unit_string: string;
+    if (
+      props.point_type == IOPointType.ANALOG_INPUT ||
+      props.point_type == IOPointType.ANALOG_OUTPUT
+    ) {
+      const units = props.selected_io_channels
+        .filter(
+          (io_channel) =>
+            io_channel.measurement_unit && io_channel.measurement_unit != ""
+        )
+        .map((io_channel) => io_channel.measurement_unit);
+      if (units.some((unit) => unit)) {
+        const unit_string = units.join(" / ");
+        // if (units.length > 0) {
+        //   unit_string = units.join(" / ")
+        // }
+        return unit_string;
+      }
+
+      return "Unknown Units";
+    } else {
+      return "State";
+    }
+
+    // if (
+    //   props.selected_io_channels.some(
+    //     (io_channel) =>
+    //       io_channel.measurement_unit && io_channel.measurement_unit != ""
+    //   )
+    // ) {
+    //   const units = props.selected_io_channels.filter(
+    //     (io_channel) =>
+    //       io_channel.measurement_unit && io_channel.measurement_unit != ""
+    //   );
+    // }
+  };
+  props.selected_io_channels.reduce(
+    (label_string, selected_channel) =>
+      selected_channel.measurement_unit
+        ? label_string + ` / ${selected_channel.measurement_unit}`
+        : label_string,
+    ""
+  ) ?? "Unknown Units";
 
   return (
     <div>
@@ -157,66 +206,60 @@ const IOPlot = (props: {
       {/* <Plot data={props.data} data_sources={props.data_sources} y_label={props.y_label} /> */}
       <ResponsiveContainer width="100%" height={400}>
         {/* <> */}
-        {!props.initial_data_acquired ? <LoadingIndicator text="FETCHING DATA"/> : 
-        <LineChart data={plottedData}>
-          <CartesianGrid strokeDasharray="3 3" />
+        {!props.initial_data_acquired ? (
+          <LoadingIndicator text="FETCHING DATA" />
+        ) : (
+          <LineChart data={plottedData}>
+            <CartesianGrid strokeDasharray="3 3" />
 
-          {props.data_sources.length ? (
-            <>
-              <XAxis
-                scale={"linear"}
-                dataKey="time"
-                name={"Time"}
-                tickFormatter={plotDateFormatter}
-                tickCount={2}
-                // interval={"equidistantPreserveStart"}
-              />
-              <YAxis
-                label={{
-                  // value: props.y_label ?? "Input Value",
-                  value: props.selected_io_channels.reduce(
-                    (label_string, selected_channel) =>
-                      selected_channel.measurement_unit
-                        ? label_string +
-                          ` / ${selected_channel.measurement_unit}`
-                        : label_string,
-                    ""
-                  ) ?? "Unknown Units",
-                  angle: -90,
-                }}
-              />
-            </>
-          ) : (
-            <></>
-          )}
+            {props.data_sources.length ? (
+              <>
+                <XAxis
+                  scale={"linear"}
+                  dataKey="time"
+                  name={"Time"}
+                  tickFormatter={plotDateFormatter}
+                  tickCount={2}
+                  // interval={"equidistantPreserveStart"}
+                />
+                <YAxis
+                  label={{
+                    // value: props.y_label ?? "Input Value",
+                    value: y_axis_label(),
+                    angle: -90,
+                  }}
+                />
+              </>
+            ) : (
+              <></>
+            )}
 
-          <Legend
-            onClick={(props) =>
-              handleLegendClick(parseInt((props.payload as any).id as string))
-            }
-          />
-          <Tooltip />
-          {props.data_sources
-            .sort((a, b) => (b > a ? -1 : 1))
-            .map((s) => (
-              <Line
-                id={s.toString()}
-                key={s}
-                type="monotone"
-                dataKey={s}
-                name={`IO ${s}`}
-                hide={!activeSeries.includes(s)}
-                // stroke={props.stroke_color ?? "#8884d8"}
-                stroke={`#${strokeColor(s)}`}
-                isAnimationActive={false}
-                animationBegin={0}
-                animationDuration={500}
-                animationEasing="ease-in-out"
-              />
-            ))}
-        </LineChart>
-        }
-        {/* </> */}
+            <Legend
+              onClick={(props) =>
+                handleLegendClick(parseInt((props.payload as any).id as string))
+              }
+            />
+            <Tooltip />
+            {props.data_sources
+              .sort((a, b) => (b > a ? -1 : 1))
+              .map((s) => (
+                <Line
+                  id={s.toString()}
+                  key={s}
+                  type="monotone"
+                  dataKey={s}
+                  name={`IO ${s}`}
+                  hide={!activeSeries.includes(s)}
+                  // stroke={props.stroke_color ?? "#8884d8"}
+                  stroke={`#${strokeColor(s)}`}
+                  isAnimationActive={false}
+                  animationBegin={0}
+                  animationDuration={500}
+                  animationEasing="ease-in-out"
+                />
+              ))}
+          </LineChart>
+        )}
       </ResponsiveContainer>
     </div>
   );
