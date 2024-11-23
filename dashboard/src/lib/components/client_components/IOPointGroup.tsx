@@ -134,8 +134,8 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
     margin: `0 0 8px 0`,
     borderRadius: "4px",
 
-    // change background colour if dragging
-    background: isDragging ? "lightgreen" : "grey",
+    // change background colour if dragging, this is green-300 and slate-500
+    background: isDragging ? "rgb(134 239 172)" : "rgb(100 116 139)",
 
     // styles we need to apply on draggables
     ...draggableStyle,

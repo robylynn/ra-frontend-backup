@@ -41,6 +41,7 @@ export class DataSource implements DataSourceInterface {
 
 export interface PlotConfigurationInterface {
   enabled: boolean;
+  plot_data_name?: string
   data_sources: Array<number>;
   length: number;
   update_rate: number;
@@ -48,12 +49,14 @@ export interface PlotConfigurationInterface {
 
 export class PlotConfiguration implements PlotConfigurationInterface {
   enabled: boolean;
+  plot_data_name?: string
   data_sources: Array<number> = [];
   length: number;
   update_rate: number;
 
   constructor(input?: PlotConfigurationInterface) {
     this.enabled = input.enabled;
+    this.plot_data_name = input.plot_data_name
     this.length = input?.length;
     this.update_rate = input.update_rate;
     input.data_sources.forEach((d) => {
@@ -65,11 +68,13 @@ export class PlotConfiguration implements PlotConfigurationInterface {
 export interface UIConfigurationInterface {
   client_id: number | undefined;
   plots: Array<PlotConfigurationInterface>;
+  motion_plots: Array<PlotConfigurationInterface>;
 }
 
 export class UIConfiguration implements UIConfigurationInterface {
   client_id: number | undefined;
   plots: Array<PlotConfiguration> = [];
+  motion_plots: Array<PlotConfiguration> = [];
 
   configured: boolean = false;
 
@@ -82,9 +87,13 @@ export class UIConfiguration implements UIConfigurationInterface {
   constructor(input?: UIConfigurationInterface) {
     if (input != undefined) {
       this.client_id = input.client_id;
-      input.plots.forEach((p) => {
+      input.plots?.forEach((p) => {
         this.plots.push(new PlotConfiguration(p));
       });
+
+      input.motion_plots?.forEach((p) =>
+        this.motion_plots.push(new PlotConfiguration(p))
+      );
 
       this.configured = true;
     }
@@ -116,6 +125,20 @@ export enum IOPointType {
   DIGITAL_OUTPUT,
 }
 
+export enum AxisDataType {
+  NULL,
+  VELOCITY,
+  POSTIION
+}
+
+export const IOPointTypeFriendlyName: Record<IOPointType, string> = {
+  [IOPointType.NULL]: "Null",
+  [IOPointType.ANALOG_INPUT]: "Analog Input",
+  [IOPointType.ANALOG_OUTPUT]: "Analog Output",
+  [IOPointType.DIGITAL_INPUT]: "Digital Input",
+  [IOPointType.DIGITAL_OUTPUT]: "Digital Output",
+};
+
 export enum AnalogIOPointType {
   VOLTAGE,
   CURRENT,
@@ -124,6 +147,33 @@ export enum AnalogIOPointType {
 export enum TransferFunctionType {
   LINEAR,
   CUSTOM,
+}
+
+export class HardwareComponentConfiguration {
+  public get identifier(): number {
+    return 0;
+  }
+}
+
+export interface AxisConfigurationInterface {
+  label: string
+  index: number
+}
+
+export class AxisConfiguration extends HardwareComponentConfiguration implements AxisConfigurationInterface {
+  label: string
+  index: number;
+
+  constructor(input?: AxisConfigurationInterface) {
+    super()
+    if (input) {
+      Object.assign(this, input)
+    }
+  }
+
+  public get identifier(): number {
+    return this.index;
+  }
 }
 
 export interface IOPointConfigurationInterface {
@@ -143,7 +193,7 @@ export interface IOPointConfigurationInterface {
   value?: any;
 }
 
-export class IOPointConfiguration implements IOPointConfigurationInterface {
+export class IOPointConfiguration extends HardwareComponentConfiguration implements IOPointConfigurationInterface {
   id: string;
   channel: number;
   type: IOPointType;
@@ -160,6 +210,7 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
   value: any;
 
   constructor(input?: IOPointConfigurationInterface) {
+    super()
     if (input) {
       this.id = input.id;
       this.channel = input.channel;
@@ -198,7 +249,11 @@ export class IOPointConfiguration implements IOPointConfigurationInterface {
     }
   }
 
-  public copy() : IOPointConfiguration {
+  public get identifier(): number {
+    return this.channel;
+  }
+
+  public copy(): IOPointConfiguration {
     let copied_configuration = new IOPointConfiguration();
     Object.assign(copied_configuration, this);
     return copied_configuration;

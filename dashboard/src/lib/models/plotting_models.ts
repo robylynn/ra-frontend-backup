@@ -7,7 +7,15 @@ export interface AxisTimeDataInterface {
   time: number;
 }
 
-export interface IODataPoint {
+export interface PlotDataPoint {
   time: number;
   [key: number]: number;
 }
+
+export interface PlotInputDataInterface {
+  name: string
+  id: number
+  data: PlotDataPoint[]
+}
+
+export type PlotInputData = Array<PlotInputDataInterface>

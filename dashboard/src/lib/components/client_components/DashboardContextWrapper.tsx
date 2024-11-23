@@ -51,9 +51,32 @@ export default function DashboardContextProvider(props: {
   const setDigitalInDataAction = createAction<{digital_in_data: DigitalInData}>('data/digital_in');
   const setAxisDataAction = createAction<{axis_index: number, axis_data: AxisData}>('data/axis');
   const addPlotAction = createAction<{configuration: PlotConfiguration}>('plots/add')
+  const addMotionPlotAction = createAction<{configuration: PlotConfiguration}>('motion_plots/add')
   const updatePlotConfiguration = createAction<ModifyPlotInterface>('plots/update')
+  const updateMotionPlotConfiguration = createAction<ModifyPlotInterface>('motion_plots/update')
   const deletePlotAction = createAction<{plot_index: number}>('plots/delete');
+  const deleteMotionPlotAction = createAction<{plot_index: number}>('motion_plots/delete');
 
+  function updatePlot(plot_configurations: PlotConfiguration[], payload: ModifyPlotInterface) : PlotConfiguration[] {
+    if (payload.data_sources)
+      plot_configurations[payload.plot_index].data_sources = payload.data_sources;
+    
+    if (payload.update_rate)
+      plot_configurations[payload.plot_index].update_rate = payload.update_rate;
+
+    if (payload.length)
+      plot_configurations[payload.plot_index].length = payload.length;
+
+    return plot_configurations;
+  }
+
+  function deletePlot(plot_configurations: PlotConfiguration[], payload: ModifyPlotInterface) : PlotConfiguration[] {
+    delete plot_configurations[payload.plot_index];
+    plot_configurations = plot_configurations.filter((plot) => plot);
+
+    return plot_configurations;
+  }
+  
   const setDashboardContextReducer = createReducer(initialDashboardContext, (builder) => {
     builder.addCase(setUIConfigurationAction, (state, action) => {
       state.configuration = action.payload.configuration;
@@ -98,23 +121,48 @@ export default function DashboardContextProvider(props: {
       );
       return state;
     })
+    .addCase(addMotionPlotAction, (state, action) => {
+      state.configuration.motion_plots.push(
+        action.payload.configuration
+      );
+      return state;
+    })
     .addCase(updatePlotConfiguration, (state, action) => {
-      if (action.payload.data_sources)
-        state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
+      updatePlot(state.configuration.plots, action.payload)
+      // if (action.payload.data_sources)
+      //   state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
       
-      if (action.payload.update_rate)
-        state.configuration.plots[action.payload.plot_index].update_rate = action.payload.update_rate;
-      // state.configuration.plots.push(
-      //   action.payload.configuration
-      // );
-      if (action.payload.length)
-        state.configuration.plots[action.payload.plot_index].length = action.payload.length;
+      // if (action.payload.update_rate)
+      //   state.configuration.plots[action.payload.plot_index].update_rate = action.payload.update_rate;
+
+      // if (action.payload.length)
+      //   state.configuration.plots[action.payload.plot_index].length = action.payload.length;
+
+      return state;
+    })
+    .addCase(updateMotionPlotConfiguration, (state, action) => {
+      updatePlot(state.configuration.motion_plots, action.payload)
+      // if (action.payload.data_sources)
+      //   state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
+      
+      // if (action.payload.update_rate)
+      //   state.configuration.plots[action.payload.plot_index].update_rate = action.payload.update_rate;
+
+      // if (action.payload.length)
+      //   state.configuration.plots[action.payload.plot_index].length = action.payload.length;
 
       return state;
     })
     .addCase(deletePlotAction, (state, action) => {
-      delete state.configuration.plots[action.payload.plot_index];
-      state.configuration.plots = state.configuration.plots.filter((plot) => plot);
+      deletePlot(state.configuration.plots, action.payload)
+      // delete state.configuration.plots[action.payload.plot_index];
+      // state.configuration.plots = state.configuration.plots.filter((plot) => plot);
+      return state;
+    })
+    .addCase(deleteMotionPlotAction, (state, action) => {
+      deletePlot(state.configuration.motion_plots, action.payload)
+      // delete state.configuration.plots[action.payload.plot_index];
+      // state.configuration.plots = state.configuration.plots.filter((plot) => plot);
       return state;
     })
   })

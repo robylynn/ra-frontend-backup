@@ -39,7 +39,7 @@ export function DashboardHeaderContainer(props: {
   fill_tile_id: string;
   button_text?: string;
   button_callback?: () => void;
-  button_active: boolean;
+  button_active?: boolean;
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   expansion_state?: boolean;
   set_expansion_state?: Dispatch<SetStateAction<boolean>>;

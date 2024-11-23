@@ -266,7 +266,7 @@ const IOPointContainer = ({
         />
       </div>
 
-      <span className="m-[8px]">{io_point.label}</span>
+      <span className="m-[8px] text-r2-white">{io_point.label}</span>
 
       <Modal
         isOpen={showConfig}

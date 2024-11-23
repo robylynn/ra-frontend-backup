@@ -10,7 +10,7 @@ import LoadingIndicator from "@/lib/components/server_components/loading_indicat
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 // import MotionPlot from '@/lib/components/client_components/MotionPlot';
 import { MotionPlotContainer } from "@/lib/components/client_components/MotionPlotContainer";
-import SimpleMotionPlot from "@/lib/components/client_components/SimpleMotionPlot";
+// import SimpleMotionPlot from "@/lib/components/client_components/SimpleMotionPlot";
 // import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
 // import { IOPointType } from "@/lib/models/api_models";
 

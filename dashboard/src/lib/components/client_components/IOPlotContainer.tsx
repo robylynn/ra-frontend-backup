@@ -14,53 +14,55 @@ import {
 import { R2Button } from "@/lib/components/client_components/ClickButton";
 import { IOPointType, PlotConfiguration } from "@/lib/models/api_models";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
-import { IODataPoint } from "@/lib/models/plotting_models";
+import { PlotDataPoint } from "@/lib/models/plotting_models";
 import { PlotContext, PlotContextProvider } from "./PlotContext";
-import IOPlot from "@/lib/components/client_components/IOPlot";
+import DataPlot from "@/lib/components/client_components/DataPlot";
 
-type IOFetchDataInterface = Array<IODataPoint>;
+type IOFetchDataInterface = Array<PlotDataPoint>;
 
 const IOPlots = (props: {
   default_length: number;
   default_update_rate: number;
   point_type: IOPointType;
-  point_channels: Array<number>;
+  // point_channels: Array<number>;
   plot_configuration: Array<PlotConfiguration>;
 }) => {
   // const { inputs } = useContext(AnalogInputContext);
   const { IOPoints } = useContext(IOPointContext);
   const { dashboardContext, setDashboardContext } =
     useContext(DashboardContext);
-  const { plotContext, setPlotContext } = useContext(PlotContext);
+  // const { plotContext, setPlotContext } = useContext(PlotContext);
   // const [selectedPlot, setSelectedPlot] = useState<string>();
   // const [selectedTraces, setSelectedTraces] = useState<Record<number, number>>(
   //   {}
   // );
   const [completeIOData, setCompleteIOData] = useState<
-    Record<number, Array<IODataPoint>>
+    Record<number, Array<PlotDataPoint>>
   >({});
 
   const initialDataAcquired = useRef<Record<number, boolean>>();
   //   let plotDataBuffers: Record<number, Array<IODataPoint>> = {};
 
   useEffect(() => {
-    setPlotContext((p) => ({
-      ...p,
-      plot_lengths: props.point_channels.reduce(
-        (lengths, io_channel) => ({
-          ...lengths,
-          [io_channel]: props.default_length,
-        }),
-        {}
-      ),
-      update_rates: props.point_channels.reduce(
-        (rates, plot_type) => ({
-          ...rates,
-          [plot_type]: props.default_update_rate,
-        }),
-        {}
-      ),
-    }));
+    // setPlotContext((p) => ({
+    //   ...p,
+    //   plot_lengths: dashboardContext.hardware_configuration?.io_system.getIOPoints(props.point_type).reduce(
+    //   // plot_lengths: props.point_channels.reduce(
+    //     (lengths, io_channel) => ({
+    //       ...lengths,
+    //       [io_channel.channel]: props.default_length,
+    //     }),
+    //     {}
+    //   ),
+    //   // update_rates: props.point_channels.reduce(
+    //   update_rates: dashboardContext.hardware_configuration?.io_system.getIOPoints(props.point_type).reduce(
+    //     (rates, io_channel) => ({
+    //       ...rates,
+    //       [io_channel.channel]: props.default_update_rate,
+    //     }),
+    //     {}
+    //   ),
+    // }));
 
     setCompleteIOData(() =>
       dashboardContext.configuration.plots.reduce(
@@ -139,7 +141,7 @@ const IOPlots = (props: {
 
               let time = d.stamp.sec + d.stamp.nanosec / 1e9;
 
-              let data_point: IODataPoint = {
+              let data_point: PlotDataPoint = {
                 time: time,
               };
 
@@ -194,14 +196,14 @@ const IOPlots = (props: {
     fill_initial_data();
   }, [
     dashboardContext.heartbeat_counter,
-    plotContext.plot_lengths,
-    dashboardContext.configuration.plots,
+    // plotContext.plot_lengths,
+    JSON.stringify(dashboardContext.configuration.plots)
   ]);
 
   useEffect(() => {
     const latest_point = dashboardContext.getIOSState(props.point_type);
     if (latest_point) {
-      let data_point: IODataPoint = {
+      let data_point: PlotDataPoint = {
         time: latest_point.stamp.sec + latest_point.stamp.nanosec / 1e9,
       };
 
@@ -292,26 +294,27 @@ const IOPlots = (props: {
 
                 return (
                   <>
-                    <IOPlot
+                    <DataPlot
                       key={plot_index.toString()}
-                      point_type={props.point_type}
+                      data_type={props.point_type}
                       // point_type_name={point_type_name}
                       data_sources={plot_configuration.data_sources.sort(
                         (a, b) => (a < b ? -1 : 1)
                       )}
                       data={completeIOData[plot_index]}
+                      data_parser={(data: PlotDataPoint[]) => data}
                       y_label={"y_label"}
                       plot_index={plot_index}
                       initial_data_acquired={
                         initialDataAcquired.current?.[plot_index]
                       }
-                      available_io_channels={configured_IO_points.filter(
+                      available_sources={configured_IO_points.filter(
                         (point) =>
                           !dashboardContext.configuration.plots[
                             plot_index
                           ].data_sources.includes(point.channel)
                       )}
-                      selected_io_channels={configured_IO_points
+                      selected_sources={configured_IO_points
                         .filter((point) =>
                           dashboardContext.configuration.plots[
                             plot_index
@@ -400,7 +403,7 @@ const IOPlotContainer = (props: { point_type: IOPointType }) => {
         default_length={100}
         default_update_rate={5}
         point_type={props.point_type}
-        point_channels={[0, 1, 2, 3]}
+        // point_channels={[0, 1, 2, 3]}
         plot_configuration={
           [...dashboardContext.configuration.plots] ?? undefined
         }

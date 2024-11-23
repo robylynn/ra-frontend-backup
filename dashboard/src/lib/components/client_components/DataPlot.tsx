@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { R2Button } from "@/lib/components/client_components/ClickButton";
-import { IODataPoint } from "@/lib/models/plotting_models";
+import {
+  PlotDataPoint,
+  PlotAxisData,
+  PlotInputDataInterface,
+  PlotInputData,
+} from "@/lib/models/plotting_models";
 import {
   LineChart,
   Line,
@@ -13,20 +18,30 @@ import {
 } from "recharts";
 import { plotDateFormatter } from "@/lib/utils/plotDateFormatter";
 import { strokeColor } from "@/lib/utils/chartColorPicker";
-import { IOPointConfiguration, IOPointType } from "@/lib/models/api_models";
+import {
+  AxisConfiguration,
+  AxisDataType,
+  IOPointConfiguration,
+  IOPointType,
+} from "@/lib/models/api_models";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 
-const IOPlot = (props: {
-  data: Array<IODataPoint>;
+// const defaultDataParser = (data: Array<PlotDataPoint> | PlotAxisData) => data;
+
+const DataPlot = (props: {
+  data: Array<PlotDataPoint> | PlotAxisData;
+  // data:
   // data_name: string;
-  point_type: IOPointType;
+  // data: PlotInputData
+  data_type: IOPointType | AxisDataType;
   // point_type_name: string;
   y_label?: string;
+  data_parser: (data: Array<PlotDataPoint> | PlotAxisData) => PlotInputData; // = defaultDataParser
   plot_index: number;
   data_sources: Array<number>;
   initial_data_acquired: boolean;
-  selected_io_channels: Array<IOPointConfiguration>;
-  available_io_channels: Array<IOPointConfiguration>;
+  selected_sources: Array<IOPointConfiguration> | Array<AxisConfiguration>;
+  available_sources: Array<IOPointConfiguration> | Array<AxisConfiguration>;
   base_plot_length: number;
   selected_update_rate: number;
   selected_plot_length: number;
@@ -40,19 +55,19 @@ const IOPlot = (props: {
   );
 
   const plottedData = useMemo(
-    () => props.data,
+    () => props.data_parser(props.data),
     [plotUpdateCounter, props.initial_data_acquired]
   );
   const [selectedDataSource, setSelectedDataSource] = useState<number>(
-    props.available_io_channels?.[0]?.channel
+    props.available_sources?.[0]?.identifier
   );
   const [activeSeries, setActiveSeries] = useState<Array<number>>(
     props.data_sources
   );
 
   useEffect(() => {
-    setSelectedDataSource(() => props.available_io_channels?.[0]?.channel);
-  }, [JSON.stringify(props.available_io_channels)]);
+    setSelectedDataSource(() => props.available_sources?.[0]?.identifier);
+  }, [JSON.stringify(props.available_sources)]);
 
   useEffect(() => {
     const intervalId = setInterval(
@@ -80,48 +95,45 @@ const IOPlot = (props: {
 
   const y_axis_label = (): string => {
     // let unit_string: string;
-    if (
-      props.point_type == IOPointType.ANALOG_INPUT ||
-      props.point_type == IOPointType.ANALOG_OUTPUT
-    ) {
-      const units = props.selected_io_channels
-        .filter(
-          (io_channel) =>
-            io_channel.measurement_unit && io_channel.measurement_unit != ""
-        )
-        .map((io_channel) => io_channel.measurement_unit);
-      if (units.some((unit) => unit)) {
-        const unit_string = units.join(" / ");
-        // if (units.length > 0) {
-        //   unit_string = units.join(" / ")
-        // }
-        return unit_string;
-      }
+    // if (typeof(props.data) == typeof(Array<IODataPoint>)) {
 
-      return "Unknown Units";
-    } else {
-      return "State";
-    }
-
-    // if (
-    //   props.selected_io_channels.some(
-    //     (io_channel) =>
-    //       io_channel.measurement_unit && io_channel.measurement_unit != ""
-    //   )
-    // ) {
-    //   const units = props.selected_io_channels.filter(
-    //     (io_channel) =>
-    //       io_channel.measurement_unit && io_channel.measurement_unit != ""
-    //   );
     // }
+    if (typeof props.selected_sources == typeof Array<IOPointConfiguration>) {
+      if (
+        props.data_type == IOPointType.ANALOG_INPUT ||
+        props.data_type == IOPointType.ANALOG_OUTPUT
+      ) {
+        const units = (props.selected_sources as Array<IOPointConfiguration>)
+          .filter(
+            (io_channel) =>
+              io_channel.measurement_unit && io_channel.measurement_unit != ""
+          )
+          .map((io_channel) => io_channel.measurement_unit);
+        if (units.some((unit) => unit)) {
+          const unit_string = units.join(" / ");
+          // if (units.length > 0) {
+          //   unit_string = units.join(" / ")
+          // }
+          return unit_string;
+        }
+
+        return "Unknown Units";
+      } else {
+        return "State";
+      }
+    }
   };
-  props.selected_io_channels.reduce(
-    (label_string, selected_channel) =>
-      selected_channel.measurement_unit
-        ? label_string + ` / ${selected_channel.measurement_unit}`
-        : label_string,
-    ""
-  ) ?? "Unknown Units";
+
+  const findDataEntry = (
+    data_source_identifier: number
+  ): PlotInputDataInterface | undefined => {
+    for (const input_data of plottedData) {
+      if (input_data.id == data_source_identifier) {
+        return input_data;
+      }
+    }
+    return undefined;
+  };
 
   return (
     <div>
@@ -131,15 +143,29 @@ const IOPlot = (props: {
           className="w-[40%]"
           value={selectedDataSource}
           onChange={(e) => setSelectedDataSource(parseInt(e.target.value))}
-          disabled={props.available_io_channels.length < 1}
+          disabled={props.available_sources.length < 1}
         >
-          {props.available_io_channels.map((input, index) => {
-            const label =
-              input.label != ""
-                ? `${input.label} (Input ${input.channel})`
-                : `Input ${input.channel}`;
+          {props.available_sources.map((source, index) => {
+            let label: string;
+            if (source instanceof IOPointConfiguration) {
+              const point_configuration = source as IOPointConfiguration;
+              label =
+                point_configuration.label != ""
+                  ? `${point_configuration.label} (Input ${point_configuration.channel})`
+                  : `Input ${point_configuration.channel}`;
+            } else if (source instanceof AxisConfiguration) {
+              const axis_configuration = source as AxisConfiguration;
+              label =
+                axis_configuration.label != ""
+                  ? `${axis_configuration.label} (Axis ${axis_configuration.index})`
+                  : `Axis ${axis_configuration.index}`;
+            }
+            // const label =
+            //   input.label != ""
+            //     ? `${input.label} (Input ${input.channel})`
+            //     : `Input ${input.channel}`;
             return (
-              <option key={index} value={input.channel}>
+              <option key={index} value={source.identifier}>
                 {label}
               </option>
             );
@@ -148,10 +174,10 @@ const IOPlot = (props: {
 
         <R2Button
           text="Add Trace"
-          disabled={!props.available_io_channels.length}
+          disabled={!props.available_sources.length}
           onClick={() => {
             setSelectedDataSource(
-              () => props.available_io_channels?.[0]?.channel
+              () => props.available_sources?.[0]?.identifier
             );
             setActiveSeries((s) => [...s, selectedDataSource]);
             props.add_trace_callback(selectedDataSource);
@@ -209,7 +235,9 @@ const IOPlot = (props: {
         {!props.initial_data_acquired ? (
           <LoadingIndicator text="FETCHING DATA" />
         ) : (
-          <LineChart data={plottedData}>
+          // <LineChart data={plottedData}>
+          // <LineChart data={plottedData?.[0]?.data}>
+          <LineChart>
             <CartesianGrid strokeDasharray="3 3" />
 
             {props.data_sources.length ? (
@@ -220,9 +248,11 @@ const IOPlot = (props: {
                   name={"Time"}
                   tickFormatter={plotDateFormatter}
                   tickCount={2}
+                  type="category"
                   // interval={"equidistantPreserveStart"}
                 />
                 <YAxis
+                  // dataKey={0}
                   label={{
                     // value: props.y_label ?? "Input Value",
                     value: y_axis_label(),
@@ -242,22 +272,25 @@ const IOPlot = (props: {
             <Tooltip />
             {props.data_sources
               .sort((a, b) => (b > a ? -1 : 1))
-              .map((s) => (
-                <Line
-                  id={s.toString()}
-                  key={s}
-                  type="monotone"
-                  dataKey={s}
-                  name={`IO ${s}`}
-                  hide={!activeSeries.includes(s)}
-                  // stroke={props.stroke_color ?? "#8884d8"}
-                  stroke={`#${strokeColor(s)}`}
-                  isAnimationActive={false}
-                  animationBegin={0}
-                  animationDuration={500}
-                  animationEasing="ease-in-out"
-                />
-              ))}
+              .map((s) => {
+                const data_series = findDataEntry(s);
+                return (
+                  <Line
+                    data={data_series?.data}
+                    id={s.toString()}
+                    key={s}
+                    type="monotone"
+                    dataKey={s}
+                    name={data_series?.name}
+                    hide={!activeSeries.includes(s)}
+                    stroke={`#${strokeColor(s)}`}
+                    isAnimationActive={false}
+                    animationBegin={0}
+                    animationDuration={500}
+                    animationEasing="ease-in-out"
+                  />
+                );
+              })}
           </LineChart>
         )}
       </ResponsiveContainer>
@@ -265,4 +298,4 @@ const IOPlot = (props: {
   );
 };
 
-export default IOPlot;
+export default DataPlot;
