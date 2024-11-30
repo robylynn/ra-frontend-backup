@@ -248,7 +248,9 @@ const DataPlot = (props: {
                   name={"Time"}
                   tickFormatter={plotDateFormatter}
                   tickCount={2}
-                  type="category"
+                  type="number"
+                  allowDuplicatedCategory={false}
+                  domain={['dataMin', 'dataMax']}
                   // interval={"equidistantPreserveStart"}
                 />
                 <YAxis
@@ -273,6 +275,7 @@ const DataPlot = (props: {
             {props.data_sources
               .sort((a, b) => (b > a ? -1 : 1))
               .map((s) => {
+                // if (s != 0) return
                 const data_series = findDataEntry(s);
                 return (
                   <Line

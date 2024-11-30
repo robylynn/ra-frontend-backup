@@ -56,13 +56,13 @@ export default function DashboardMainPanel(props: { className?: string }) {
         fill_tile_callback={setFillTile}
       />
       
-      {/* <IOPlotPanel
+      <IOPlotPanel
         id={"io_plot"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "io_plot"
         )}`}
         fill_tile_callback={setFillTile}
-      /> */}
+      />
 
       {/* <AnalogInputPlotContainer
         id={"analog_input_plot"}

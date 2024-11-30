@@ -41,39 +41,50 @@ export class DataSource implements DataSourceInterface {
 
 export interface PlotConfigurationInterface {
   enabled: boolean;
-  plot_data_name?: string
+  plot_data_name?: string;
   data_sources: Array<number>;
   length: number;
   update_rate: number;
+  plot_type?: string;
 }
 
 export class PlotConfiguration implements PlotConfigurationInterface {
   enabled: boolean;
-  plot_data_name?: string
+  plot_data_name?: string;
   data_sources: Array<number> = [];
   length: number;
   update_rate: number;
+  plot_type?: string;
 
   constructor(input?: PlotConfigurationInterface) {
     this.enabled = input.enabled;
-    this.plot_data_name = input.plot_data_name
+    this.plot_data_name = input.plot_data_name;
     this.length = input?.length;
     this.update_rate = input.update_rate;
     input.data_sources.forEach((d) => {
       this.data_sources.push(d);
     });
+    this.plot_type = input.plot_type;
   }
 }
 
 export interface UIConfigurationInterface {
   client_id: number | undefined;
-  plots: Array<PlotConfigurationInterface>;
+  // io_plots: Array<PlotConfigurationInterface>;
+  io_plots: Record<IOPointType | number, Array<PlotConfigurationInterface>>;
   motion_plots: Array<PlotConfigurationInterface>;
 }
 
 export class UIConfiguration implements UIConfigurationInterface {
   client_id: number | undefined;
-  plots: Array<PlotConfiguration> = [];
+  // io_plots: Array<PlotConfiguration> = [];
+  io_plots: Record<IOPointType | number, Array<PlotConfiguration>> = {
+    // [IOPointType.NULL]: [],
+    [IOPointType.ANALOG_INPUT]: [],
+    [IOPointType.ANALOG_OUTPUT]: [],
+    [IOPointType.DIGITAL_INPUT]: [],
+    [IOPointType.DIGITAL_OUTPUT]: [],
+  };
   motion_plots: Array<PlotConfiguration> = [];
 
   configured: boolean = false;
@@ -86,10 +97,25 @@ export class UIConfiguration implements UIConfigurationInterface {
 
   constructor(input?: UIConfigurationInterface) {
     if (input != undefined) {
+      this.io_plots = {
+        // [IOPointType.NULL]: [],
+        [IOPointType.ANALOG_INPUT]: [],
+        [IOPointType.ANALOG_OUTPUT]: [],
+        [IOPointType.DIGITAL_INPUT]: [],
+        [IOPointType.DIGITAL_OUTPUT]: [],
+      };
+
       this.client_id = input.client_id;
-      input.plots?.forEach((p) => {
-        this.plots.push(new PlotConfiguration(p));
-      });
+      if (input.io_plots != undefined) {
+        Object.keys(input.io_plots).forEach((plot_type) => {
+          this.io_plots[plot_type as keyof typeof IOPointType] = input.io_plots[
+            plot_type as keyof typeof IOPointType
+          ].map((p) => new PlotConfiguration(p));
+        });
+        // input.io_plots?.forEach((p) => {
+        //   this.io_plots.push(new PlotConfiguration(p));
+        // });
+      }
 
       input.motion_plots?.forEach((p) =>
         this.motion_plots.push(new PlotConfiguration(p))
@@ -99,9 +125,9 @@ export class UIConfiguration implements UIConfigurationInterface {
     }
   }
 
-  public plot_active(plot_index: number) {
-    return this.plots.length > plot_index;
-  }
+  // public plot_active(plot_index: number) {
+  //   return this.io_plots.length > plot_index;
+  // }
 
   serialize(): UIConfigurationInterface {
     const json_value = JSON.parse(JSON.stringify(this));
@@ -128,7 +154,7 @@ export enum IOPointType {
 export enum AxisDataType {
   NULL,
   VELOCITY,
-  POSTIION
+  POSTIION,
 }
 
 export const IOPointTypeFriendlyName: Record<IOPointType, string> = {
@@ -156,18 +182,21 @@ export class HardwareComponentConfiguration {
 }
 
 export interface AxisConfigurationInterface {
-  label: string
-  index: number
+  label: string;
+  index: number;
 }
 
-export class AxisConfiguration extends HardwareComponentConfiguration implements AxisConfigurationInterface {
-  label: string
+export class AxisConfiguration
+  extends HardwareComponentConfiguration
+  implements AxisConfigurationInterface
+{
+  label: string;
   index: number;
 
   constructor(input?: AxisConfigurationInterface) {
-    super()
+    super();
     if (input) {
-      Object.assign(this, input)
+      Object.assign(this, input);
     }
   }
 
@@ -193,7 +222,10 @@ export interface IOPointConfigurationInterface {
   value?: any;
 }
 
-export class IOPointConfiguration extends HardwareComponentConfiguration implements IOPointConfigurationInterface {
+export class IOPointConfiguration
+  extends HardwareComponentConfiguration
+  implements IOPointConfigurationInterface
+{
   id: string;
   channel: number;
   type: IOPointType;
@@ -210,7 +242,7 @@ export class IOPointConfiguration extends HardwareComponentConfiguration impleme
   value: any;
 
   constructor(input?: IOPointConfigurationInterface) {
-    super()
+    super();
     if (input) {
       this.id = input.id;
       this.channel = input.channel;
@@ -543,51 +575,29 @@ export class IOConfiguration implements IOConfigurationInterface {
       } else {
         return -1;
       }
-      // for (const point of point_array) {
-      //   if (!point.label) {
-      //     return point.channel;
-      //   }
-      // }
-      // return -1;
     } else {
       return 0;
     }
-    // try {
-    //   switch (point_type) {
-    //     case IOPointType.DIGITAL_INPUT:
-    //       point_array = this.digital_inputs;
-    //       break;
-    //     case IOPointType.DIGITAL_OUTPUT:
-    //       point_array = this.digital_outputs;
-    //       break;
-    //     case IOPointType.ANALOG_INPUT:
-    //       point_array = this.analog_inputs;
-    //       break;
-    //     case IOPointType.ANALOG_OUTPUT:
-    //       point_array = this.analog_outputs;
-    //       break;
-    //     default:
-    //       return;
-    //   }
-
-    //   let [moved_point] = point_array.splice(source_index, 1);
-    //   point_array.splice(destination_index, 0, moved_point);
-    // } catch (e) {
-    //   console.log(
-    //     `Point index ${source_index} with type ${IOPointType[point_type]} does not exist`
-    //   );
-    // }
   }
 }
 
 export interface HardwareConfigurationInterface {
   io_system: IOConfigurationInterface;
+  axes: Array<AxisConfigurationInterface>;
 }
 
 export class HardwareConfiguration implements HardwareConfigurationInterface {
   io_system: IOConfiguration;
+  axes: Array<AxisConfiguration> = [];
 
   constructor(input: HardwareConfigurationInterface) {
     this.io_system = new IOConfiguration(input.io_system);
+    this.axes = [0, 1, 2, 3].map(
+      (axis_index) =>
+        new AxisConfiguration({
+          index: axis_index,
+          label: `axis ${axis_index}`,
+        })
+    );
   }
 }

@@ -20,7 +20,7 @@ import timeoutFetch from "@/lib/utils/timeoutFetch";
 import {
   AxisTimeDataInterface,
   PlotDataPoint,
-  PlotInputData
+  PlotInputData,
 } from "@/lib/models/plotting_models";
 import { ROSAxisStateInterface } from "@/lib/models/database_models";
 import { DatabaseROSAxisStateArray } from "@/lib/models/database_models";
@@ -71,6 +71,7 @@ function MotionPlots(props: {
     Record<string, PlotAxisData>
   >(initialCompleteAxisData);
 
+  const [selectedPlotType, setSelectedPlotType] = useState<string>();
   // const initialDataInitializer = props.plot_types.reduce(
   //   (initialDataObj, plot_type) => ({
   //     ...initialDataObj,
@@ -84,6 +85,8 @@ function MotionPlots(props: {
   const initialDataAcquired = useRef<Record<number, Record<number, boolean>>>(
     {}
   );
+
+  useEffect(() => setSelectedPlotType(() => "velocity"), []);
 
   useEffect(() => {
     initialDataAcquired.current =
@@ -425,13 +428,13 @@ function MotionPlots(props: {
     );
   }, [dashboardContext.axis_data]);
 
-  const available_axes: Array<AxisConfiguration> = [0, 1, 2, 3].map(
-    (axis_index) =>
-      new AxisConfiguration({
-        label: `Axis ${axis_index}`,
-        index: axis_index,
-      })
-  );
+  // const available_axes: Array<AxisConfiguration> = [0, 1, 2, 3].map(
+  //   (axis_index) =>
+  //     new AxisConfiguration({
+  //       label: `Axis ${axis_index}`,
+  //       index: axis_index,
+  //     })
+  // );
 
   const checkDataAcquired = (plot_index: number): boolean => {
     if (initialDataAcquired?.current?.[plot_index]) {
@@ -449,13 +452,16 @@ function MotionPlots(props: {
     data: PlotAxisData,
     data_key: string
   ): PlotInputData => {
-    const data_arrays = Object.keys(data).map((axis_index) => ({
+    const data_arrays: PlotInputData = Object.keys(data).map((axis_index) => ({
       name: `Axis ${axis_index}`,
       id: parseInt(axis_index),
-      data: data[parseInt(axis_index)].map((data_point) => ({
-        [parseInt(axis_index)]: data_point[data_key],
-        time: data_point.stamp.sec + data_point.stamp.nanosec / 1e9,
-      } as PlotDataPoint)),
+      data: data[parseInt(axis_index)].map(
+        (data_point) =>
+          ({
+            [parseInt(axis_index)]: data_point[data_key],
+            time: data_point.stamp.sec + data_point.stamp.nanosec / 1e9,
+          }) as PlotDataPoint
+      ),
     }));
     return data_arrays;
   };
@@ -469,20 +475,21 @@ function MotionPlots(props: {
             data={completeAxisData[plot_index]}
             data_type={AxisDataType.VELOCITY}
             data_parser={(data) =>
-              data
-                ? parseDataByType(data as PlotAxisData, "velocity")
-                : []
+              data ? parseDataByType(data as PlotAxisData, plot_configuration.plot_type) : []
             }
             y_label={plot_configuration.plot_data_name}
             plot_index={plot_index}
             data_sources={plot_configuration.data_sources}
             initial_data_acquired={checkDataAcquired(plot_index)}
-            selected_sources={available_axes.filter((axis) =>
-              dashboardContext.configuration.motion_plots[
-                plot_index
-              ].data_sources.includes(axis.index)
+            // selected_sources={available_axes.filter((axis) =>
+            selected_sources={dashboardContext.hardware_configuration.axes.filter(
+              (axis) =>
+                dashboardContext.configuration.motion_plots[
+                  plot_index
+                ].data_sources.includes(axis.index)
             )}
-            available_sources={available_axes.filter(
+            // available_sources={available_axes.filter(
+            available_sources={dashboardContext.hardware_configuration.axes.filter(
               (axis) =>
                 !dashboardContext.configuration.motion_plots[
                   plot_index
@@ -521,12 +528,20 @@ function MotionPlots(props: {
               });
             }}
             change_plot_length_callback={(length: number) => {
+              // initialDataAcquired.current = {
+              //   ...initialDataAcquired.current,
+              //   [plot_index]: available_axes.reduce(
+              //     (axes, axis) => ({ ...axes, [axis.index]: false }),
+              //     {}
+              //   ),
+              // };
               initialDataAcquired.current = {
                 ...initialDataAcquired.current,
-                [plot_index]: available_axes.reduce(
-                  (axes, axis) => ({ ...axes, [axis.index]: false }),
-                  {}
-                ),
+                [plot_index]:
+                  dashboardContext.hardware_configuration.axes.reduce(
+                    (axes, axis) => ({ ...axes, [axis.index]: false }),
+                    {}
+                  ),
               };
               setDashboardContext({
                 payload: {
@@ -577,22 +592,32 @@ function MotionPlots(props: {
           // />
         )
       )}
-      <R2Button
-        text={"Add New Motion Plot"}
-        onClick={() =>
-          setDashboardContext({
-            payload: {
-              configuration: new PlotConfiguration({
-                enabled: true,
-                length: props.default_length,
-                data_sources: [],
-                update_rate: 5,
-              }),
-            },
-            type: "motion_plots/add",
-          })
-        }
-      />
+      <div className="flex flex-row w-full justify-between">
+        <R2Button
+          text={"Add New Motion Plot"}
+          onClick={() =>
+            setDashboardContext({
+              payload: {
+                configuration: new PlotConfiguration({
+                  enabled: true,
+                  length: props.default_length,
+                  data_sources: [],
+                  update_rate: 5,
+                  plot_type: selectedPlotType
+                }),
+              },
+              type: "motion_plots/add",
+            })
+          }
+        />
+        <select
+          onChange={(e) => setSelectedPlotType(() => e.target.value)}
+          value={selectedPlotType}
+        >
+          <option id="position" value="position">Position</option>
+          <option id="velocity" value="velocity">Velocity</option>
+        </select>
+      </div>
     </>
   ) : (
     <LoadingIndicator />
@@ -606,12 +631,12 @@ export function MotionPlotContainer(): ReactElement {
   return dashboardContext.configuration?.configured ? (
     <>
       {/* <PlotContextProvider> */}
-        <MotionPlots
-          available_axes={[0, 1, 2, 3]}
-          plot_types={["velocity", "position"]}
-          default_update_rate={5}
-          default_length={100}
-        />
+      <MotionPlots
+        available_axes={[0, 1, 2, 3]}
+        plot_types={["velocity", "position"]}
+        default_update_rate={5}
+        default_length={100}
+      />
       {/* </PlotContextProvider> */}
     </>
   ) : (

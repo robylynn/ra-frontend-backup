@@ -538,6 +538,25 @@ class DatabasePuller(DatabaseThread):
                                         "timestamp": DESCENDING
                                     }
                                 },
+                                # {
+                                #     "$project": {
+                                #         "computed_time": {
+                                #             "$sum": ["stamp.sec", "stamp.nanosec"]
+                                #         }
+                                #     }
+                                # },
+                                # {
+                                #     "$sort": {
+                                #         # "$add": ["stamp.sec", "$divide": ["stamp.nanosec", 1e9]]
+                                #         "computed_time": DESCENDING
+                                #     }
+                                # },
+                                # {
+                                #     "$sort": {
+                                #         # "$add": ["stamp.sec", "$divide": ["stamp.nanosec", 1e9]]
+                                #         "timestamp": DESCENDING
+                                #     }
+                                # },
                                 {
                                     "$limit": command.number_of_documents
                                 },

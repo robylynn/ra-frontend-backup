@@ -289,9 +289,14 @@ def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
 @historian_router.post("/analog_in")
 def push_analog_input_state(data: List[Dict]) -> APIResponse:
     for record in data:
+        try:
+            timestamp = datetime.fromtimestamp(record['stamp']['sec'] + record['stamp']['nanosec']/1e9).timestamp()
+        except Exception as e:
+            timestamp = datetime.timestamp(datetime.utcnow())
+
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=datetime.timestamp(datetime.utcnow()),
+                timestamp=timestamp,
                 document_type=DocumentType.ANALOG_INPUT_STATE,
                 data=dict(record)
             )
@@ -305,9 +310,14 @@ def push_analog_input_state(data: List[Dict]) -> APIResponse:
 @historian_router.post("/digital_in")
 def push_digital_input_state(data: List[Dict]) -> APIResponse:
     for record in data:
+        try:
+            timestamp = datetime.fromtimestamp(record['stamp']['sec'] + record['stamp']['nanosec']/1e9).timestamp()
+        except Exception as e:
+            timestamp = datetime.timestamp(datetime.utcnow())
+
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=datetime.timestamp(datetime.utcnow()),
+                timestamp=timestamp,
                 document_type=DocumentType.DIGITAL_INPUT_STATE,
                 data=dict(record)
             )
@@ -321,9 +331,14 @@ def push_digital_input_state(data: List[Dict]) -> APIResponse:
 @historian_router.post("/axis/{axis_index}")
 def push_axis_state(axis_index: int, data: List[Dict]) -> APIResponse:
     for record in data:
+        try:
+            timestamp = datetime.fromtimestamp(record['stamp']['sec'] + record['stamp']['nanosec']/1e9).timestamp()
+        except Exception as e:
+            timestamp = datetime.timestamp(datetime.utcnow())
+            
         initializer.ra_database.enqueue_record(
             data=create_database_axis_document(
-                timestamp=datetime.timestamp(datetime.utcnow()),
+                timestamp=timestamp,
                 # document_type=DocumentType.AXIS_STATE,
                 axis_index=axis_index,
                 data=dict(record)

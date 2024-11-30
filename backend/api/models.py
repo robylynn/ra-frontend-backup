@@ -14,10 +14,9 @@ from dataclasses import (
 from enum import Enum, auto
 
 from utils.utils import websocket_message_dict_factory
-# from config.models import (
-#     AnalogIOPointType,
-#     IOPointType
-# )
+from config.models import (
+    IOPointType
+)
 
 class APIException(Exception):
     pass
@@ -118,5 +117,7 @@ class PlotConfiguration(BaseModel):
 class UIConfiguration(BaseModel):
     client_id: int
     # plots: Optional[List[PlotConfiguration]] = []
-    plots: List[PlotConfiguration] = Field(default=[])
+    # plots: List[PlotConfiguration] = Field(default=[])
+    io_plots: Dict[IOPointType, List[PlotConfiguration]] = Field(default={})
+    motion_plots: List[PlotConfiguration] = Field(default=[])
     

@@ -8,12 +8,13 @@ import { ReactNode, useState, useReducer, createContext, Dispatch, SetStateActio
 import { ApplicationContext, ConfigServices } from "@/lib/models/dashboard_context";
 // import RAStateContext, { StateContext } from "@/lib/models/ros_state_context";
 import { createAction, createReducer, ActionCreatorWithOptionalPayload, Reducer, Action } from '@reduxjs/toolkit'
-import { HardwareConfiguration, PlotConfiguration, UIConfiguration } from "@/lib/models/api_models";
+import { HardwareConfiguration, PlotConfiguration, UIConfiguration, IOPointType } from "@/lib/models/api_models";
 import { AnalogInData, AxisData, DigitalInData } from "@/lib/models/ros_models";
 import ROSLIB from "roslib";
 
 interface ModifyPlotInterface {
   plot_index: number
+  plot_type?: IOPointType
   data_sources?: Array<number>
   update_rate?: number
   length?: number
@@ -50,22 +51,31 @@ export default function DashboardContextProvider(props: {
   const setAnalogInDataAction = createAction<{analog_in_data: AnalogInData}>('data/analog_in');
   const setDigitalInDataAction = createAction<{digital_in_data: DigitalInData}>('data/digital_in');
   const setAxisDataAction = createAction<{axis_index: number, axis_data: AxisData}>('data/axis');
-  const addPlotAction = createAction<{configuration: PlotConfiguration}>('plots/add')
+  const addPlotAction = createAction<{plot_type: IOPointType, configuration: PlotConfiguration}>('plots/add')
   const addMotionPlotAction = createAction<{configuration: PlotConfiguration}>('motion_plots/add')
   const updatePlotConfiguration = createAction<ModifyPlotInterface>('plots/update')
   const updateMotionPlotConfiguration = createAction<ModifyPlotInterface>('motion_plots/update')
-  const deletePlotAction = createAction<{plot_index: number}>('plots/delete');
+  const deletePlotAction = createAction<{plot_type: IOPointType, plot_index: number}>('plots/delete');
   const deleteMotionPlotAction = createAction<{plot_index: number}>('motion_plots/delete');
 
   function updatePlot(plot_configurations: PlotConfiguration[], payload: ModifyPlotInterface) : PlotConfiguration[] {
     if (payload.data_sources)
-      plot_configurations[payload.plot_index].data_sources = payload.data_sources;
+      // if (payload.plot_type)
+      //   plot_configurations[payload.plot_type][payload.plot_index].data_sources = payload.data_sources;
+      // else
+        plot_configurations[payload.plot_index].data_sources = payload.data_sources;
     
     if (payload.update_rate)
-      plot_configurations[payload.plot_index].update_rate = payload.update_rate;
+      // if (payload.plot_type)
+      //   plot_configurations[payload.plot_type][payload.plot_index].update_rate = payload.update_rate;
+      // else
+        plot_configurations[payload.plot_index].update_rate = payload.update_rate;
 
     if (payload.length)
-      plot_configurations[payload.plot_index].length = payload.length;
+      // if (payload.plot_type)
+      //   plot_configurations[payload.plot_type][payload.plot_index].length = payload.length;
+      // else
+        plot_configurations[payload.plot_index].length = payload.length;
 
     return plot_configurations;
   }
@@ -116,7 +126,7 @@ export default function DashboardContextProvider(props: {
       return state;
     })
     .addCase(addPlotAction, (state, action) => {
-      state.configuration.plots.push(
+      state.configuration.io_plots[action.payload.plot_type].push(
         action.payload.configuration
       );
       return state;
@@ -128,7 +138,7 @@ export default function DashboardContextProvider(props: {
       return state;
     })
     .addCase(updatePlotConfiguration, (state, action) => {
-      updatePlot(state.configuration.plots, action.payload)
+      updatePlot(state.configuration.io_plots[action.payload.plot_type], action.payload)
       // if (action.payload.data_sources)
       //   state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
       
@@ -154,7 +164,7 @@ export default function DashboardContextProvider(props: {
       return state;
     })
     .addCase(deletePlotAction, (state, action) => {
-      deletePlot(state.configuration.plots, action.payload)
+      deletePlot(state.configuration.io_plots[action.payload.plot_type], action.payload)
       // delete state.configuration.plots[action.payload.plot_index];
       // state.configuration.plots = state.configuration.plots.filter((plot) => plot);
       return state;

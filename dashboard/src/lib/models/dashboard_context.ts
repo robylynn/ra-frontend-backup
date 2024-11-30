@@ -89,13 +89,4 @@ export class ApplicationContext {
   }
 }
 
-
-
-// const setter: Dispatch<SetStateAction<ApplicationContext>> = () => {};
-
-// const DashboardContext = createContext({
-//   dashboardContext: new ApplicationContext(),
-//   setContext: setter,
-// });
-
 export default ApplicationContext;

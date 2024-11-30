@@ -13,6 +13,7 @@ import { MotionPlotContainer } from "@/lib/components/client_components/MotionPl
 // import SimpleMotionPlot from "@/lib/components/client_components/SimpleMotionPlot";
 // import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
 // import { IOPointType } from "@/lib/models/api_models";
+import { NextAPIResponseInterface } from "@/lib/models/api_models";
 
 export default function MotionPlotPanel(props: {
   id: string;
@@ -20,7 +21,22 @@ export default function MotionPlotPanel(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
-  // const { dashboardContext } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
+  const save_configuration = async () => {
+    let res: NextAPIResponseInterface = await fetch(
+      "api/backend/ui/configuration",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        mode: "cors",
+        body: JSON.stringify(dashboardContext.configuration),
+      }
+    ).then((res) => res.json());
+    console.log("POST response: " + JSON.stringify(res.data));
+  };
 
   return (
     <DashboardHeaderContainer
@@ -29,10 +45,14 @@ export default function MotionPlotPanel(props: {
       className={`${props.className ?? ""}`}
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
+      button_text="Save Configuration"
+      button_callback={() => {
+        save_configuration();
+      }}
     >
       {/* <MotionPlotContainer/> */}
       {/* <SimpleMotionPlot/> */}
-      <MotionPlotContainer/>
+      <MotionPlotContainer />
       {/* <SimpleMotionPlot
           title={"Axis Velocities"}
           data_key="velocity"
