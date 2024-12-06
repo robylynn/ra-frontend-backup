@@ -14,6 +14,7 @@ from dataclasses import (
     is_dataclass
 )
 from datetime import datetime
+from functools import singledispatch
 from typing import (
     ClassVar, 
     Dict, 
@@ -54,15 +55,18 @@ class MongoCloudInterfaceException(Exception):
 
 class DatabaseCommandType(Enum):
     GET_DOCUMENTS = auto()
+    GET_AXIS_DOCUMENTS = auto()
     GET_DATA_POINTS = auto()
     GET_IO_DATA_POINTS = auto()
     GET_MESSAGES = auto()
 
 @dataclass
 class DatabaseCommand:
-    command_type: DatabaseCommandType
     document_type: DocumentType
     number_of_documents: int
+    
+    command_type: Optional[DatabaseCommandType] = None
+    axis_index: Optional[int] = None
 
 RecordType = TypeVar("RecordType")
 
@@ -103,7 +107,6 @@ class MongoTimeseriesRecord:
     _id: Optional[str] = None
     timestamp_seconds: Optional[float] = None
     record_hash: Optional[str] = None
-    
 
     def __post_init__(self, data: Dict[str, Any]):
         if is_dataclass(data):
@@ -132,11 +135,31 @@ class MongoTimeseriesRecord:
     def deserialize_from_dict(record: Dict) -> "MongoTimeseriesRecord":
         return mongo_record_deserializer(record=record, record_class=MongoTimeseriesRecord)
 
+    # @singledispatch
+    # def keys_to_strings(self, ob):
+    #     return ob
+
+    # @keys_to_strings.register
+    # def _handle_dict(self, ob: dict):
+    #     return {str(k): self.keys_to_strings(v) for k, v in ob.items()}
+
+    # @keys_to_strings.register
+    # def _handle_list(self, ob: list):
+    #     return [self.keys_to_strings(v) for v in ob]
+
+    @property
+    def formatted_data_dict(self) -> Dict:
+        return json.loads(json.dumps(self._data_dict))
+
     def serialize_to_dict(self) -> Dict[str, Any]:
         sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
-        serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self._data_dict, 'record_hash': self.record_hash}
+        serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self.formatted_data_dict, 'record_hash': self.record_hash}
         serialized['metadata'] = sparse_metadata
         return serialized
+
+@dataclass
+class MongoAxisTimeseriesRecord(MongoTimeseriesRecord):
+    axis_index: int = None
 
 @dataclass
 class TimeseriesRecordContainer:
@@ -169,6 +192,10 @@ DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataC
 @dataclass
 class IOStateRecord(MongoTimeseriesRecord):
     data: InitVar[IOSystem]
+
+@dataclass
+class AxisStateRecord(MongoAxisTimeseriesRecord):
+    data: InitVar[Dict]
 
 @dataclass
 class FrontendMessageRecord(MongoTimeseriesRecord):

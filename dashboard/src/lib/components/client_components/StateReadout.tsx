@@ -5,10 +5,10 @@
 
 import { useContext } from "react";
 
-import DashboardContext from "@/lib/models/dashboard_context";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 
 export default function StateReadout(props: { className?: string }) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext } = useContext(DashboardContext);
 
   return (
     <div>

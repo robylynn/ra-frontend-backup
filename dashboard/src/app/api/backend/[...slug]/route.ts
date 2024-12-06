@@ -30,7 +30,7 @@ async function proxyBackendRequest(params: {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 1000);
+  }, 10000);
 
   let backend_path = "http://" + process.env.CONTROLLER_URI + `/${params.slug.join("/")}`;
   if (query_params.size > 0)

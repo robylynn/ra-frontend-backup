@@ -7,8 +7,8 @@ import { useContext, Dispatch, SetStateAction } from "react";
 
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import DashboardContext from "@/lib/models/dashboard_context";
 import AnalogInputPlot from "@/lib/components/client_components/AnalogInputPlot";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 
 export default function AnalogInputPlotContainer(props: {
   id: string;
@@ -16,7 +16,7 @@ export default function AnalogInputPlotContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
-  const { dashboardContext: context } = useContext(DashboardContext);
+  const { dashboardContext, setDashboardContext } = useContext(DashboardContext);
 
   return (
     <DashboardHeaderContainer
@@ -26,7 +26,7 @@ export default function AnalogInputPlotContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-      {context.configuration?.configured ? (
+      {dashboardContext.configuration?.configured ? (
         <AnalogInputPlot length={100}/>
       ) : (
         <LoadingIndicator />

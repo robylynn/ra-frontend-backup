@@ -9,13 +9,15 @@ export function R2Button(props: {
   text: string;
   onClick: React.MouseEventHandler;
   className?: string;
+  disabled?: boolean
 }) {
   return (
     <button
-      className={`border-2 rounded-lg hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] ${
+      className={`border-2 rounded-lg hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] disabled:dark:bg-slate-600 ${
         props.className ?? ""
       }`}
       onClick={props.onClick}
+      disabled={props.disabled}
     >
       {props.text}
     </button>
@@ -104,6 +106,7 @@ export function R2SliderToggle(props: {
         type="checkbox"
         className="absolute w-full h-full -translate-x-1/2 rounded-md appearance-none left-1/2 peer"
         onClick={props.onClick}
+        onChange={() => {}}
         checked={props.state}
       />
       <span

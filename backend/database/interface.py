@@ -51,6 +51,7 @@ from database.models import (
     HardwareConfigurationRecord,
     UIConfigurationRecord,
     IOStateRecord,
+    AxisStateRecord,
     SensorDataRecord,
     DocumentType
 )
@@ -537,9 +538,50 @@ class DatabasePuller(DatabaseThread):
                                         "timestamp": DESCENDING
                                     }
                                 },
+                                # {
+                                #     "$project": {
+                                #         "computed_time": {
+                                #             "$sum": ["stamp.sec", "stamp.nanosec"]
+                                #         }
+                                #     }
+                                # },
+                                # {
+                                #     "$sort": {
+                                #         # "$add": ["stamp.sec", "$divide": ["stamp.nanosec", 1e9]]
+                                #         "computed_time": DESCENDING
+                                #     }
+                                # },
+                                # {
+                                #     "$sort": {
+                                #         # "$add": ["stamp.sec", "$divide": ["stamp.nanosec", 1e9]]
+                                #         "timestamp": DESCENDING
+                                #     }
+                                # },
                                 {
                                     "$limit": command.number_of_documents
                                 },
+
+                            ]
+                        )
+                        self._return_pipe.send([r for r in records])
+                    elif command.command_type == DatabaseCommandType.GET_AXIS_DOCUMENTS:
+                        collection = self._interface_state.local.get_collection(document_type=command.document_type)
+                        records = collection.aggregate(
+                            [
+                                {
+                                    "$sort": {
+                                        "timestamp": DESCENDING
+                                    }
+                                },
+                                {
+                                    "$match": {
+                                        "axis_index": command.axis_index
+                                    }
+                                },
+                                {
+                                    "$limit": command.number_of_documents
+                                },
+
 
                             ]
                         )
@@ -640,6 +682,18 @@ class MongoInterface(Process):
 
         return self._return_pipe_data(timeout=timeout)
     
+    def get_axis_documents_from_collection_by_index(self, axis_index: int, number_of_documents: int, timeout: float = 10) -> TimeseriesRecordContainer:
+        self._command_queue.put(
+            DatabaseCommand(
+                command_type=DatabaseCommandType.GET_AXIS_DOCUMENTS,
+                number_of_documents=number_of_documents,
+                document_type=DocumentType.AXIS_STATE,
+                axis_index=axis_index
+            )
+        )
+
+        return self._return_pipe_data(timeout=timeout)
+    
     def _return_pipe_data(self, timeout: float) -> List:
         try:
             with self._pipe_lock:
@@ -667,6 +721,30 @@ class MongoInterface(Process):
             logger.error(f"Timed out getting {number_of_points} IO state records from database")
             return []
     
+    def get_analog_in_state(self, number_of_points: int, timeout: float = 10) -> List[IOStateRecord]:
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.ANALOG_INPUT_STATE, number_of_documents=number_of_points, timeout=timeout)
+            return [IOStateRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_points} ANALOG INPUT state records from database")
+            return []
+
+    def get_axis_state(self, axis_index: int, number_of_points: int, timeout: float = 10) -> List[AxisStateRecord]:
+        try:
+            axis_data_documents = self.get_axis_documents_from_collection_by_index(axis_index=axis_index, number_of_documents=number_of_points, timeout=timeout)
+            return [AxisStateRecord.deserialize_from_dict(d) for d in axis_data_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_points} AXIS {axis_index} state records from database")
+            return []
+    
+    def get_digital_in_state(self, number_of_points: int, timeout: float = 10) -> List[IOStateRecord]:
+        try:
+            message_documents = self.get_documents_from_collection(document_type=DocumentType.DIGITAL_INPUT_STATE, number_of_documents=number_of_points, timeout=timeout)
+            return [IOStateRecord.deserialize_from_dict(d) for d in message_documents]
+        except TimeoutError:
+            logger.error(f"Timed out getting {number_of_points} DIGITAL INPUT state records from database")
+            return []
+
     def get_messages(self, number_of_messages: int, timeout: float = 10) -> List[FrontendMessageRecord]:
         try:
             message_documents = self.get_documents_from_collection(document_type=DocumentType.FRONTEND_MESSAGE, number_of_documents=number_of_messages)

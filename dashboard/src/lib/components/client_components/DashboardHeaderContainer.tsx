@@ -6,6 +6,7 @@
 import Image from "next/image";
 import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { MutableRefObject } from "react";
+import { R2Button } from "./ClickButton";
 
 export function PagePanel(props: { className?: string; children?: ReactNode }) {
   return (
@@ -36,6 +37,9 @@ export function DashboardHeaderContainer(props: {
   className?: string;
   children: ReactNode;
   fill_tile_id: string;
+  button_text?: string;
+  button_callback?: () => void;
+  button_active?: boolean;
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   expansion_state?: boolean;
   set_expansion_state?: Dispatch<SetStateAction<boolean>>;
@@ -59,7 +63,8 @@ export function DashboardHeaderContainer(props: {
         props.className ?? ""
       }`}
     >
-      <div className="flex flex-row items-center p-2 rounded-xl group">
+      <div className="flex flex-row items-center p-2 rounded-xl group justify-between">
+        <div className="flex flex-row">
         <Image
           src={props.icon_path}
           alt={props.header_text}
@@ -86,6 +91,14 @@ export function DashboardHeaderContainer(props: {
         ) : (
           <></>
         )}
+        </div>
+        {
+          (props.button_callback && props.button_text && props.button_active) ?
+            <R2Button text={props.button_text} onClick={props.button_callback}/>
+          : <></>
+        }
+        
+
       </div>
       <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400">
         {props.children}

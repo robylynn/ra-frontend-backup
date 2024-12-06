@@ -6,10 +6,13 @@
 import { useState } from "react";
 import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 import DiagnosticsContainer from "@/app/diagnostics/diagnostics_container";
-import ROSContainer from "@/app/ros/ros_container";
+// import ROSContainer from "@/app/io_configuration/io_configuration_container";
+import IOConfigurationContainer from "@/app/io_configuration/io_configuration_container";
 import IOStateContainer from "@/app/io_state/io_state_container";
 import AnalogInputPlotContainer from "@/app/analog_input_plot/analog_input_plot_container";
-import MotionPlotContainer from "@/app/motion_plot/motion_plot_container";
+import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
+// import IOPlotContainer from "../io_plot/io_plot_container";
+import IOPlotPanel from "@/app/io_plot/io_plot_panel";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
@@ -31,17 +34,17 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${props.className ?? ""}
         `}
     >
-      <DiagnosticsContainer
+      {/* <DiagnosticsContainer
         id={"diagnostics"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "diagnostics"
         )}`}
         fill_tile_callback={setFillTile}
-      />
-      <ROSContainer
-        id={"ros"}
+      /> */}
+      <IOConfigurationContainer
+        id={"io_configuration"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "ros"
+          "io_configuration"
         )}`}
         fill_tile_callback={setFillTile}
       />
@@ -52,20 +55,31 @@ export default function DashboardMainPanel(props: { className?: string }) {
         )}`}
         fill_tile_callback={setFillTile}
       />
-      <AnalogInputPlotContainer
+      
+      <IOPlotPanel
+        id={"io_plot"}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "io_plot"
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
+
+      {/* <AnalogInputPlotContainer
         id={"analog_input_plot"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "analog_input_plot"
         )}`}
         fill_tile_callback={setFillTile}
-      />
-      <MotionPlotContainer
+      /> */}
+      
+      <MotionPlotPanel
         id={"motion_plot"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "motion_plot"
         )}`}
         fill_tile_callback={setFillTile}
       />
+
     </PagePanel>
   );
 }

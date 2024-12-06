@@ -31,6 +31,21 @@
             "outFiles": [
                 "${workspaceFolder}/.next/server/**/*.js"
             ],
+        },
+        {
+            "name": "Next.js: start server-side frontend app",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "yarn start",
+            "cwd": "${workspaceFolder}/dashboard",
+            "serverReadyAction": {
+                "pattern": "started server on .+, url: (https?://.+)",
+                "uriFormat": "%s",
+                // "action": "debugWithChrome"
+            },
+            "outFiles": [
+                "${workspaceFolder}/.next/server/**/*.js"
+            ],
         }
     ]
 }

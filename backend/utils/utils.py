@@ -69,6 +69,8 @@ def timeseries_record_dict_factory(dataclass):
     for field in dataclass:
         if isinstance(field[1], Enum):
             d[field[0]] = field[1].name
+        elif not isinstance(field[0], str):
+            d[str(field[0])] = field[1]
         elif field[0] == '_id':
             pass
         elif field[1] == None:

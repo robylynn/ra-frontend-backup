@@ -17,6 +17,10 @@ export default async function timeoutFetch<Type>(path: string, timeout: number):
 
   let ret: any;
   try {
+    // if (path.includes("digital_in")) {
+    //   let a = 5;
+
+    // }
     const fetch_response: NextAPIResponseInterface = await fetch(
       path,
       request_params
@@ -30,7 +34,6 @@ export default async function timeoutFetch<Type>(path: string, timeout: number):
     ret = fetch_response.data.data;
   } catch (e) {
     console.log(`fetcher error getting ${path}: ` + e);
-
     ret = null;
   }
 

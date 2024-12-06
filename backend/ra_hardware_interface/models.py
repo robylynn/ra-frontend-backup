@@ -33,7 +33,7 @@ class IOConfigurationException(Exception):
 class IOPoint:
     configuration: ROSIOPointConfiguration
 
-    configured: bool = False
+    # configured: bool = False
     state: bool | int | float | None = None
     transfer_function: ClassVar[Callable[[float], float]] = lambda x: x
 

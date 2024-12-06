@@ -1,109 +1,137 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState, useRef, useContext } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Topic } from 'roslib';
-import DashboardContext from "@/lib/models/dashboard_context";
+import React, { useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import WaitingIndicator from "@/lib/components/server_components/waiting_indicator";
+import { plotDateFormatter } from "@/lib/utils/plotDateFormatter";
+import { strokeColor } from "@/lib/utils/chartColorPicker";
+import { AxisData } from "@/lib/models/ros_models";
+import { AxisTimeDataInterface } from "@/lib/models/plotting_models";
+import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 
-const VelocityPlot = () => {
-  // Initialize state with an object of four arrays for velocity data
-  const [velocityData, setVelocityData] = useState({
-    axis_0: [],
-    axis_1: [],
-    axis_2: [],
-    axis_3: []
-  });
-  
-  
-  const subscriptions = useRef<Map<number, Topic>>(new Map<number, Topic>());
-  const { dashboardContext } = useContext(DashboardContext);
-
-  // Subscribe to the topics and update state
-  // NOTE: If you pass a function to the state update function, React passes
-  // the current state to the function and expects the new state to be returned. 
-  useEffect(() => {
-    const subscribeToVelocities = (axisIndex: number) => {
-      if (!subscriptions.current[axisIndex]) {
-        if (dashboardContext.ra_ros_websocket) {
-            subscriptions.current[axisIndex] = new Topic({
-                ros: dashboardContext.ra_ros_websocket,
-                name: `/axis_${axisIndex}/pos_vel`,
-                messageType: 'r2c_interfaces/EncoderEstimates'
-            });
-
-            subscriptions.current[axisIndex].subscribe((message) => {
-                setVelocityData((prevData) => {
-                    const newVelocityData = {
-                    ...prevData,
-                    [`axis_${axisIndex}`]: [
-                        ...prevData[`axis_${axisIndex}`],
-                        { time: new Date(), velocity: message.velocity }
-                    ].slice(-50) // Keep only the latest 50 data points
-                    };
-                    return newVelocityData;
-                });
-            });
-
-            console.log(`Subscribed to /axis_${axisIndex}/pos_vel`);
-        }
-        
-      }
-    };
-
-    // Subscribe to all 4 axis topics
-    [0, 1, 2, 3].forEach(subscribeToVelocities);
-
-    // Cleanup function to unsubscribe on component unmount
-    return () => {
-      [0, 1, 2, 3].forEach((axisIndex) => {
-        if (subscriptions.current[axisIndex]) {
-          subscriptions.current[axisIndex].unsubscribe();
-          subscriptions.current[axisIndex] = null;
-          console.log(`Unsubscribed from /axis_${axisIndex}/pos_vel`);
-        }
-      });
-    };
-  }, [dashboardContext.ra_ros_websocket]); 
-
-  // Combine data for plotting
-  const combinedData = velocityData.axis_0.map((_, index) => ({
-    time: velocityData.axis_0[index]?.time,
-    axis_0: velocityData.axis_0[index]?.velocity,
-    axis_1: velocityData.axis_1[index]?.velocity,
-    axis_2: velocityData.axis_2[index]?.velocity,
-    axis_3: velocityData.axis_3[index]?.velocity,
-  }));
+export const MotionPlot = (props: {
+  plot_key: string;
+  time_data: Array<AxisTimeDataInterface>;
+  plot_data: Record<number, Array<AxisData>>;
+  title: string;
+  data_key: string;
+  unit: string;
+  axes: Array<number>;
+  base_length: number;
+  selected_length: number;
+  selected_update_rate: number;
+  y_axis_transformation: (value: number) => number;
+  plot_length_setter: (plot_key: string, plot_length: number) => void;
+  plot_update_rate_setter: (plot_key: string, update_rate_secs: number) => void;
+}) => {
+  const [activeSeries, setActiveSeries] = useState<Array<number>>(props.axes);
+  const handleLegendClick = (axis_index: number) => {
+    if (activeSeries.includes(axis_index)) {
+      setActiveSeries(
+        activeSeries.filter((displayed_axis) => displayed_axis !== axis_index)
+      );
+    } else {
+      setActiveSeries((s) => [...s, axis_index]);
+    }
+  };
 
   return (
     <div>
-      <h2>Axes Velocities (rev/s)</h2>
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={combinedData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone"
-                dataKey="axis_0"
-                stroke="#8884d8"
-                isAnimationActive={true}
-                animationBegin={0}
-                animationDuration={1500}
-                animationEasing="ease-in-out" />
-          <Line type="monotone"
-                dataKey="axis_1"
-                stroke="#82ca9d"
-                isAnimationActive={false}
-                animationBegin={0}
-                animationDuration={50}
-                animationEasing="ease-in-out" />
-          <Line type="monotone" dataKey="axis_2" stroke="#ffc658" isAnimationActive={false} />
-          <Line type="monotone" dataKey="axis_3" stroke="#ff7300" isAnimationActive={false} />
-        </LineChart>
-      </ResponsiveContainer>
+      {Object.keys(props.plot_data)
+        .map((axis_index) => props.plot_data[axis_index].length)
+        .some((L) => L > 0) ? (
+        <>
+          <div className="flex flex-row justify-between">
+            <h2>{`${props.title} (${props.unit})`}</h2>
+            <select
+              onChange={(e) => {
+                props.plot_length_setter(
+                  props.plot_key,
+                  parseInt(e.target.value)
+                );
+              }}
+              value={props.selected_length}
+            >
+              {[
+                props.base_length,
+                props.base_length * 2,
+                props.base_length * 10,
+                props.base_length * 50,
+              ]
+                .sort((a, b) => (a > b ? a : b))
+                .map((p, i) => (
+                  <option key={i} value={p}>
+                    {p}
+                  </option>
+                ))}
+            </select>
+            <select
+              onChange={(e) => {
+                props.plot_update_rate_setter(
+                  props.plot_key,
+                  parseInt(e.target.value)
+                );
+              }}
+              value={props.selected_update_rate}
+            >
+              {[1, 5, 10].map((rate) => (
+                <option key={rate} value={rate}>
+                  {rate}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={props.time_data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                xAxisId="0"
+                dataKey="time"
+                tickFormatter={plotDateFormatter}
+              />
+              <YAxis label={{ value: props.unit ?? "", angle: -90 }} />
+              <Tooltip />
+              <Legend
+                onClick={(props) =>
+                  handleLegendClick(
+                    parseInt((props.payload as any).id as string)
+                  )
+                }
+              />
+              {Object.keys(props.plot_data).map((axis_key, axis_index) => (
+                <Line
+                  id={axis_index.toString()}
+                  key={axis_index.toString()}
+                  hide={!activeSeries.includes(axis_index)}
+                  type="monotone"
+                  name={`Axis ${axis_index}`}
+                  dataKey={props.data_key}
+                  // dataKey={axis_index}
+                  data={props.plot_data[axis_key]}
+                  stroke={`#${strokeColor(axis_index)}`}
+                  isAnimationActive={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </>
+      ) : (
+        <>
+          <WaitingIndicator text="WAITING FOR DATA" />
+          <LoadingIndicator text="WAITING FOR DATA" />
+        </>
+      )}
     </div>
   );
 };
 
-export default VelocityPlot;
+export default MotionPlot;
