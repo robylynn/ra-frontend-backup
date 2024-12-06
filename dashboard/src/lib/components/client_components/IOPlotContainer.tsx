@@ -353,9 +353,9 @@ const IOPlots = (props: {
                 });
 
                 return (
-                  <>
+                  
                     <DataPlot
-                      key={plot_index.toString()}
+                      key={plot_index}
                       data_type={props.point_type}
                       // point_type_name={point_type_name}
                       data_sources={plot_configuration.data_sources.sort(
@@ -441,7 +441,7 @@ const IOPlots = (props: {
                         });
                       }}
                     />
-                  </>
+                  
                 );
               }
             )}
@@ -466,7 +466,7 @@ const IOPlotContainer = (props: { point_type: IOPointType }) => {
   const { dashboardContext } = useContext(DashboardContext);
 
   return (
-    <PlotContextProvider>
+    // <PlotContextProvider>
       <IOPlots
         default_length={100}
         default_update_rate={5}
@@ -476,7 +476,7 @@ const IOPlotContainer = (props: { point_type: IOPointType }) => {
           [...dashboardContext.configuration.io_plots[props.point_type]] ?? undefined
         }
       />
-    </PlotContextProvider>
+    //</PlotContextProvider>
   );
 };
 

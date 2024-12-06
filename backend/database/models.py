@@ -14,6 +14,7 @@ from dataclasses import (
     is_dataclass
 )
 from datetime import datetime
+from functools import singledispatch
 from typing import (
     ClassVar, 
     Dict, 
@@ -134,9 +135,25 @@ class MongoTimeseriesRecord:
     def deserialize_from_dict(record: Dict) -> "MongoTimeseriesRecord":
         return mongo_record_deserializer(record=record, record_class=MongoTimeseriesRecord)
 
+    # @singledispatch
+    # def keys_to_strings(self, ob):
+    #     return ob
+
+    # @keys_to_strings.register
+    # def _handle_dict(self, ob: dict):
+    #     return {str(k): self.keys_to_strings(v) for k, v in ob.items()}
+
+    # @keys_to_strings.register
+    # def _handle_list(self, ob: list):
+    #     return [self.keys_to_strings(v) for v in ob]
+
+    @property
+    def formatted_data_dict(self) -> Dict:
+        return json.loads(json.dumps(self._data_dict))
+
     def serialize_to_dict(self) -> Dict[str, Any]:
         sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
-        serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self._data_dict, 'record_hash': self.record_hash}
+        serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self.formatted_data_dict, 'record_hash': self.record_hash}
         serialized['metadata'] = sparse_metadata
         return serialized
 

@@ -112,12 +112,14 @@ class PlotConfiguration(BaseModel):
     data_sources: List[int] = Field(default=[])
     length: int = Field(default=100)
     update_rate: int = Field(default=5)
+    plot_type: str = Field(default="")
+
 
 # @dataclass
 class UIConfiguration(BaseModel):
     client_id: int
     # plots: Optional[List[PlotConfiguration]] = []
     # plots: List[PlotConfiguration] = Field(default=[])
-    io_plots: Dict[IOPointType, List[PlotConfiguration]] = Field(default={})
+    io_plots: Dict[IOPointType | int, List[PlotConfiguration]] = Field(default={})
     motion_plots: List[PlotConfiguration] = Field(default=[])
     

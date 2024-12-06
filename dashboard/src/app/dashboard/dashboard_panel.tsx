@@ -34,13 +34,13 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${props.className ?? ""}
         `}
     >
-      <DiagnosticsContainer
+      {/* <DiagnosticsContainer
         id={"diagnostics"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "diagnostics"
         )}`}
         fill_tile_callback={setFillTile}
-      />
+      /> */}
       <IOConfigurationContainer
         id={"io_configuration"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(

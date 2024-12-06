@@ -466,13 +466,14 @@ function MotionPlots(props: {
     return data_arrays;
   };
 
-  return dashboardContext.configuration?.configured ? (
+  return (dashboardContext.configuration?.configured && dashboardContext.hardware_configuration != undefined) ? (
     <>
       {/* {Object.keys(plotDataBuffers).map((plot_key, _) => ( */}
       {dashboardContext.configuration.motion_plots.map(
         (plot_configuration, plot_index) => (
           <DataPlot
-            data={completeAxisData[plot_index]}
+          key={plot_index}  
+          data={completeAxisData[plot_index]}
             data_type={AxisDataType.VELOCITY}
             data_parser={(data) =>
               data ? parseDataByType(data as PlotAxisData, plot_configuration.plot_type) : []

@@ -137,14 +137,15 @@ const IODisplay = () => {
       {dashboardContext.ra_ros_websocket ? (
         <div className="flex flex-col w-full items-center">
           {[IOPointType.ANALOG_INPUT, IOPointType.DIGITAL_INPUT].map(
-            (io_point_type) => {
+            (io_point_type, display_index) => {
               return (
-                <div className="border rounded w-full m-2">
+                <div key={display_index} className="border rounded w-full m-2">
                   <p className="text-r2-white font-bold">{`${IOPointTypeFriendlyName[io_point_type].toString()}s`}</p>
                   {IOPoints?.getConfiguredIOPoints(io_point_type).map(
-                    (configuration) => (
+                    (configuration, point_index) => (
                       <AnalogInputDisplayElement
-                        configuration={configuration}
+                      key={point_index}  
+                      configuration={configuration}
                       />
                     )
                   )}
