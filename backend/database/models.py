@@ -28,21 +28,21 @@ from enum import (
     Enum,
     auto
 )
-from ra_hardware_interface.models import (
+from backend.ra_hardware_interface.models import (
     IOSystem,
     Sensors
 )
-from frontend.models import (
+from backend.frontend.models import (
     FrontendMessage
 )
-from utils.utils import (
+from backend.utils.utils import (
     timeseries_record_dict_factory
 )
-from config.models import (
+from backend.config.models import (
     DocumentType,
     HardwareConfiguration,
 )
-from api.models import UIConfiguration
+from backend.api.models import UIConfiguration
 
 class MongoInterfaceException(Exception):
     pass

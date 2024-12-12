@@ -1,6 +1,7 @@
-import { WebSocket, WebSocketServer, ErrorEvent } from "ws";
-import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { ErrorEvent, WebSocket, WebSocketServer } from "ws";
+
 import authOptions from "@/lib/auth/auth_options";
 import { createAPIResponse } from "@/lib/models/api_models";
 import { socketPassthrough } from "@/lib/utils/socketPassthrough";

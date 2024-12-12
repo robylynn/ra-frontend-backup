@@ -1,7 +1,10 @@
 {
-  "semi": false,
+  "semi": true,
   "trailingComma": "es5",
   "singleQuote": true,
   "tabWidth": 4,
-  "useTabs": false
+  "useTabs": false,
+  "plugins": ["prettier-plugin-organize-imports"],
+  "importOrder": ["^@core/(.*)$", "<THIRD_PARTY_MODULES>", "^@server/(.*)$", "^@ui/(.*)$", "^[./]"],
+  "importOrderSeparation": true
 }

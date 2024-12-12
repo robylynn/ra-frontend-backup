@@ -13,8 +13,8 @@ from dataclasses import (
 )
 from enum import Enum, auto
 
-from utils.utils import websocket_message_dict_factory
-from config.models import (
+from backend.utils.utils import websocket_message_dict_factory
+from backend.config.models import (
     IOPointType
 )
 

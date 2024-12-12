@@ -3,7 +3,7 @@ import dacite, os, yaml
 from loguru import logger
 from typing import Dict
 
-from config.models import (
+from backend.config.models import (
     SystemConfiguration,
     DocumentType
 )

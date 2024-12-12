@@ -1,6 +1,8 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
+"use client"
+
 import React, { useEffect, useContext, useState } from "react";
 import IOPointContainer from "@/lib/components/client_components/IOPointContainer";
 // import DashboardContext from "@/lib/models/dashboard_context";

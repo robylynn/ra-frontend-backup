@@ -1,15 +1,15 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-// "use client";
+"use client";
 
-import { useContext, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
 
-import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
-import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
-// import MotionPlot from '@/lib/components/client_components/MotionPlot';
+import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import { MotionPlotContainer } from "@/lib/components/client_components/MotionPlotContainer";
+import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
+// import MotionPlot from '@/lib/components/client_components/MotionPlot';
 // import SimpleMotionPlot from "@/lib/components/client_components/SimpleMotionPlot";
 // import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
 // import { IOPointType } from "@/lib/models/api_models";
@@ -23,7 +23,7 @@ export default function MotionPlotPanel(props: {
 }) {
   const { dashboardContext } = useContext(DashboardContext);
   const save_configuration = async () => {
-    let res: NextAPIResponseInterface = await fetch(
+    const res: NextAPIResponseInterface = await fetch(
       "api/backend/ui/configuration",
       {
         method: "POST",

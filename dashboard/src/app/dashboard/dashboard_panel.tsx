@@ -4,15 +4,13 @@
 "use client";
 
 import { useState } from "react";
-import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
+
 import DiagnosticsContainer from "@/app/diagnostics/diagnostics_container";
-// import ROSContainer from "@/app/io_configuration/io_configuration_container";
 import IOConfigurationContainer from "@/app/io_configuration/io_configuration_container";
-import IOStateContainer from "@/app/io_state/io_state_container";
-import AnalogInputPlotContainer from "@/app/analog_input_plot/analog_input_plot_container";
-import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
-// import IOPlotContainer from "../io_plot/io_plot_container";
 import IOPlotPanel from "@/app/io_plot/io_plot_panel";
+import IOStateContainer from "@/app/io_state/io_state_container";
+import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
+import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
@@ -48,6 +46,7 @@ export default function DashboardMainPanel(props: { className?: string }) {
         )}`}
         fill_tile_callback={setFillTile}
       />
+      
       <IOStateContainer
         id={"io_state"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(

@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import (
+from backend.api.routers import (
     auth_router,
     state_router,
     ui_router,
@@ -11,7 +11,7 @@ from api.routers import (
     streams_router
 )
 
-from system_initializer import initialize
+from backend.system_initializer import initialize
 
 ra_backend_server = FastAPI()
 

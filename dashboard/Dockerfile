@@ -8,7 +8,7 @@ COPY src ./src
 COPY public ./public
 COPY [\
     "package.json", \
-    "package-lock.json",\
+    "yarn.lock",\
     "postcss.config.js",\
     "tailwind.config.js",\
     "tsconfig.json",\
@@ -19,7 +19,8 @@ COPY [\
 COPY ["next.config.production.js", "./next.config.js"]
 COPY [".env.production", "./.env"]
 
-RUN ["npm", "i"]
-RUN ["npm", "run", "build"]
+RUN ["yarn", "install"]
+RUN ["npx", "next-ws-cli@latest", "patch"]
+RUN ["yarn", "build"]
 
-CMD ["npm", "run", "start"]
+CMD ["yarn", "start"]

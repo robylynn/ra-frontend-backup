@@ -5,7 +5,7 @@ from typing import (
     Any
 )
 
-from database.models import (
+from backend.database.models import (
     DocumentType,
     MongoTimeseriesRecord,
     MongoAxisTimeseriesRecord,

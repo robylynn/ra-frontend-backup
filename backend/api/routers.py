@@ -11,7 +11,7 @@ from typing import (
 )
 from loguru import logger
 
-import system_initializer as initializer
+import backend.system_initializer as initializer
 
 from auth.models import UserLoginSchema
 from auth.jwt_handler import signJWT

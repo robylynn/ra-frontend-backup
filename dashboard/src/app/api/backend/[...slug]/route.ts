@@ -25,7 +25,7 @@ async function proxyBackendRequest(params: {
   }
   catch (e) {}
 
-  let query_params = params.request.nextUrl.searchParams;
+  const query_params = params.request.nextUrl.searchParams;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -36,7 +36,7 @@ async function proxyBackendRequest(params: {
   if (query_params.size > 0)
     backend_path += ("?" + query_params.toString());
 
-  let request_params: RequestInit = {
+  const request_params: RequestInit = {
     method: params.request.method,
     headers: { "Content-Type": "application/json" },
     signal: controller.signal,
@@ -47,7 +47,7 @@ async function proxyBackendRequest(params: {
     request_params.body = JSON.stringify(payload);
   }
 
-  let res = await fetch(backend_path, request_params).then((res) => res.json());  
+  const res = await fetch(backend_path, request_params).then((res) => res.json());  
 
   clearTimeout(timeoutId);
 
@@ -60,8 +60,7 @@ async function proxyBackendRequest(params: {
 }
 
 function handleError(e: any, request: NextRequest, slug: string[]) {
-  let error_message;
-  error_message = e.toString();
+  const error_message = e.toString();
 
   console.error(
     `${request.method} to backend ${slug.join(

@@ -37,7 +37,7 @@ from multiprocessing.connection import Connection
 from threading import Thread
 from datetime import datetime
 
-from database.models import (
+from backend.database.models import (
     MongoInterfaceException,
     MongoCloudInterfaceException,
     MongoLocalInterfaceException,
@@ -56,14 +56,14 @@ from database.models import (
     DocumentType
 )
 
-from config.models import (
+from backend.config.models import (
     MongoConfiguration,
     MongoInstanceConfiguration,
     DatabaseCollectionsConfiguration,
     HardwareConfiguration,
 )
 
-from api.models import (
+from backend.api.models import (
     UIConfiguration
 )
 
