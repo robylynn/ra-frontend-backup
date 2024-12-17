@@ -1,0 +1,126 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo
+    container_name: ra_database
+    hostname: ra_database
+    environment:
+      - PUID=$DOCKER_UID
+      - PGID=$DOCKER_GID
+    volumes:
+      - $HOST_DB_STORAGE_PATH:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      backend:
+        ipv4_address: 172.23.0.51
+    restart: unless-stopped
+  
+  mongo_ui:
+    image: samueltallet/mongodb-php-gui
+    container_name: ra_database_ui
+    hostname: ra_database_ui
+    ports:
+      - 5001:5000
+    extra_hosts:
+      - "localhost:172.17.0.1"
+    networks:
+      backend:
+        ipv4_address: 172.23.0.52
+    restart: unless-stopped
+
+  ra_frontend:
+    build:
+      context: ./dashboard
+      dockerfile: ./Dockerfile
+      args:
+        - APP_WORKDIR=$APP_WORKDIR
+    image: r2/ra_frontend
+    container_name: ra_frontend
+    hostname: ra_frontend
+    environment:
+      - HOST=0.0.0.0
+      - PORT=80
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 3000:3000
+      - 80:80  
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - backend
+      # - frontend
+    restart: unless-stopped
+
+  ra_backend:
+    build: 
+      # context: ./backend
+      context: ./
+      dockerfile: ./backend/Dockerfile
+      args:
+        - APP_WORKDIR=$APP_WORKDIR
+        - PROJECT_ROOT=$PROJECT_ROOT  
+        # - BACKEND_MODULE_NAME=$BACKEND_MODULE_NAME
+        # - CONTAINER_DEPLOYMENT_FILES_DIR=$CONTAINER_DEPLOYMENT_FILES_DIR
+        # - CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY=$CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY
+        # - DEPLOYMENT_USER_CODE_DIR=$DEPLOYMENT_USER_CODE_DIR
+        # - DOCKER_UID=$DOCKER_UID
+        # - DOCKER_GID=$DOCKER_GID
+        # - HOST_LOG_FILE_DIR=$HOST_LOG_FILE_DIR
+        # - HOST_CONFIG_FILE_DIR=$HOST_CONFIG_FILE_DIR
+    image: r2/ra_backend
+    container_name: ra_backend
+    hostname: ra_backend
+    environment:
+      - APP_WORKDIR=$APP_WORKDIR
+      # - PROJECT_ROOT=$PROJECT_ROOT
+      # - BACKUP_LOG_DIRECTORY_ROOT=$BACKUP_LOG_DIRECTORY_ROOT
+      - CONFIG_FILE=$CONFIG_FILE
+      # - CONTROL_LOOP_CONFIG_FILE=$CONTROL_LOOP_CONFIG_FILE_NAME
+      - CONFIG_FILE_DIR=$CONFIG_FILE_DIR
+      # - CONTAINER_DEPLOYMENT_FILES_DIR=$CONTAINER_DEPLOYMENT_FILES_DIR
+      # - CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY=$CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY
+      - CONTAINERIZED=true
+      - DATABASE_CONTAINER_NAME=ra_database
+      # - DOCKER_UID=$DOCKER_UID
+      # - DOCKER_GID=$DOCKER_GID
+      # - DATABASE_IP=172.23.0.51
+      # - DEPLOYMENT_USER_CODE_DIR=$DEPLOYMENT_USER_CODE_DIR
+      # - DATA_LOG_DIRECTORY_NAME=data_logs
+      # - EVENT_LOG_DIRECTORY_NAME=event_logs
+      # - LOG_DIRECTORY_ROOT=$LOG_DIRECTORY_ROOT
+      - HOST_HOSTNAME=$HOST_HOSTNAME
+      # - HOST_SCRIPTS_DIR=$HOST_SCRIPTS_DIR
+      # - HOST_CONFIG_FILE_DIR=$HOST_CONFIG_FILE_DIR
+      # - HOST_LOG_FILE_DIR=$HOST_LOG_FILE_DIR
+      # - CONTAINER_BACKEND_NETWORK_NAME=backend
+      # - DATABASE_CONTAINER_NAME=$DATABASE_CONTAINER_NAME
+      # - MQTT_BROKER_CONTAINER_NAME=$MQTT_BROKER_CONTAINER_NAME
+      # - PYTHONPATH=$CONTAINER_PYTHONPATH
+      # - SIMULATE_HARDWARE=$SIMULATE_PLC
+      # - USER_CODE_DIR=$USER_CODE_DIR
+    volumes:
+      # - $HOST_BACKUP_LOG_DIRECTORY_ROOT:$BACKUP_LOG_DIRECTORY_ROOT:rw
+      # - $HOST_DEPLOYMENT_FILES_DIR/$HOST_LOG_FILE_DIR:$APP_WORKDIR/$HOST_LOG_FILE_DIR:rw
+      # - $HOST_DEPLOYMENT_FILES_DIR/$HOST_CONFIG_FILE_DIR:$APP_WORKDIR/$HOST_CONFIG_FILE_DIR:rw
+      # - $HOST_DEPLOYMENT_FILES_DIR/$DEPLOYMENT_USER_CODE_DIR:$APP_WORKDIR/$DEPLOYMENT_USER_CODE_DIR:rw
+      - $PROJECT_ROOT/$CONFIG_FILE_DIR:$APP_WORKDIR/config:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8000:8000
+    networks:
+      # - backend
+      backend:
+        ipv4_address: 172.23.0.50
+    user: "${DOCKER_UID}:${DOCKER_GID}"
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/24

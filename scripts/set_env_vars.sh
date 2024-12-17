@@ -8,6 +8,7 @@ export PROJECT_ROOT=/home/$USER/r2/ra-frontend
 export APP_WORKDIR=/app
 export CONFIG_FILE_DIR=config
 export CONFIG_FILE=system_configuration.yaml
+export HOST_HOSTNAME=$(hostname)
 
 export DOCKER_UID="$(id $USER | sed -nr 's/.*uid=(....)\(.*\).*/\1/p')"
 export DOCKER_GID="$(id $USER | sed -nr 's/.*gid=(....)\(.*\).*/\1/p')"

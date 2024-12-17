@@ -14,11 +14,13 @@ export async function SOCKET(
 ) {
     await socketPassthrough({
         socket_name: 'ros_websocket',
-        proxy_address: '127.0.0.1:9090',
+        proxy_address: `${process.env.ROS_HOST}:9090`,
         client: client,
         server: server,
         request: request,
     })
+
+    
 
     // let z = socketPassthrough;
     return

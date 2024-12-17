@@ -38,6 +38,7 @@ export default function RootLayout({
               />
               <RAWebSocket
                 websocket_path="/api/socket"
+                // websocket_path={`${process.env.CONTROLLER_URI}/api/socket`}
                 reconnect_period_seconds={1}
               />
               <body className={inter.className}>

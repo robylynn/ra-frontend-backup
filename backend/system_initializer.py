@@ -1,20 +1,20 @@
-from config.models import (
+from backend.config.models import (
     SystemConfiguration
 )
 
-from utils.utils import (
+from backend.utils.utils import (
     safe_load_configuration_files
 )
 
-from frontend.models import (
+from backend.frontend.models import (
     RAFrontend
 )
 
-from database.interface import (
+from backend.database.interface import (
     MongoInterface
 )
 
-from ra_hardware_interface.ra_interface import (
+from backend.ra_hardware_interface.ra_interface import (
     RAInterface
 )
 

@@ -378,40 +378,6 @@ export default function RAWebSocket(props: {
       // console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
     };
   }, [reconnectCounter]);
-  // }, [dashboardContext.ra_ros_websocket]);
-
-  // useEffect(() => {
-  //   const subscribeToAnalogInputs = () => {
-  //     if (!analog_in_subscription.current) {
-  //       if (dashboardContext.ra_ros_websocket) {
-  //         analog_in_subscription.current = new Topic({
-  //           ros: dashboardContext.ra_ros_websocket,
-  //           name: `/gpio/analog_in_electrical_units`,
-  //           messageType: "r2c_interfaces/AnalogInData",
-  //         });
-
-  //         analog_in_subscription.current.subscribe((message) => {
-  //           setContext((c) => {
-  //             console.log("got analog in data")
-  //             return {...c, analog_in_data: message as AnalogInData}
-  //           })
-
-  //         });
-
-  //         console.log(`Subscribed to /gpio/analog_in_electrical_units`);
-  //       }
-  //     }
-  //   };
-
-  //   subscribeToAnalogInputs();
-  //   // Cleanup function to unsubscribe on component unmount
-  //   return () => {
-  //     if (analog_in_subscription.current)
-  //       analog_in_subscription.current.unsubscribe();
-  //     analog_in_subscription.current = null;
-  //     console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
-  //   };
-  // }, [dashboardContext.ra_ros_websocket]);
 
   useEffect(() => {
     return () => {

@@ -50,14 +50,6 @@ export default function DataUpdater(props: {
         return () => clearInterval(intervalId);
     }, []);
 
-    // useEffect(() => {
-    //   const intervalId = setInterval(() => {
-    //     setTestUpdateCounter((counter) => counter + 1);
-    //     console.log("test ionterval")
-    //   }, 0.1 * 1000);
-    //   return () => clearInterval(intervalId);
-    // }, []);
-
     useEffect(() => {
         const fetch_ui_configuration = async () => {
             try {
@@ -140,8 +132,6 @@ export default function DataUpdater(props: {
 
         fetch_io_configuration();
     }, [configurationUpdateCounter]);
-
-
 
     useEffect(() => {
       const heartbeat = async () => {
