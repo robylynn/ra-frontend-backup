@@ -188,11 +188,11 @@ class DatabaseInstance:
                 logger.info(f"Timeseries collection {stored_collection_name} does not exist, creating...")
                 kwargs = dict(
                     name=stored_collection_name,
-                    timeseries={
-                        'timeField': 'timestamp',
-                        'metaField': 'metadata',
-                        'granularity': 'seconds'
-                    } if not collection_configuration.capped else None,
+                    # timeseries={
+                    #     'timeField': 'timestamp',
+                    #     'metaField': 'metadata',
+                    #     'granularity': 'seconds'
+                    # } if not collection_configuration.capped else None,
                     capped=collection_configuration.capped,
                     size=collection_configuration.collection_size_bytes if collection_configuration.capped else None
                 )
