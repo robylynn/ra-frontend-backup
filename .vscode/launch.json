@@ -23,6 +23,9 @@
             "request": "launch",
             "command": "yarn dev",
             "cwd": "${workspaceFolder}/dashboard",
+            "env": {
+                "NEXTAUTH_URL": "http://localhost:3000"
+            },
             "serverReadyAction": {
                 "pattern": "started server on .+, url: (https?://.+)",
                 "uriFormat": "%s",
