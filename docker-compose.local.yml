@@ -7,6 +7,9 @@ services:
     environment:
       - PUID=$DOCKER_UID
       - PGID=$DOCKER_GID
+      - MONGO_INITDB_ROOT_USERNAME=r2
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=ra_data
     volumes:
       - $HOST_DB_STORAGE_PATH:/data/db
     ports:

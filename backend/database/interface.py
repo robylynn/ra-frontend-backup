@@ -110,7 +110,8 @@ class DatabaseInstance:
                 socketTimeoutMS=self.configuration.socket_timeout_ms,
                 username=self.configuration.username,
                 password=self.configuration.password,
-                authSource=self.configuration.database_name,
+                # authSource=self.configuration.database_name,
+                authSource="admin",
                 directConnection=True
             )
 
