@@ -1,3 +1,5 @@
+"use client"
+
 import { R2Button } from '@/lib/components/client_components/ClickButton'
 import LoadingIndicator from '@/lib/components/server_components/loading_indicator'
 import {

@@ -44,7 +44,7 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=80
-      - NEXTAUTH_URL="http://192.168.2.201:80"
+      - NEXTAUTH_URL=http://192.168.2.201:80
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
