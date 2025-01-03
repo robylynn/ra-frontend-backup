@@ -190,6 +190,9 @@ const IOPlots = (props: {
             if (data.length) {
               setCompleteIOData((d) => ({ ...d, [plot_index]: data }));
               initialDataAcquired.current[plot_index] = true;
+            } else {
+              setCompleteIOData((d) => ({ ...d, [plot_index]: [] }));
+              initialDataAcquired.current[plot_index] = true;
             }
           });
         }

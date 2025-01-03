@@ -23,8 +23,12 @@ export default function ConnectionStateIndicator(props: {
         dashboardContext.heartbeat && session
             ? 'bg-r2-green-500'
             : 'bg-r2-red-300'
+    // const connection_text = session
+    //     ? `BACKEND SERVER ${dashboardContext.heartbeat ? 'ONLINE' : 'OFFLINE'}`
+    //     : 'NOT LOGGED IN'
+
     const connection_text = session
-        ? `BACKEND SERVER ${dashboardContext.heartbeat ? 'ONLINE' : 'OFFLINE'}`
+        ? `BACKEND SERVER ONLINE`
         : 'NOT LOGGED IN'
 
     const websocket_text = () => {

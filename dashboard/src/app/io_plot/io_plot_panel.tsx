@@ -48,7 +48,7 @@ export default function IOPlotPanel(props: {
     >
       {/* {dashboardContext.configuration?.configured ? ( */}
       <>
-        <IOPlotContainer point_type={IOPointType.ANALOG_INPUT} />
+        {/* <IOPlotContainer point_type={IOPointType.ANALOG_INPUT} /> */}
         <IOPlotContainer point_type={IOPointType.DIGITAL_INPUT} />
       </>
     </DashboardHeaderContainer>
