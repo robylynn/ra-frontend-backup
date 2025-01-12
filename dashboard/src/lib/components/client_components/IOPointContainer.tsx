@@ -7,8 +7,6 @@ import React, {
   useEffect,
 } from "react";
 import Modal from "@/lib/components/client_components/Modal";
-// import { DigitalInputContext } from "@/lib/components/client_components/DigitalInputContext";
-// import DashboardContext from "@/lib/models/dashboard_context";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import {
   AnalogIOPointType,
@@ -16,7 +14,6 @@ import {
   IOPointType,
   TransferFunctionType,
 } from "@/lib/models/api_models";
-// import { useRos } from '../ros/RosContext';
 import {
   R2Button,
   R2SliderToggle,
@@ -58,6 +55,7 @@ const IOPointContainer = ({
     updatedIOPoint: IOPointConfiguration,
     onSuccess = () => {},
     onComplete = () => {},
+    is_config_request: boolean = false,
     is_enable_disable_request: boolean = false
   ) => {
     // Check if the config service is available
@@ -75,6 +73,7 @@ const IOPointContainer = ({
       case IOPointType.ANALOG_INPUT: {
         request_data = {
           is_enable_disable_request: is_enable_disable_request,
+          is_config_request: is_config_request,
           config: {
             channel: updatedIOPoint.channel,
             hardware_config: {
@@ -96,6 +95,7 @@ const IOPointContainer = ({
       case IOPointType.DIGITAL_INPUT: {
         request_data = {
           is_enable_disable_request: is_enable_disable_request,
+          is_config_request: is_config_request,
           config: {
             channel: updatedIOPoint.channel,
             hardware_config: {
@@ -122,11 +122,6 @@ const IOPointContainer = ({
         if ((result as any).success) {
           console.log("Service call successful:", result);
 
-          // updatedIOPoint.configured = true;
-          // updatePoint(updatedIOPoint);
-          // setShowConfig(false); // Hide the config dialog only on success
-          // setIsConfigOpen(false); // Notify parent component that config is closed
-
           if (onSuccess) onSuccess();
         } else {
           console.error("Failed to update configuration");
@@ -140,7 +135,6 @@ const IOPointContainer = ({
         setErrorMessage("Configuration update failed: " + error);
       })
       .finally(() => {
-        // setIsLoading(false); // Set loading state to false
         if (onComplete) onComplete();
       });
   };
@@ -171,7 +165,9 @@ const IOPointContainer = ({
         setShowConfig(false);
         setIsConfigOpen(false);
       },
-      () => setIsLoading(false)
+      () => setIsLoading(false),
+      true,
+      false
     );
   };
 
@@ -202,7 +198,6 @@ const IOPointContainer = ({
   };
 
   const handleToggleChange = (e) => {
-    // const handleToggleChange = (e: React.ChangeEvent) => {
     const { checked } = e.target;
 
     // Validate enabling the input
@@ -219,10 +214,6 @@ const IOPointContainer = ({
       }
     }
 
-    // const updatedIOPoint: IOPointConfiguration = {
-    //   ...io_point,
-    //   enabled: checked,
-    // };
     let updatedIOPoint = io_point.copy();
     updatedIOPoint.enabled = checked;
     callConfigService(
@@ -231,6 +222,7 @@ const IOPointContainer = ({
         updatePoint(updatedIOPoint);
       },
       undefined,
+      false,
       true
     );
   };

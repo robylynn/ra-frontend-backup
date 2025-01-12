@@ -17,8 +17,14 @@ export interface AnalogInConfig {
     transfer_function_type: number
 }
 
-export interface AnalogInConfigurationServiceInterface {
+export interface IOConfigurationServiceInterface {
+    is_config_request: boolean
     is_enable_disable_request: boolean
+}
+
+export interface AnalogInConfigurationServiceInterface extends IOConfigurationServiceInterface {
+    // is_config_request: boolean
+    // is_enable_disable_request: boolean
     config: AnalogInConfig
 }
 
@@ -34,8 +40,9 @@ export interface DigitalInConfig {
     label: string
 }
 
-export interface DigitalInConfigurationServiceInterface {
-    is_enable_disable_request: boolean
+export interface DigitalInConfigurationServiceInterface extends IOConfigurationServiceInterface {
+    // if_config_request
+    // is_enable_disable_request: boolean
     config: DigitalInConfig
 }
 

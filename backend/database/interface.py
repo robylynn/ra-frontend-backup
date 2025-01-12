@@ -513,7 +513,8 @@ class DatabasePusher(DatabaseThread):
 
                         except (ServerSelectionTimeoutError, MongoInterfaceException, AutoReconnect) as e:
                             logger.error(f"Connection to mongodb instance refused, reenqueueing records in {queue_name}. Received error: {e}")
-                            queue.put(queue_entry)
+                            for record in reversed(records_buffer):
+                                queue.put(record)
                             self.local_connection_alive = False
                             break
 
