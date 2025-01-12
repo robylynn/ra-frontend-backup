@@ -1,7 +1,7 @@
 database:
   database_synchronization_period_sec: 2
   synchronization_batch_size: 100
-  queue_length_warning_threshold: 10
+  queue_length_warning_threshold: 1000
   queue_get_timeout_secs: 0.1
 
   collections:
@@ -51,6 +51,7 @@ database:
     socket_timeout_ms: 5000
     server_selection_timeout_ms: 5000
     cycle_count_before_yield: 150
+    batch_insertion_size: 10
     host: 127.0.0.1
     # host: "172.23.0.51"
     port: 27017
@@ -65,6 +66,7 @@ database:
     socket_timeout_ms: 15000
     server_selection_timeout_ms: 10000
     cycle_count_before_yield: 5
+    batch_insertion_size: 10
     host: 172.25.0.51
     port: 27017
     username: r2

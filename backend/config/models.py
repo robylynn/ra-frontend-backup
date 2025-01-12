@@ -80,6 +80,7 @@ class MongoInstanceConfiguration:
     server_selection_timeout_ms: int
     socket_timeout_ms: int
     cycle_count_before_yield: int
+    batch_insertion_size: int
     host: str
     port: int
     username: str

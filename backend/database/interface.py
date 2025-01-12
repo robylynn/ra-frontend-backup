@@ -267,6 +267,27 @@ class DatabaseQueue:
             logger.error(f"Queue {self.name} failed to insert record for machine {document.metadata.machine_uid} with timestamp {document.timestamp} into local collection")
             raise MongoInterfaceException
     
+    def insert_many_documents_locally(self, documents: List[MongoTimeseriesRecord]):
+        target_collection = self.parent_container.interface_state.local.get_collection(document_type=self.document_type)
+        if documents[0].metadata.document_type != self.document_type:
+            raise MongoInterfaceException(f"Wrong document type {documents[0].metadata.document_type} given to database queue for {self.document_type}")
+
+        temp_commit_serial_number = self._commit_serial_number
+        for document in documents:
+            document.metadata.commit_serial_number = temp_commit_serial_number
+            temp_commit_serial_number += 1
+
+        # document.metadata.commit_serial_number = self._commit_serial_number
+        # local_insertion_result = target_collection.insert_one(document.serialize_to_dict())
+        local_insertion_result = target_collection.insert_many([d.serialize_to_dict() for d in documents])
+        # self._commit_serial_number += 1
+        self._commit_serial_number = temp_commit_serial_number
+
+        if not local_insertion_result.acknowledged:
+            logger.error(f"Queue {self.name} failed to insert record for machine {document.metadata.machine_uid} with timestamp {document.timestamp} into local collection")
+            raise MongoInterfaceException
+
+    
     def synchronize_databases(self, batch_size: int):
         # TODO Implement later
         try:
@@ -380,7 +401,7 @@ class RADatabaseQueues:
     def check_queue_sizes(self):
         for queue_name, queue in self.queues_generator:
             if queue.qsize > self.configuration.queue_length_warning_threshold:
-                logger.warning(f"Database queue {queue_name} length above warning threshold of {self.configuration.queue_length_warning_threshold}")
+                logger.warning(f"Database queue {queue_name} length is {queue.qsize} and is above warning threshold of {self.configuration.queue_length_warning_threshold}")
 
     @staticmethod
     def queue_attribute_name(collection_name: str) -> str:
@@ -469,11 +490,25 @@ class DatabasePusher(DatabaseThread):
                     if queue == None: continue
 
                     self._cycle_count = 0
+
                     while not queue.empty:
-                        queue_entry = queue.get()
+                        # queue_entry = queue.get()
+                        # queue_entries
+
+                        records_buffer = []
+                        while not queue.empty or len(records_buffer) < self._interface_state.local.configuration.batch_insertion_size:
+                            try:
+                                entry = queue.get_nowait()
+                                records_buffer.append(entry)
+                            except Empty:
+                                break
+                                # pass
+                            
 
                         try:
-                            queue.insert_document_locally(document=queue_entry)
+                            queue.insert_many_documents_locally(documents=records_buffer)
+                            
+                            # queue.insert_document_locally(document=queue_entry)
                             self.local_connection_alive = True
 
                         except (ServerSelectionTimeoutError, MongoInterfaceException, AutoReconnect) as e:
