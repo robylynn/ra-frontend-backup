@@ -109,11 +109,6 @@ export default function RAWebSocket(props: {
         type: 'ros/set'
       }
     )
-    // setContext((c) => ({
-    //   ...c,
-    //   ra_ros_websocket: ra_ros_websocket.current,
-    //   IO_config_services: config_services,
-    // }));
   };
 
   const close_websocket = () => {
@@ -206,25 +201,7 @@ export default function RAWebSocket(props: {
     }
   }, [reconnectCounter]);
 
-  // const [analogInState, setAnalogInState] = useState<AnalogInData>();
-
-  // useEffect(() => {
-  //   // setContext((c) => {
-  //   //   console.log("setting analog in data");
-  //   //   c.analog_in_data = analogInState;
-  //   //   return c;
-  //   // })
-  //   setContext((c) => (
-  //     {...c, analog_in_data: analogInState}
-  //   ))
-  // }, [analogInState])
-
-  // useEffect(() => {
-  //   console.log("got new context")
-  // }, [dashboardContext.analog_in_data?.values?.[0]])
-
   const subscribeToAnalogInputs = () => {
-    // console.log("running subscription effect");
     if (!analog_in_subscription.current) {
       console.log("no subscription");
       if (dashboardContext.ra_ros_websocket) {
@@ -244,10 +221,6 @@ export default function RAWebSocket(props: {
               type: 'data/analog_in'
             }
           )
-          // setContext((c) => {
-          //   console.log("got analog in data");
-          //   return { ...c, analog_in_data: message as AnalogInData };
-          // });
         });
 
         console.log(`Subscribed to /gpio/analog_in_electrical_units`);
@@ -271,10 +244,6 @@ export default function RAWebSocket(props: {
             },
             type: 'data/digital_in'
           })
-          // setContext((c) => {
-          //   console.log("got digital in data");
-          //   return { ...c, digital_in_data: message as DigitalInData };
-          // });
         });
 
         console.log(`Subscribed to /gpio/digital_in`);
@@ -309,30 +278,6 @@ export default function RAWebSocket(props: {
                 type: 'data/axis'
               }
             )
-            
-            // setContext((c) => {
-            //   const data_point: AxisData = {
-            //     stamp: message.stamp,
-            //     position: message.position,
-            //     velocity: message.velocity,
-            //     axis_index: axisIndex,
-            //   };
-            //   let newAxisData;
-            //   if (!c.axis_data || !(axisIndex in c.axis_data)) {
-            //     newAxisData = {
-            //       ...c.axis_data,
-            //       [axisIndex]: [data_point].slice(-50),
-            //     };
-            //   } else {
-            //     newAxisData = {
-            //       ...c.axis_data,
-            //       [axisIndex]: [...c.axis_data?.[axisIndex], data_point].slice(
-            //         -50
-            //       ),
-            //     };
-            //   }
-            //   return { ...c, axis_data: newAxisData };
-            // });
           }
         );
 
@@ -372,10 +317,6 @@ export default function RAWebSocket(props: {
     // Cleanup function to unsubscribe on component unmount
     return () => {
       unsubscribeFromData();
-      // if (analog_in_subscription.current)
-      //   analog_in_subscription.current.unsubscribe();
-      // analog_in_subscription.current = null;
-      // console.log(`Unsubscribed from /gpio/analog_in_electrical_units`);
     };
   }, [reconnectCounter]);
 

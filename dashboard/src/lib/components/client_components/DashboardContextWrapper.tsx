@@ -15,7 +15,6 @@ import {
     ApplicationContext,
     ConfigServices,
 } from '@/lib/models/dashboard_context'
-// import RAStateContext, { StateContext } from "@/lib/models/ros_state_context";
 import {
     HardwareConfiguration,
     IOPointType,
@@ -54,13 +53,6 @@ export const DashboardContext = createContext<DashboardContextInterface>(null)
 export default function DashboardContextProvider(props: {
     children: ReactNode
 }) {
-    // const [data, setData] = useState<ApplicationContext>(new ApplicationContext());
-
-    // const updateIOPointAction = createAction<IOPointContextReducerInterface>('config/update');
-    // const addIOPointAction = createAction<IOPointContextReducerInterface>('config/add');
-    // const deleteIOPointAction = createAction<IOPointContextReducerDeleteInterface>('config/delete');
-    // const setIOPointsAction = createAction<IOConfigurationContextReducerInterface>('config/set');
-
     const initialDashboardContext = new ApplicationContext()
 
     const setUIConfigurationAction = createAction<{
@@ -111,23 +103,14 @@ export default function DashboardContextProvider(props: {
         payload: ModifyPlotInterface
     ): PlotConfiguration[] {
         if (payload.data_sources)
-            // if (payload.plot_type)
-            //   plot_configurations[payload.plot_type][payload.plot_index].data_sources = payload.data_sources;
-            // else
             plot_configurations[payload.plot_index].data_sources =
                 payload.data_sources
 
         if (payload.update_rate)
-            // if (payload.plot_type)
-            //   plot_configurations[payload.plot_type][payload.plot_index].update_rate = payload.update_rate;
-            // else
             plot_configurations[payload.plot_index].update_rate =
                 payload.update_rate
 
         if (payload.length)
-            // if (payload.plot_type)
-            //   plot_configurations[payload.plot_type][payload.plot_index].length = payload.length;
-            // else
             plot_configurations[payload.plot_index].length = payload.length
 
         return plot_configurations
@@ -163,11 +146,6 @@ export default function DashboardContextProvider(props: {
                         action.payload.hardware_configuration
                     return state
                 })
-                // .addCase(setROSAction, (state, action: {payload: {ra_ros_websocket: ROSLIB.Ros, ros_config_services: ConfigServices}, type: string}) => {
-                //   state.ra_ros_websocket = action.payload.ra_ros_websocket;
-                //   state.IO_config_services = action.payload.ros_config_services;
-                //   return state;
-                // })
                 .addCase(setROSAction, (state, action) => {
                     state.ra_ros_websocket = action.payload.ra_ros_websocket
                     state.IO_config_services =
@@ -204,28 +182,10 @@ export default function DashboardContextProvider(props: {
                         state.configuration.io_plots[action.payload.plot_type],
                         action.payload
                     )
-                    // if (action.payload.data_sources)
-                    //   state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
-
-                    // if (action.payload.update_rate)
-                    //   state.configuration.plots[action.payload.plot_index].update_rate = action.payload.update_rate;
-
-                    // if (action.payload.length)
-                    //   state.configuration.plots[action.payload.plot_index].length = action.payload.length;
-
                     return state
                 })
                 .addCase(updateMotionPlotConfiguration, (state, action) => {
                     updatePlot(state.configuration.motion_plots, action.payload)
-                    // if (action.payload.data_sources)
-                    //   state.configuration.plots[action.payload.plot_index].data_sources = action.payload.data_sources;
-
-                    // if (action.payload.update_rate)
-                    //   state.configuration.plots[action.payload.plot_index].update_rate = action.payload.update_rate;
-
-                    // if (action.payload.length)
-                    //   state.configuration.plots[action.payload.plot_index].length = action.payload.length;
-
                     return state
                 })
                 .addCase(deletePlotAction, (state, action) => {
@@ -233,14 +193,10 @@ export default function DashboardContextProvider(props: {
                         state.configuration.io_plots[action.payload.plot_type],
                         action.payload
                     )
-                    // delete state.configuration.plots[action.payload.plot_index];
-                    // state.configuration.plots = state.configuration.plots.filter((plot) => plot);
                     return state
                 })
                 .addCase(deleteMotionPlotAction, (state, action) => {
                     deletePlot(state.configuration.motion_plots, action.payload)
-                    // delete state.configuration.plots[action.payload.plot_index];
-                    // state.configuration.plots = state.configuration.plots.filter((plot) => plot);
                     return state
                 })
         }
@@ -262,15 +218,3 @@ export default function DashboardContextProvider(props: {
         </DashboardContext.Provider>
     )
 }
-
-// export function RAStateContextProvider(props: {
-//   children: ReactNode;
-// }) {
-//   const [data, setData] = useState<StateContext>(new StateContext());
-
-//   return (
-//     <RAStateContext.Provider value={{ stateContext: data, setContext: setData }}>
-//       {props.children}
-//     </RAStateContext.Provider>
-//   );
-// }

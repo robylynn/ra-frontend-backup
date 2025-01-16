@@ -43,3 +43,11 @@ db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"ra_data"}, { 
 Set up a virtual environment per the usual procedure. The `requirements.txt` file is provided in the repo.
 
 The backend (python application) and server side JS code (Next.JS application) are launched separately using the configurations in `launch.json`. They are not yet set up to be run in docker.
+
+## Environment Setup
+The `.env.development` and `.env.production` are used to set environment variables when running in development mode (e.g. `yarn dev`) or production mode (e.g. `yarn build && yarn start`), respectively. There are two relevant variables:
+- `CONTROLLER_URI`: This is the URL of the python backend. Typically this will be `localhost:8000`.
+- `ROS_HOST`: This is the URL of the rosbridge server. If running the ROS code on actual RAC hardware, set this as the IP address of the jetson (or pi). If running ROS code on a development machine, use the IP of the development machine (which could be `localhost`).
+
+### NEXTAUTH_URL
+NextAuth (or Auth.js) requires the definition of a redirect URL to be used after authenticaion is passed. This (inconveniently) has to be set manually. Set the `NEXTAUTH_URL` environment variable to the IP address of the network interface on which the NodeJS server is running. If running on RAC hardware, it should be the IP of the jetson. If running on a development machine, it should be `localhost`. This variable is set in the `docker-compose` file or in `launch.json`.

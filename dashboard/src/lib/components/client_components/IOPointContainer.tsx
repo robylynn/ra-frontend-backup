@@ -22,13 +22,9 @@ import ROSLIB from "roslib";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall";
 import { IOPointContext } from "./IOPointContext";
 import {
-  AnalogInConfig,
   AnalogInConfigurationServiceInterface,
-  DigitalInConfig,
   DigitalInConfigurationServiceInterface,
 } from "@/lib/models/ros_models";
-import { deepCompareKeys } from "@blueprintjs/core/lib/esm/common/utils";
-// import "./AnalogInput.css"; // TODO: Rename this css to be more general
 
 type IOPointContainerProps = {
   index: number;
@@ -173,10 +169,6 @@ const IOPointContainer = ({
 
   const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
     if (deletableIOPoint.configured) {
-      // const updatedIOPoint: IOPointConfiguration = {
-      //   ...deletableIOPoint,
-      //   configured: false,
-      // };
       let updatedIOPoint = deletableIOPoint.copy();
       deletableIOPoint.configured = false;
 
@@ -337,12 +329,6 @@ const IOPointConfigDialog = ({
       newLocalPoint[name] = 0;
     }
     setLocalPoint(() => newLocalPoint);
-
-    // if (numeric_value) {
-    //   setLocalPoint((p) => ({ ...p, [name]: numeric_value }));
-    // } else {
-    //   setLocalPoint((p) => ({ ...p, [name]: "" }));
-    // }
   };
 
   const handleAnalogTypeChange = (e) => {
@@ -351,7 +337,6 @@ const IOPointConfigDialog = ({
     let newLocalPoint = localPoint.copy();
     newLocalPoint.analog_type = value;
     setLocalPoint(() => newLocalPoint)
-      // setLocalPoint((p) => ({ ...p, analog_type: value }));
   };
 
   const handleTransferFunctionChange = (e) => {
@@ -360,7 +345,6 @@ const IOPointConfigDialog = ({
     let newLocalPoint = localPoint.copy();
     newLocalPoint.transfer_function_type = value;
     setLocalPoint(() => newLocalPoint)
-      // setLocalPoint((p) => ({ ...p, transfer_function_type: value }));
   };
 
   const unitLabel =

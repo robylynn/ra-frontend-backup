@@ -8,11 +8,6 @@ import { Dispatch, SetStateAction, useContext } from "react";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import { MotionPlotContainer } from "@/lib/components/client_components/MotionPlotContainer";
-import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-// import MotionPlot from '@/lib/components/client_components/MotionPlot';
-// import SimpleMotionPlot from "@/lib/components/client_components/SimpleMotionPlot";
-// import IOPointGroup from "@/lib/components/client_components/IOPointGroup";
-// import { IOPointType } from "@/lib/models/api_models";
 import { NextAPIResponseInterface } from "@/lib/models/api_models";
 
 export default function MotionPlotPanel(props: {
@@ -50,39 +45,7 @@ export default function MotionPlotPanel(props: {
         save_configuration();
       }}
     >
-      {/* <MotionPlotContainer/> */}
-      {/* <SimpleMotionPlot/> */}
       <MotionPlotContainer />
-      {/* <SimpleMotionPlot
-          title={"Axis Velocities"}
-          data_key="velocity"
-          unit="rev/s"
-          axes={[0, 1]}
-          length={100}
-          y_axis_transformation={(v) => v + 10}
-        /> */}
-      {/* {dashboardContext.configuration?.configured ? (
-        <>
-        <MotionPlot
-          title={"Axis Velocities"}
-          data_key="velocity"
-          unit="rev/s"
-          axes={[0, 1]}
-          length={100}
-          y_axis_transformation={(v) => v + 10}
-        />
-        <MotionPlot
-          title={"Axis Positions"}
-          data_key="position"
-          unit="rev"
-          axes={[0, 1]}
-          length={100}
-          y_axis_transformation={(v) => v + 5}
-        />
-        </>
-      ) : (
-        <LoadingIndicator />
-      )} */}
     </DashboardHeaderContainer>
   );
 }

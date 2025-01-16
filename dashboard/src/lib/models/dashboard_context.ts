@@ -63,7 +63,6 @@ export class ApplicationContext {
   digital_in_data: DigitalInData | null = null;
   digital_out_data: DigitalInData | null = null;
   
-  // axis_data: Record<number, Array<AxisData>> = null;
   axis_data: Record<number, AxisData> = {};
 
   constructor() {

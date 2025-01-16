@@ -5,7 +5,6 @@ interface AnalogInHardwareConfig {
 }
 
 export interface AnalogInConfig {
-    // is_enable_disable_request: boolean
     channel: number
     hardware_config: AnalogInHardwareConfig
     label: string
@@ -23,8 +22,6 @@ export interface IOConfigurationServiceInterface {
 }
 
 export interface AnalogInConfigurationServiceInterface extends IOConfigurationServiceInterface {
-    // is_config_request: boolean
-    // is_enable_disable_request: boolean
     config: AnalogInConfig
 }
 
@@ -34,15 +31,12 @@ export interface DigitalInHardwareConfig {
 }
 
 export interface DigitalInConfig {
-    // is_enable_disable_request: boolean
     channel: number
     hardware_config: DigitalInHardwareConfig
     label: string
 }
 
 export interface DigitalInConfigurationServiceInterface extends IOConfigurationServiceInterface {
-    // if_config_request
-    // is_enable_disable_request: boolean
     config: DigitalInConfig
 }
 
