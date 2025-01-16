@@ -13,8 +13,8 @@ from dataclasses import (
 )
 from enum import Enum, auto
 
-from utils.utils import websocket_message_dict_factory
-from config.models import (
+from backend.utils.utils import websocket_message_dict_factory
+from backend.config.models import (
     IOPointType
 )
 
@@ -43,13 +43,13 @@ class IOConfigurationRequestData(BaseModel):
     # point_type: str
 
 class AnalogInputHardwareConfigurationRequestData(BaseModel):
-    configure: bool
-    enable: bool
+    configured: bool
+    enabled: bool
     channel_type: int
 
 class DigitalInputHardwareConfigurationRequestData(BaseModel):
-    configure: bool
-    enable: bool
+    configured: bool
+    enabled: bool
 
 class AnalogIOConfigurationRequestData(BaseModel):
     hardware_config: AnalogInputHardwareConfigurationRequestData

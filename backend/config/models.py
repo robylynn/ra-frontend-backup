@@ -80,6 +80,7 @@ class MongoInstanceConfiguration:
     server_selection_timeout_ms: int
     socket_timeout_ms: int
     cycle_count_before_yield: int
+    batch_insertion_size: int
     host: str
     port: int
     username: str
@@ -129,7 +130,7 @@ class TransferFunctionType(Enum):
 
 @dataclass
 class ROSIOPointConfiguration:
-    channel: int
+    channel: int | None
     label: str = None
     configured: bool = False
     enabled: bool = False
@@ -182,22 +183,26 @@ class HardwareConfiguration:
     @staticmethod
     def default_configuration() -> "HardwareConfiguration":
         digital_inputs = [
-            ROSIOPointConfiguration(channel=x, type=IOPointType.DIGITAL_INPUT)
+            # ROSIOPointConfiguration(channel=x, type=IOPointType.DIGITAL_INPUT)
+            ROSIOPointConfiguration(channel=None, type=IOPointType.DIGITAL_INPUT)
             for x in range(HardwareConfiguration.number_of_digital_inputs)
         ]
 
         digital_outputs = [
-            ROSIOPointConfiguration(channel=x, type=IOPointType.DIGITAL_OUTPUT)
+            # ROSIOPointConfiguration(channel=x, type=IOPointType.DIGITAL_OUTPUT)
+            ROSIOPointConfiguration(channel=None, type=IOPointType.DIGITAL_OUTPUT)
             for x in range(HardwareConfiguration.number_of_digital_outputs)
         ]
 
         analog_inputs = [
-            ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_INPUT)
+            # ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_INPUT)
+            ROSIOPointConfiguration(channel=None, type=IOPointType.ANALOG_INPUT)
             for x in range(HardwareConfiguration.number_of_analog_inputs)
         ]
 
         analog_outputs = [
-            ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_OUTPUT)
+            # ROSIOPointConfiguration(channel=x, type=IOPointType.ANALOG_OUTPUT)
+            ROSIOPointConfiguration(channel=None, type=IOPointType.ANALOG_OUTPUT)
             for x in range(HardwareConfiguration.number_of_analog_inputs)
         ]
 

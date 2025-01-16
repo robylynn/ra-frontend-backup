@@ -20,7 +20,7 @@ from typing import (
     Any
 )
 
-from config.models import (
+from backend.config.models import (
     IOPointType,
     ROSIOPointConfiguration,
     IOSystemConfiguration

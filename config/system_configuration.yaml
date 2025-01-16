@@ -1,7 +1,7 @@
 database:
   database_synchronization_period_sec: 2
   synchronization_batch_size: 100
-  queue_length_warning_threshold: 10
+  queue_length_warning_threshold: 1000
   queue_get_timeout_secs: 0.1
 
   collections:
@@ -13,35 +13,35 @@ database:
       drop_on_start: False
     frontend_messages:
       document_type: FRONTEND_MESSAGE
-      drop_on_start: False
+      drop_on_start: True
       capped: True
       collection_size_bytes: 1000
     io_state:
       document_type: IO_STATE
-      drop_on_start: False
+      drop_on_start: True
       capped: False
       collection_size_bytes: 10000
     analog_input_state:
       document_type: ANALOG_INPUT_STATE
-      drop_on_start: False
+      drop_on_start: True
       capped: False
       collection_size_bytes: 10000
     digital_input_state:
       document_type: DIGITAL_INPUT_STATE
-      drop_on_start: False
+      drop_on_start: True
       capped: False
       collection_size_bytes: 10000
     axis_state:
       document_type: AXIS_STATE
-      drop_on_start: False
+      drop_on_start: True
       capped: False
       collection_size_bytes: 10000
     hardware_configuration:
       document_type: SYSTEM_CONFIGURATION
-      drop_on_start: False
+      drop_on_start: True
     ui_configuration:
       document_type: UI_CONFIGURATION
-      drop_on_start: False
+      drop_on_start: True
       # capped: True
       # collection_size_bytes: 1000
 
@@ -51,7 +51,9 @@ database:
     socket_timeout_ms: 5000
     server_selection_timeout_ms: 5000
     cycle_count_before_yield: 150
+    batch_insertion_size: 10
     host: 127.0.0.1
+    # host: "172.23.0.51"
     port: 27017
     username: r2
     password: password
@@ -64,6 +66,7 @@ database:
     socket_timeout_ms: 15000
     server_selection_timeout_ms: 10000
     cycle_count_before_yield: 5
+    batch_insertion_size: 10
     host: 172.25.0.51
     port: 27017
     username: r2

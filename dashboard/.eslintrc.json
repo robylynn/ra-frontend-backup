@@ -1,14 +1,14 @@
 {
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "import"],
   "extends": [
     "next/core-web-vitals",
     "next",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "plugin:prettier/recommended"
   ],
   "rules": {
     "prefer-const": "error",
-    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-explicit-any": "off",
     "sort-imports": [
       "error",
@@ -24,7 +24,7 @@
     "import/no-unresolved": "error",
     // 'import/no-named-as-default-member': 'off',
     "import/order": [
-      "error",
+      "warn",
       {
         "groups": [
           "builtin", // Built-in imports (come from NodeJS native) go first

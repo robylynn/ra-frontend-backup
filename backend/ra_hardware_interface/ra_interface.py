@@ -10,22 +10,22 @@ from typing import (
     ClassVar
 )
 
-from database.interface import MongoInterface
+from backend.database.interface import MongoInterface
 
-from database.models import (
+from backend.database.models import (
     MongoTimeseriesRecord,
     DocumentType,
     TimeseriesMetadata,
     FrontendMessage,
 )
-from frontend.models import (
+from backend.frontend.models import (
     MessageSeverity
 )
-from ra_hardware_interface.models import (
+from backend.ra_hardware_interface.models import (
     IOSystem,
     Sensors
 )
-from config.models import (
+from backend.config.models import (
     HardwareConfiguration
 )
 

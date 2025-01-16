@@ -9,11 +9,10 @@ import NextAuthProvider from "@/lib/auth/next_auth_provider";
 import ConnectionStateIndicator from "@/lib/components/client_components/ConnectionStateContainer";
 import DashboardContextProvider from "@/lib/components/client_components/DashboardContextWrapper";
 import DataUpdater from "@/lib/components/client_components/DataUpdater";
-import LinksColumn from "@/lib/components/server_components/links_column";
-import RAWebSocket from "@/lib/components/client_components/WebsocketClient";
-import { AnalogInputProvider } from "@/lib/components/client_components/AnalogInputContext";
-import { DigitalInputProvider } from "@/lib/components/client_components/DigitalInputContext";
 import { IOPointContextProvider } from "@/lib/components/client_components/IOPointContext";
+import RAWebSocket from "@/lib/components/client_components/WebsocketClient";
+import LinksColumn from "@/lib/components/server_components/links_column";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,6 +38,7 @@ export default function RootLayout({
               />
               <RAWebSocket
                 websocket_path="/api/socket"
+                // websocket_path={`${process.env.CONTROLLER_URI}/api/socket`}
                 reconnect_period_seconds={1}
               />
               <body className={inter.className}>

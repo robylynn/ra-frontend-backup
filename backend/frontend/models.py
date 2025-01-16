@@ -13,7 +13,7 @@ from enum import (
     auto
 )
 
-from utils.utils import database_record_dict_factory
+from backend.utils.utils import database_record_dict_factory
 
 class MessageSeverity(Enum):
     INFO = auto()

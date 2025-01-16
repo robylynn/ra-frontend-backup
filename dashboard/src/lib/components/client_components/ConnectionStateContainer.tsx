@@ -1,54 +1,70 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-"use client";
+'use client'
 
-import { useSession } from "next-auth/react";
-import { useContext, useEffect, useState } from "react";
+import { useSession } from 'next-auth/react'
+import { useContext, useEffect, useState } from 'react'
 
-import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper'
 
-export default function ConnectionStateIndicator(props: { className?: string }) {
-  const { dashboardContext } = useContext(DashboardContext);
-  const [isClient, setIsClient] = useState<boolean>(false);
-  const { data: session } = useSession();
+export default function ConnectionStateIndicator(props: {
+    className?: string
+}) {
+    const { dashboardContext } = useContext(DashboardContext)
+    const [isClient, setIsClient] = useState<boolean>(false)
+    const { data: session } = useSession()
 
-  useEffect(() => {
-    setIsClient(() => true);
-  }, []);
+    useEffect(() => {
+        setIsClient(() => true)
+    }, [])
 
-  const connected_color =
-    dashboardContext.heartbeat && session ? "bg-r2-green-500" : "bg-r2-red-300";
-  const connection_text = session
-    ? `BACKEND SERVER ${dashboardContext.heartbeat ? "ONLINE" : "OFFLINE"}`
-    : "NOT LOGGED IN";
+    const connected_color =
+        dashboardContext.heartbeat && session
+            ? 'bg-r2-green-500'
+            : 'bg-r2-red-300'
+    // const connection_text = session
+    //     ? `BACKEND SERVER ${dashboardContext.heartbeat ? 'ONLINE' : 'OFFLINE'}`
+    //     : 'NOT LOGGED IN'
 
-  const websocket_text = () => {
-    let websocket_connected = dashboardContext.ra_ros_websocket ? true : false;
-    let text = websocket_connected ? "WEBSOCKET CONNECTED" : "WAITING FOR WEBSOCKET"
+    const connection_text = session
+        ? `BACKEND SERVER ONLINE`
+        : 'NOT LOGGED IN'
+
+    const websocket_text = () => {
+        const websocket_connected = dashboardContext.ra_ros_websocket
+            ? true
+            : false
+        const text = websocket_connected
+            ? 'WEBSOCKET CONNECTED'
+            : 'WAITING FOR WEBSOCKET'
+
+        return (
+            <p
+                className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocket_connected ? 'bg-r2-green-500' : 'bg-r2-red-300'}`}
+            >
+                {text}
+            </p>
+        )
+    }
 
     return (
-      <p className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocket_connected ? "bg-r2-green-500" : "bg-r2-red-300"}`}>{text}</p>
+        <div
+            className={`w-full h-fit px-2 grid grid-cols-3 justify-between bg-none items-center text-sm ${
+                props.className ?? ''
+            }`}
+        >
+            {websocket_text()}
+            <p
+                className={`px-2 text-center text-r2-white font-bold rounded-md py-0 m-0 ${connected_color}`}
+            >
+                {connection_text}
+            </p>
+            <p className="py-0 m-0 text-xs text-center text-r2-white">{`SYSTEM TIME: ${
+                isClient
+                    ? new Date().toString().toUpperCase()
+                    : 'WAITING FOR CLIENT RENDER'
+            }`}</p>
+        </div>
     )
-  }
-
-  return (
-    <div
-      className={`w-full h-fit px-2 grid grid-cols-3 justify-between bg-none items-center text-sm ${
-        props.className ?? ""
-      }`}
-    >
-      {websocket_text()}
-      <p
-        className={`px-2 text-center text-r2-white font-bold rounded-md py-0 m-0 ${connected_color}`}
-      >
-        {connection_text}
-      </p>
-      <p className="py-0 m-0 text-xs text-center text-r2-white">{`SYSTEM TIME: ${
-        isClient
-          ? new Date().toString().toUpperCase()
-          : "WAITING FOR CLIENT RENDER"
-      }`}</p>
-    </div>
-  );
 }

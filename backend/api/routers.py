@@ -11,12 +11,12 @@ from typing import (
 )
 from loguru import logger
 
-import system_initializer as initializer
+import backend.system_initializer as initializer
 
-from auth.models import UserLoginSchema
-from auth.jwt_handler import signJWT
+from backend.auth.models import UserLoginSchema
+from backend.auth.jwt_handler import signJWT
 # from auth.jwt_bearer import JWTBearer
-from api.models import (
+from backend.api.models import (
     AuthenticationResponse,
     APIResponse,
     FrontendConfiguration,
@@ -28,18 +28,18 @@ from api.models import (
     DigitalIOConfigurationRequestData
 )
 
-from api.helpers import (
+from backend.api.helpers import (
     create_database_document,
     create_database_axis_document
 )
 
-from config.models import (
+from backend.config.models import (
     TransferFunctionType,
     IOPointType,
     AnalogIOPointType
 )
 
-from database.models import (
+from backend.database.models import (
     DocumentType
 )
 
@@ -376,8 +376,9 @@ def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) 
 
     for config_entry in configurations:
         point = initializer.ra_interface.io_system.analog_inputs.points[config_entry.channel]
+        point.configuration.channel = config_entry.channel
         point.configuration.type = IOPointType.ANALOG_INPUT
-        point.configuration.configured = config_entry.hardware_config.configure
+        point.configuration.configured = config_entry.hardware_config.configured
         point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
         point.configuration.label = config_entry.label
         point.configuration.max_signal_v = config_entry.max_electrical_value
@@ -394,14 +395,15 @@ def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) 
     )
 
 @config_router.post("/io/digital_in_config")
-def configure_analog_in(configurations: List[DigitalIOConfigurationRequestData]) -> APIResponse:
+def configure_digital_in(configurations: List[DigitalIOConfigurationRequestData]) -> APIResponse:
 # def configure_analog_in(configurations: List[Dict]) -> APIResponse:
     logger.info(f"Got digital input configuration request: {configurations}")
 
     for config_entry in configurations:
         point = initializer.ra_interface.io_system.digital_inputs.points[config_entry.channel]
+        point.configuration.channel = config_entry.channel
         point.configuration.type = IOPointType.DIGITAL_INPUT
-        point.configuration.configured = config_entry.hardware_config.configure
+        point.configuration.configured = config_entry.hardware_config.configured
         # point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
         point.configuration.label = config_entry.label
         # point.configuration.max_signal_v = config_entry.max_electrical_value

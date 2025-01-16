@@ -3,10 +3,10 @@
 
 "use client";
 
-import { useContext, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
 
-import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
+import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import IOPlotContainer from "@/lib/components/client_components/IOPlotContainer";
 import { IOPointType } from "@/lib/models/api_models";
 import { NextAPIResponseInterface } from "@/lib/models/api_models";
@@ -20,7 +20,7 @@ export default function IOPlotPanel(props: {
   const { dashboardContext, setDashboardContext } = useContext(DashboardContext);
 
   const save_configuration = async () => {
-    let res: NextAPIResponseInterface = await fetch(
+    const res: NextAPIResponseInterface = await fetch(
       "api/backend/ui/configuration",
       {
         method: "POST",
@@ -48,7 +48,7 @@ export default function IOPlotPanel(props: {
     >
       {/* {dashboardContext.configuration?.configured ? ( */}
       <>
-        <IOPlotContainer point_type={IOPointType.ANALOG_INPUT} />
+        {/* <IOPlotContainer point_type={IOPointType.ANALOG_INPUT} /> */}
         <IOPlotContainer point_type={IOPointType.DIGITAL_INPUT} />
       </>
     </DashboardHeaderContainer>

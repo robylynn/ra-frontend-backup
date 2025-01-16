@@ -10,15 +10,15 @@ from typing import (
     Callable
 )
 
-from config.models import (
+from backend.config.models import (
     SystemConfiguration
 )
 
-from config.loader import (
+from backend.config.loader import (
     load_system_configuration
 )
 
-from config.exceptions import (
+from backend.config.exceptions import (
     InvalidConfigurationException
 )
 
