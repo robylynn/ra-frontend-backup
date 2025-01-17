@@ -51,3 +51,11 @@ The `.env.development` and `.env.production` are used to set environment variabl
 
 ### NEXTAUTH_URL
 NextAuth (or Auth.js) requires the definition of a redirect URL to be used after authenticaion is passed. This (inconveniently) has to be set manually. Set the `NEXTAUTH_URL` environment variable to the IP address of the network interface on which the NodeJS server is running. If running on RAC hardware, it should be the IP of the jetson. If running on a development machine, it should be `localhost`. This variable is set in the `docker-compose` file or in `launch.json`.
+
+## R2 Controller Interfaces
+The `r2-controller-interfaces` [repo](https://github.com/R2-Labs/r2-controller-interfaces) is included as a submodule in this project. We can use the `ros-typescript-generator` [project](https://github.com/Greenroom-Robotics/ros-typescript-generator/tree/master) to build TypeScript interfaces from the message and service definitions we use for the RAC. The configuration for the generation of TypeScript interfaces is defined in `dashboard/ros-ts-generator-config.json`. The `ros-typescript-generator` apparently only works on node v14, so we can switch to that with node version manager
+```
+nvm use 14
+npx ros-typescript-generator --config ./ros-ts-generator-config.json
+```
+Be sure to switch back to node v20 (`nvm use 20`) after generating the code. This only has to be done if the message/service definitions in `r2c_interfaces` changes.

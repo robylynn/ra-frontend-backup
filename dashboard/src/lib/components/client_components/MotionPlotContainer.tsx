@@ -10,7 +10,8 @@ import {
 } from "react";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
-import { AxisData } from "@/lib/models/ros_models";
+// import { AxisData } from "@/lib/models/ros_models";
+import { IRosTypeR2CInterfacesEncoderEstimates } from "@/lib/models/ros_types";
 import timeoutFetch from "@/lib/utils/timeoutFetch";
 import {
   AxisTimeDataInterface,
@@ -31,7 +32,7 @@ import { R2Button } from "@/lib/components/client_components/ClickButton";
 
 interface InitialFetchDataInterface {
   time_data: PlotTimeData | null;
-  axis_data: Array<AxisData> | null;
+  axis_data: Array<IRosTypeR2CInterfacesEncoderEstimates> | null;
 }
 
 function MotionPlots(props: {
@@ -255,7 +256,6 @@ function MotionPlots(props: {
                     [axis_index]: [
                       ...d[plot_index]?.[axis_index],
                       time_data_point,
-                      // ].slice(-motionPlotContext.plot_lengths[plot_key]),
                     ].slice(-plot_configuration.length),
                   },
                 }));
@@ -267,7 +267,6 @@ function MotionPlots(props: {
                     [axis_index]: [
                       ...d[plot_index]?.[axis_index],
                       axis_data_point,
-                      // ].slice(-motionPlotContext.plot_lengths[plot_key]),
                     ].slice(-plot_configuration.length),
                   },
                 }));
@@ -372,13 +371,6 @@ function MotionPlots(props: {
               });
             }}
             change_plot_length_callback={(length: number) => {
-              // initialDataAcquired.current = {
-              //   ...initialDataAcquired.current,
-              //   [plot_index]: available_axes.reduce(
-              //     (axes, axis) => ({ ...axes, [axis.index]: false }),
-              //     {}
-              //   ),
-              // };
               initialDataAcquired.current = {
                 ...initialDataAcquired.current,
                 [plot_index]:
@@ -396,44 +388,6 @@ function MotionPlots(props: {
               });
             }}
           />
-          // <MotionPlot
-          //   key={plot_key}
-          //   plot_key={plot_key}
-          //   axes={[0, 1, 2, 3]}
-          //   time_data={plotDataBuffers[plot_key].time}
-          //   plot_data={plotDataBuffers[plot_key].data}
-          //   title={plot_key}
-          //   data_key={plot_key}
-          //   unit="unit"
-          //   base_length={100}
-          //   selected_length={motionPlotContext.plot_lengths[plot_key]}
-          //   selected_update_rate={motionPlotContext.update_rates[plot_key]}
-          //   y_axis_transformation={(y) => y}
-          //   plot_length_setter={(plot_key, length) => {
-          //     Object.keys(initial_data_acquired.current[plot_key]).forEach(
-          //       (axis_index) => {
-          //         initial_data_acquired.current[plot_key][axis_index] = false;
-          //       }
-          //     );
-
-          //     setMotionPlotContext((c) => ({
-          //       ...c,
-          //       plot_lengths: {
-          //         ...c.plot_lengths,
-          //         [plot_key]: length,
-          //       },
-          //     }));
-          //   }}
-          //   plot_update_rate_setter={(plot_key, update_rate) => {
-          //     setMotionPlotContext((c) => ({
-          //       ...c,
-          //       update_rates: {
-          //         ...motionPlotContext.update_rates,
-          //         [plot_key]: update_rate,
-          //       },
-          //     }));
-          //   }}
-          // />
         )
       )}
       <div className="flex flex-row w-full justify-between">

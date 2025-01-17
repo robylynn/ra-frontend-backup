@@ -5,38 +5,17 @@ ARG APP_WORKDIR
 ARG CONFIG_FILE
 ARG CONFIG_FILE_DIR
 ARG PROJECT_ROOT
-# ARG BACKEND_MODULE_NAME
-# ARG CONTAINER_DEPLOYMENT_FILES_DIR
-# ARG CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY
-# ARG DEPLOYMENT_USER_CODE_DIR
-# ARG DOCKER_UID
-# ARG DOCKER_GID
-# ARG HOST_LOG_FILE_DIR
-# ARG HOST_CONFIG_FILE_DIR
 
 WORKDIR ${APP_WORKDIR}
 
 ## Copy over necessary files for building and deployment
 COPY backend ${APP_WORKDIR}/backend
-# COPY src/carbonator_backend ${APP_WORKDIR}/${BACKEND_MODULE_NAME}
-# COPY user_code ${APP_WORKDIR}/${DEPLOYMENT_USER_CODE_DIR}
-# COPY config ${CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY}/${HOST_CONFIG_FILE_DIR}
-# COPY user_code ${CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY}/${DEPLOYMENT_USER_CODE_DIR}
-# COPY src/carbonator_backend/requirements.txt .
 COPY scripts/launch.sh ${APP_WORKDIR}/launch.sh
-# COPY ../scripts/launch.sh ${APP_WORKDIR}/launch.sh
-# COPY scripts/ ${CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY}/scripts
-# COPY docker-compose.yml ${CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY}
 RUN python3 -m pip install -r ${APP_WORKDIR}/backend/requirements.txt
 
 # Finalize directory setup
 RUN chmod 777 $APP_WORKDIR/launch.sh
-# RUN mkdir ${CONTAINER_DEPLOYMENT_FILES_DIR}
-# RUN chmod -R 777 ${CONTAINER_DEPLOYMENT_FILES_DIR}
-# RUN mkdir ${APP_WORKDIR}/${HOST_LOG_FILE_DIR}
-# RUN groupadd --gid ${DOCKER_GID} r2 && useradd --uid ${DOCKER_UID} --gid r2 --create-home r2
 
 EXPOSE 8000
 
-# CMD ["./${$APP_WORKDIR}/launch.sh"]
 CMD ["./launch.sh"]

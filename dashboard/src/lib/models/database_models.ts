@@ -1,7 +1,7 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs for Seabound Carbon
 
-import { ROSTimestamp } from "./ros_models";
+import { ROSTimestamp } from "@/lib/models/shared_ros_types";
 
 export interface DocumentMetadataInterface {
   commit_serial_number: number;

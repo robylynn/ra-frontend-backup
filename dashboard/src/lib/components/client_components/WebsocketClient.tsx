@@ -8,9 +8,8 @@ import { ConfigServices } from "@/lib/models/dashboard_context";
 import { getSession } from "next-auth/react";
 import ROSLIB, { Topic } from "roslib";
 import { IOPointType } from "@/lib/models/api_models";
-import { AnalogInData, AxisData, DigitalInData } from "@/lib/models/ros_models";
+import { IRosTypeR2CInterfacesAnalogInData, IRosTypeR2CInterfacesEncoderEstimates, IRosTypeR2CInterfacesDigitalInData } from "@/lib/models/ros_types";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
-// import { Topic } from "roslib";
 
 function connectWebSocket(url: string, timeout: number): Promise<WebSocket> {
   timeout = timeout || 2000;
@@ -216,7 +215,7 @@ export default function RAWebSocket(props: {
           setDashboardContext(
             {
               payload: {
-                analog_in_data: message as AnalogInData
+                analog_in_data: message as IRosTypeR2CInterfacesAnalogInData
               },
               type: 'data/analog_in'
             }
@@ -240,7 +239,7 @@ export default function RAWebSocket(props: {
         digital_in_subscription.current.subscribe((message) => {
           setDashboardContext({
             payload: {
-              digital_in_data: message as DigitalInData
+              digital_in_data: message as IRosTypeR2CInterfacesDigitalInData
             },
             type: 'data/digital_in'
           })
@@ -261,8 +260,8 @@ export default function RAWebSocket(props: {
         });
 
         axis_velocity_subscriptions.current[axisIndex].subscribe(
-          (message: AxisData) => {
-            const data_point: AxisData = {
+          (message: IRosTypeR2CInterfacesEncoderEstimates) => {
+            const data_point: IRosTypeR2CInterfacesEncoderEstimates = {
               stamp: message.stamp,
               position: message.position,
               velocity: message.velocity,

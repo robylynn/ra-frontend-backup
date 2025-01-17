@@ -7,17 +7,14 @@ import React, { useEffect, useContext, useState } from "react";
 import IOPointContainer from "@/lib/components/client_components/IOPointContainer";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import {
-  AnalogIOPointType,
-  HardwareConfiguration,
-  IOConfiguration,
   IOPointConfiguration,
-  IOPointType,
-  TransferFunctionType,
+  IOPointType
 } from "@/lib/models/api_models";
 import { R2Button } from "@/lib/components/client_components/ClickButton";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { DropResult } from "react-beautiful-dnd";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
+import { IRosTypeR2CInterfacesAnalogInConfigConst, IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType } from "@/lib/models/ros_types";
 
 interface IOPointGroupInterface {
   point_type: IOPointType;
@@ -53,7 +50,6 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
             type: IOPointType.DIGITAL_INPUT,
             channel: point_index,
             configured: false,
-            // transfer_function_type: TransferFunctionType.LINEAR,
             measurement_unit: "",
             min_value: 0,
             min_signal_v: 0,
@@ -79,10 +75,10 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
             id: "",
             label: "Analog Input",
             type: IOPointType.ANALOG_INPUT,
-            analog_type: AnalogIOPointType.VOLTAGE,
+            analog_type: IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_VOLTAGE,
             channel: point_index,
             configured: false,
-            transfer_function_type: TransferFunctionType.LINEAR,
+            transfer_function_type: IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR,
             measurement_unit: "",
             min_value: 0,
             min_signal_v: 0,

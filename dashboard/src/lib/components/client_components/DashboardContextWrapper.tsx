@@ -21,9 +21,9 @@ import {
     PlotConfiguration,
     UIConfiguration,
 } from '@/lib/models/api_models'
-import { AnalogInData, AxisData, DigitalInData } from '@/lib/models/ros_models'
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit'
 import ROSLIB from 'roslib'
+import { IRosTypeR2CInterfacesAnalogInData, IRosTypeR2CInterfacesDigitalInData, IRosTypeR2CInterfacesEncoderEstimates } from '@/lib/models/ros_types'
 
 interface ModifyPlotInterface {
     plot_index: number
@@ -69,14 +69,14 @@ export default function DashboardContextProvider(props: {
         ra_ros_websocket: ROSLIB.Ros
     }>('ros/set')
     const setAnalogInDataAction = createAction<{
-        analog_in_data: AnalogInData
+        analog_in_data: IRosTypeR2CInterfacesAnalogInData
     }>('data/analog_in')
     const setDigitalInDataAction = createAction<{
-        digital_in_data: DigitalInData
+        digital_in_data: IRosTypeR2CInterfacesDigitalInData
     }>('data/digital_in')
     const setAxisDataAction = createAction<{
         axis_index: number
-        axis_data: AxisData
+        axis_data: IRosTypeR2CInterfacesEncoderEstimates
     }>('data/axis')
     const addPlotAction = createAction<{
         plot_type: IOPointType

@@ -1,0 +1,3 @@
+[submodule "r2-controller-interfaces"]
+	path = r2-controller-interfaces
+	url = git@github.com:R2-Labs/r2-controller-interfaces.git

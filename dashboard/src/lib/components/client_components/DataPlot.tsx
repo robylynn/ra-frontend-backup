@@ -241,16 +241,14 @@ const DataPlot = (props: {
                                     dataKey="time"
                                     name={'Time'}
                                     tickFormatter={plotDateFormatter}
-                                    tickCount={2}
+                                    tickCount={3}
                                     type="number"
                                     allowDuplicatedCategory={false}
                                     domain={['dataMin', 'dataMax']}
                                     // interval={"equidistantPreserveStart"}
                                 />
                                 <YAxis
-                                    // dataKey={0}
                                     label={{
-                                        // value: props.y_label ?? "Input Value",
                                         value: y_axis_label(),
                                         angle: -90,
                                     }}
