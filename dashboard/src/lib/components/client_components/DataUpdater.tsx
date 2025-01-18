@@ -4,8 +4,6 @@
 'use client';
 
 import { useContext, useEffect, useMemo, useState } from 'react';
-// import dynamic from "next/dynamic";
-// import { Worker } from "worker_threads";
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import {
     HardwareConfiguration,
@@ -13,24 +11,12 @@ import {
     UIConfiguration,
 } from '@/lib/models/api_models';
 import timeoutFetch from '@/lib/utils/timeoutFetch';
-// import { Worker } from 'worker_threads';
-// const { Worker } = require('worker_threads')
-// const { Worker } = require("worker_threads");
-
-
-// const Worker = dynamic<Worker>(() => import('worker_threads').then((mod) => mod.Worker), {
-//   ssr: false,
-//   type: 'module', // Important for using ES modules in workers
-// });
-
-// const Worker = dynamic(() => import('worker_threads'));
 
 export default function DataUpdater(props: {
     update_period_seconds: number;
     configuration_update_period_seconds: number;
 }) {
     const [updateCounter, setUpdateCounter] = useState(0);
-    // const [testUpdateCounter, setTestUpdateCounter] = useState(0);
     const [configurationUpdateCounter, setConfigurationUpdateCounter] =
         useState(0);
     const { dashboardContext, setDashboardContext } =
@@ -87,9 +73,6 @@ export default function DataUpdater(props: {
                             type: 'ui_config/set',
                         });
 
-                        // setContext((c) => {
-                        //   return { ...c, configuration: received_configuration };
-                        // });
                     }
                 }
             } catch (e) {
@@ -100,7 +83,6 @@ export default function DataUpdater(props: {
         if (dashboardContext.configuration.client_id == undefined)
             fetch_ui_configuration();
     }, [configurationUpdateCounter]);
-    // }, []);
 
     useEffect(() => {
         const fetch_io_configuration = async () => {
@@ -120,10 +102,6 @@ export default function DataUpdater(props: {
                         },
                         type: 'hardware_config/set',
                     });
-                    // setContext((c) => {
-                    //   c.hardware_configuration = new HardwareConfiguration(config);
-                    //   return c;
-                    // });
                 }
             } catch (e) {
                 console.error('Error getting hardware configuration: ' + e);
@@ -148,43 +126,11 @@ export default function DataUpdater(props: {
         setDashboardContext({
           payload: { heartbeat_valid: heartbeat_valid },
           type: 'heartbeat/rx',
-      });
-        // setContext((c) => {
-        //   return { ...c, heartbeat: heartbeat_valid };
-        // });
+        });
       };
   
       heartbeat();
     }, [updateCounter]);
-
-    // const heartbeatWorker = useMemo(
-    //     () => {
-    //       // const Worker = await import('worker_threads').then(mod => mod.Worker);
-    //       return new Worker(
-    //             new URL('@/lib/utils/heartbeatWorker.ts', import.meta.url)
-    //         )
-    //       },
-    //     []
-    // );
-    
-    // useEffect(() => {
-    //     heartbeatWorker.postMessage('heartbeat');
-    // }, [updateCounter]);
-
-    // useEffect(() => {
-    //     // heartbeatWorker.on('message', (m: MessageEvent<boolean>) => {
-    //     //     setDashboardContext({
-    //     //         payload: { heartbeat_valid: m.data },
-    //     //         type: 'heartbeat/rx',
-    //     //     });
-    //     // });
-    //     heartbeatWorker.onmessage = (m: MessageEvent<boolean>) => {
-    //           setDashboardContext({
-    //               payload: { heartbeat_valid: m.data },
-    //               type: 'heartbeat/rx',
-    //           });
-    //       };
-    // }, []);
 
     return <></>;
 }

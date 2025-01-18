@@ -19,7 +19,6 @@ import {
 } from "@/lib/models/api_models";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
 import { PlotDataPoint, PlotInputData } from "@/lib/models/plotting_models";
-import { PlotContext, PlotContextProvider } from "./PlotContext";
 import DataPlot from "@/lib/components/client_components/DataPlot";
 
 type IOFetchDataInterface = Array<PlotDataPoint>;
@@ -31,43 +30,16 @@ const IOPlots = (props: {
   // point_channels: Array<number>;
   plot_configuration: Array<PlotConfiguration>;
 }) => {
-  // const { inputs } = useContext(AnalogInputContext);
   const { IOPoints } = useContext(IOPointContext);
   const { dashboardContext, setDashboardContext } =
     useContext(DashboardContext);
-  // const { plotContext, setPlotContext } = useContext(PlotContext);
-  // const [selectedPlot, setSelectedPlot] = useState<string>();
-  // const [selectedTraces, setSelectedTraces] = useState<Record<number, number>>(
-  //   {}
-  // );
   const [completeIOData, setCompleteIOData] = useState<
     Record<number, Array<PlotDataPoint>>
   >({});
 
   const initialDataAcquired = useRef<Record<number, boolean>>();
-  //   let plotDataBuffers: Record<number, Array<IODataPoint>> = {};
 
   useEffect(() => {
-    // setPlotContext((p) => ({
-    //   ...p,
-    //   plot_lengths: dashboardContext.hardware_configuration?.io_system.getIOPoints(props.point_type).reduce(
-    //   // plot_lengths: props.point_channels.reduce(
-    //     (lengths, io_channel) => ({
-    //       ...lengths,
-    //       [io_channel.channel]: props.default_length,
-    //     }),
-    //     {}
-    //   ),
-    //   // update_rates: props.point_channels.reduce(
-    //   update_rates: dashboardContext.hardware_configuration?.io_system.getIOPoints(props.point_type).reduce(
-    //     (rates, io_channel) => ({
-    //       ...rates,
-    //       [io_channel.channel]: props.default_update_rate,
-    //     }),
-    //     {}
-    //   ),
-    // }));
-
     setCompleteIOData(() =>
       dashboardContext.configuration.io_plots[props.point_type].reduce(
         (data, plot_configuration, plot_index) => ({
@@ -253,20 +225,6 @@ const IOPlots = (props: {
     });
   };
 
-  // const point_type_name = (point_type: IOPointType) => {
-  //   switch (point_type) {
-  //     case IOPointType.ANALOG_INPUT: {
-  //       return "Analog Input";
-  //     }
-  //     case IOPointType.DIGITAL_INPUT: {
-  //       return "Digital Input";
-  //     }
-  //     default: {
-  //       return "Unknown Type";
-  //     }
-  //   }
-  // };
-
   const parseIOData = (
     data: PlotDataPoint[]
     // data_key: string
@@ -276,22 +234,6 @@ const IOPlots = (props: {
         (point_index) => {
           const numeric_point_index = parseInt(point_index);
           if (!isNaN(numeric_point_index)) {
-          
-            // let a = {
-            //   name: `Point ${numeric_point_index}`,
-            //   id: numeric_point_index,
-            //   data: data.map(
-            //     (data_point) =>
-            //       ({
-            //         [numeric_point_index]: data_point[numeric_point_index],
-            //         time: data_point.time,
-            //       }) as PlotDataPoint
-            //   ),
-            // }
-            // let time_name = "time";
-            // if (numeric_point_index != 0) {
-            //   time_name = "time_1"
-            // }
             return {
               name: `Point ${numeric_point_index}`,
               id: numeric_point_index,
@@ -300,8 +242,6 @@ const IOPlots = (props: {
                   ({
                     [numeric_point_index]: data_point[numeric_point_index],
                     time: data_point.time,
-                    // time: data[data_point_index].time,
-
                   }) as PlotDataPoint
               ),
             };
@@ -314,10 +254,6 @@ const IOPlots = (props: {
       return [];
     }
   };
-
-  // data_parser={(data) =>
-  //   data ? parseDataByType(data as PlotAxisData, plot_configuration.plot_type) : []
-  // }
 
   return dashboardContext.configuration.configured ? (
     <>
@@ -340,9 +276,6 @@ const IOPlots = (props: {
 
                   if (point) {
                     const point_label = point?.label;
-                    // const data_name =
-                    //   point_label ??
-                    //   `${point_type_name(props.point_type)} ${source}`;
                     const data_name =
                       point_label ??
                       `${IOPointTypeFriendlyName[props.point_type]} ${source}`;
@@ -469,17 +402,14 @@ const IOPlotContainer = (props: { point_type: IOPointType }) => {
   const { dashboardContext } = useContext(DashboardContext);
 
   return (
-    // <PlotContextProvider>
       <IOPlots
         default_length={100}
         default_update_rate={5}
         point_type={props.point_type}
-        // point_channels={[0, 1, 2, 3]}
         plot_configuration={
           [...dashboardContext.configuration.io_plots[props.point_type]] ?? undefined
         }
       />
-    //</PlotContextProvider>
   );
 };
 

@@ -14,7 +14,6 @@ import { v4 as uuidv4 } from 'uuid'; // Import uuid to generate unique IDs
 
 interface IOPointContextInterface {
     IOPoints: IOConfiguration;
-    // setIOPoints: Dispatch<SetStateAction<setIOPointsDispatchInterface>>;
     setIOPoints: Dispatch<UnknownAction>;
 }
 
@@ -119,7 +118,6 @@ export const IOPointContextProvider = ({ children }) => {
             });
     });
 
-    // const [IOPoints, setIOPoints] = useReducer<IOConfiguration, (arg: setIOPointsDispatchInterface) => void>(setIOPointsReducer, initialIOPoints)
     const [IOPoints, setIOPoints] = useReducer(
         setIOPointsReducer,
         initialIOPoints

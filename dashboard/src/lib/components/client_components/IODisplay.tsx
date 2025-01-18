@@ -90,7 +90,7 @@ const IODisplay = () => {
     );
   };
 
-  const AnalogInputDisplayElement = (props: {
+  const IOPointDisplayElement = (props: {
     configuration: IOPointConfiguration;
   }) => {
     const point_value = dashboardContext.getIOSState(props.configuration.type)
@@ -143,9 +143,9 @@ const IODisplay = () => {
                   <p className="text-r2-white font-bold">{`${IOPointTypeFriendlyName[io_point_type].toString()}s`}</p>
                   {IOPoints?.getConfiguredIOPoints(io_point_type).map(
                     (configuration, point_index) => (
-                      <AnalogInputDisplayElement
-                      key={point_index}  
-                      configuration={configuration}
+                      <IOPointDisplayElement
+                        key={point_index}  
+                        configuration={configuration}
                       />
                     )
                   )}

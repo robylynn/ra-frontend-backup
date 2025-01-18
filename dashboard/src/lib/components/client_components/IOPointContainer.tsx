@@ -11,8 +11,7 @@ import { DashboardContext } from "@/lib/components/client_components/DashboardCo
 import {
   AnalogIOPointType,
   IOPointConfiguration,
-  IOPointType,
-  TransferFunctionType,
+  IOPointType
 } from "@/lib/models/api_models";
 import {
   R2Button,
@@ -22,13 +21,11 @@ import ROSLIB from "roslib";
 import timeoutServiceCall from "@/lib/utils/timeoutServiceCall";
 import { IOPointContext } from "./IOPointContext";
 import {
-  AnalogInConfig,
-  AnalogInConfigurationServiceInterface,
-  DigitalInConfig,
-  DigitalInConfigurationServiceInterface,
-} from "@/lib/models/ros_models";
-import { deepCompareKeys } from "@blueprintjs/core/lib/esm/common/utils";
-// import "./AnalogInput.css"; // TODO: Rename this css to be more general
+  IRosTypeR2CInterfacesAnalogInConfigConst,
+  IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType,
+  IRosTypeR2CInterfacesConfigureAnalogInRequest,
+  IRosTypeR2CInterfacesConfigureDigitalInRequest
+} from "@/lib/models/ros_types";
 
 type IOPointContainerProps = {
   index: number;
@@ -67,8 +64,8 @@ const IOPointContainer = ({
     }
 
     let request_data:
-      | AnalogInConfigurationServiceInterface
-      | DigitalInConfigurationServiceInterface;
+      | IRosTypeR2CInterfacesConfigureAnalogInRequest
+      | IRosTypeR2CInterfacesConfigureDigitalInRequest;
     switch (io_point.type) {
       case IOPointType.ANALOG_INPUT: {
         request_data = {
@@ -173,10 +170,6 @@ const IOPointContainer = ({
 
   const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
     if (deletableIOPoint.configured) {
-      // const updatedIOPoint: IOPointConfiguration = {
-      //   ...deletableIOPoint,
-      //   configured: false,
-      // };
       let updatedIOPoint = deletableIOPoint.copy();
       deletableIOPoint.configured = false;
 
@@ -312,9 +305,7 @@ const IOPointConfigDialog = ({
     const { name, value } = e.target;
     let newLocalPoint = localPoint.copy();
     newLocalPoint[name] = value;
-    // Object.assign(newLocalPoint, localPoint);
     setLocalPoint(() => newLocalPoint);
-    // setLocalPoint((p) => ({ ...p, [name]: value } as IOPointConfiguration));
     console.log("setting string to " + value);
   };
 
@@ -323,7 +314,6 @@ const IOPointConfigDialog = ({
     let newLocalPoint = localPoint.copy();
     newLocalPoint.channel = parseInt(value);
     setLocalPoint(() => newLocalPoint);
-    // setLocalPoint((p) => ({ ...p, channel: parseInt(value) }));
   };
 
   const handleNumericChange = (e) => {
@@ -337,34 +327,34 @@ const IOPointConfigDialog = ({
       newLocalPoint[name] = 0;
     }
     setLocalPoint(() => newLocalPoint);
-
-    // if (numeric_value) {
-    //   setLocalPoint((p) => ({ ...p, [name]: numeric_value }));
-    // } else {
-    //   setLocalPoint((p) => ({ ...p, [name]: "" }));
-    // }
   };
 
   const handleAnalogTypeChange = (e) => {
     const value =
-      AnalogIOPointType[e.target.value as keyof typeof AnalogIOPointType];
+      AnalogIOPointType[
+        e.target
+          .value as keyof typeof IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType
+      ];
     let newLocalPoint = localPoint.copy();
     newLocalPoint.analog_type = value;
-    setLocalPoint(() => newLocalPoint)
-      // setLocalPoint((p) => ({ ...p, analog_type: value }));
+    setLocalPoint(() => newLocalPoint);
   };
 
   const handleTransferFunctionChange = (e) => {
     const value =
-      TransferFunctionType[e.target.value as keyof typeof TransferFunctionType];
+      IRosTypeR2CInterfacesAnalogInConfigConst[
+        e.target.value as keyof typeof IRosTypeR2CInterfacesAnalogInConfigConst
+      ];
     let newLocalPoint = localPoint.copy();
     newLocalPoint.transfer_function_type = value;
-    setLocalPoint(() => newLocalPoint)
-      // setLocalPoint((p) => ({ ...p, transfer_function_type: value }));
+    setLocalPoint(() => newLocalPoint);
   };
 
   const unitLabel =
-    localPoint.analog_type === AnalogIOPointType.CURRENT ? "(mA)" : "(V)";
+    localPoint.analog_type ===
+    IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_CURRENT
+      ? "(mA)"
+      : "(V)";
 
   return (
     <div className="flex flex-col w-full">
@@ -422,13 +412,13 @@ const IOPointConfigDialog = ({
             <label>Transfer Function</label>
             <select
               name="transferFunction"
-              value={TransferFunctionType[localPoint.transfer_function_type]}
+              value={IRosTypeR2CInterfacesAnalogInConfigConst[localPoint.transfer_function_type]}
               onChange={handleTransferFunctionChange}
             >
-              <option value={TransferFunctionType[TransferFunctionType.LINEAR]}>
+              <option value={IRosTypeR2CInterfacesAnalogInConfigConst[IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR]}>
                 Linear
               </option>
-              <option value={TransferFunctionType[TransferFunctionType.CUSTOM]}>
+              <option value={IRosTypeR2CInterfacesAnalogInConfigConst[IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_CUSTOM]}>
                 Custom
               </option>
             </select>

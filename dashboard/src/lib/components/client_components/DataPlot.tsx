@@ -28,17 +28,11 @@ import {
     YAxis,
 } from 'recharts'
 
-// const defaultDataParser = (data: Array<PlotDataPoint> | PlotAxisData) => data;
-
 const DataPlot = (props: {
     data: Array<PlotDataPoint> | PlotAxisData
-    // data:
-    // data_name: string;
-    // data: PlotInputData
     data_type: IOPointType | AxisDataType
-    // point_type_name: string;
     y_label?: string
-    data_parser: (data: Array<PlotDataPoint> | PlotAxisData) => PlotInputData // = defaultDataParser
+    data_parser: (data: Array<PlotDataPoint> | PlotAxisData) => PlotInputData
     plot_index: number
     data_sources: Array<number>
     initial_data_acquired: boolean
@@ -74,8 +68,6 @@ const DataPlot = (props: {
     useEffect(() => {
         const intervalId = setInterval(
             () => {
-                // console.log(`Update rate for plot is ${props.selected_update_rate}`);
-
                 setPlotUpdateCounter((counter) => counter + 1)
             },
             props.selected_update_rate > 0
@@ -99,10 +91,6 @@ const DataPlot = (props: {
     }
 
     const y_axis_label = (): string => {
-        // let unit_string: string;
-        // if (typeof(props.data) == typeof(Array<IODataPoint>)) {
-
-        // }
         if (
             typeof props.selected_sources == typeof Array<IOPointConfiguration>
         ) {
@@ -121,9 +109,6 @@ const DataPlot = (props: {
                     .map((io_channel) => io_channel.measurement_unit)
                 if (units.some((unit) => unit)) {
                     const unit_string = units.join(' / ')
-                    // if (units.length > 0) {
-                    //   unit_string = units.join(" / ")
-                    // }
                     return unit_string
                 }
 
@@ -148,7 +133,6 @@ const DataPlot = (props: {
     return (
         <div>
             <div className="flex flex-row justify-between py-2">
-                {/* <h2>{`${props.data_name}`}</h2> */}
                 <select
                     className="w-[40%]"
                     value={selectedDataSource}
@@ -174,10 +158,6 @@ const DataPlot = (props: {
                                     ? `${axis_configuration.label} (Axis ${axis_configuration.index})`
                                     : `Axis ${axis_configuration.index}`
                         }
-                        // const label =
-                        //   input.label != ""
-                        //     ? `${input.label} (Input ${input.channel})`
-                        //     : `Input ${input.channel}`;
                         return (
                             <option key={index} value={source.identifier}>
                                 {label}
@@ -247,14 +227,10 @@ const DataPlot = (props: {
                     }}
                 />
             </div>
-            {/* <Plot data={props.data} data_sources={props.data_sources} y_label={props.y_label} /> */}
             <ResponsiveContainer width="100%" height={400}>
-                {/* <> */}
                 {!props.initial_data_acquired ? (
                     <LoadingIndicator text="FETCHING DATA" />
                 ) : (
-                    // <LineChart data={plottedData}>
-                    // <LineChart data={plottedData?.[0]?.data}>
                     <LineChart>
                         <CartesianGrid strokeDasharray="3 3" />
 
@@ -265,16 +241,14 @@ const DataPlot = (props: {
                                     dataKey="time"
                                     name={'Time'}
                                     tickFormatter={plotDateFormatter}
-                                    tickCount={2}
+                                    tickCount={3}
                                     type="number"
                                     allowDuplicatedCategory={false}
                                     domain={['dataMin', 'dataMax']}
                                     // interval={"equidistantPreserveStart"}
                                 />
                                 <YAxis
-                                    // dataKey={0}
                                     label={{
-                                        // value: props.y_label ?? "Input Value",
                                         value: y_axis_label(),
                                         angle: -90,
                                     }}
