@@ -59,3 +59,14 @@ nvm use 14
 npx ros-typescript-generator --config ./ros-ts-generator-config.json
 ```
 Be sure to switch back to node v20 (`nvm use 20`) after generating the code. This only has to be done if the message/service definitions in `r2c_interfaces` changes.
+
+## RA Frontend Interfaces (WIP)
+We use `quicktype` to generate types for both python and TypeScript from JSON schema that define the types used in the database. Install quicktype, 
+```
+npm -g quicktype
+```
+and invoke with 
+```
+quicktype --src ../ra-frontend-interfaces/models.json --src-lang schema --lang python --python
+-version 3.7  --out ../ra-frontend-interfaces/models.py --just-types
+```

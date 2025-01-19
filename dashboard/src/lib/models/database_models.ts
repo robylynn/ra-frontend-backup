@@ -2,6 +2,7 @@
 // Developed by R2 Labs for Seabound Carbon
 
 import { ROSTimestamp } from "@/lib/models/shared_ros_types";
+import { IRosTypeR2CInterfacesEncoderEstimates } from "@/lib/models/ros_types";
 
 export interface DocumentMetadataInterface {
   commit_serial_number: number;
@@ -12,15 +13,15 @@ export interface DocumentMetadataInterface {
   experiment_id: string | undefined;
 }
 
-export interface DatabaseFrontendMessageInterface {
-  _id: string;
-  metadata: DocumentMetadataInterface;
-  record_hash: string;
-  timestamp: Date;
-  timestamp_seconds: number;
-  severity: string;
-  message: string;
-}
+// export interface DatabaseFrontendMessageInterface {
+//   _id: string;
+//   metadata: DocumentMetadataInterface;
+//   record_hash: string;
+//   timestamp: Date;
+//   timestamp_seconds: number;
+//   severity: string;
+//   message: string;
+// }
 
 export class DocumentMetadata implements DocumentMetadataInterface {
   commit_serial_number: number = -1;
@@ -42,26 +43,26 @@ export class DocumentMetadata implements DocumentMetadataInterface {
   }
 }
 
-export class DatabaseFrontendMessage {
-  _id: string = "";
-  metadata: DocumentMetadata = new DocumentMetadata();
-  record_hash: string = "";
-  timestamp: Date = new Date("1970");
-  timestamp_seconds: number = 0;
-  severity: string = "";
-  message: string = "";
+// export class DatabaseFrontendMessage {
+//   _id: string = "";
+//   metadata: DocumentMetadata = new DocumentMetadata();
+//   record_hash: string = "";
+//   timestamp: Date = new Date("1970");
+//   timestamp_seconds: number = 0;
+//   severity: string = "";
+//   message: string = "";
 
-  constructor(document?: DatabaseFrontendMessageInterface) {
-    if (document != undefined) {
-      this._id = document._id;
-      this.timestamp = document.timestamp;
-      this.timestamp_seconds = document.timestamp_seconds;
-      this.metadata = new DocumentMetadata(document.metadata);
-      this.message = document.message;
-      this.severity = document.severity;
-    }
-  }
-}
+//   constructor(document?: DatabaseFrontendMessageInterface) {
+//     if (document != undefined) {
+//       this._id = document._id;
+//       this.timestamp = document.timestamp;
+//       this.timestamp_seconds = document.timestamp_seconds;
+//       this.metadata = new DocumentMetadata(document.metadata);
+//       this.message = document.message;
+//       this.severity = document.severity;
+//     }
+//   }
+// }
 
 export interface DatabaseDocumentInterface {
   _id: string;
@@ -169,11 +170,11 @@ export class ROSIOState extends DatabaseDocument implements ROSIOStateInterface 
   }
 }
 
-export interface ROSAxisStateInterface extends DatabaseDocumentInterface {
-  stamp: ROSTimestamp
-  velocity: number
-  position: number
-  axis_index: number
+export interface ROSAxisStateInterface extends DatabaseDocumentInterface, IRosTypeR2CInterfacesEncoderEstimates {
+  // stamp: ROSTimestamp
+  // velocity: number
+  // position: number
+  // axis_index: number
 }
 
 export class ROSAxisState extends DatabaseDocument implements ROSAxisStateInterface {
@@ -213,43 +214,43 @@ export class DocumentArray {
   }
 }
 
-export class DatabaseIOStateDocumentArray extends DocumentArray {
-  protected _documents: Array<DatabaseIOState> = [];
+// export class DatabaseIOStateDocumentArray extends DocumentArray {
+//   protected _documents: Array<DatabaseIOState> = [];
 
-  constructor(input_documents?: Array<DatabaseIOStateInterface>) {
-    super();
-    if (input_documents != undefined) {
-      input_documents.forEach((input_doc) => {
-        this.add_document(input_doc);
-      });
-    }
-  }
+//   constructor(input_documents?: Array<DatabaseIOStateInterface>) {
+//     super();
+//     if (input_documents != undefined) {
+//       input_documents.forEach((input_doc) => {
+//         this.add_document(input_doc);
+//       });
+//     }
+//   }
 
-  public get state_valid() {
-    return this._documents.length > 0;
-  }
+//   public get state_valid() {
+//     return this._documents.length > 0;
+//   }
 
-  add_document(document: DatabaseIOStateInterface) {
-    this._documents.push(new DatabaseIOState(document));
-  }
-}
+//   add_document(document: DatabaseIOStateInterface) {
+//     this._documents.push(new DatabaseIOState(document));
+//   }
+// }
 
-export class DatabaseMessageArray extends DocumentArray {
-  protected _documents: Array<DatabaseFrontendMessage> = [];
+// export class DatabaseMessageArray extends DocumentArray {
+//   protected _documents: Array<DatabaseFrontendMessage> = [];
 
-  constructor(input_documents?: Array<DatabaseFrontendMessageInterface>) {
-    super();
-    if (input_documents != undefined) {
-      input_documents.forEach((input_doc) => {
-        this.add_document(input_doc);
-      });
-    }
-  }
+//   constructor(input_documents?: Array<DatabaseFrontendMessageInterface>) {
+//     super();
+//     if (input_documents != undefined) {
+//       input_documents.forEach((input_doc) => {
+//         this.add_document(input_doc);
+//       });
+//     }
+//   }
 
-  add_document(document: DatabaseFrontendMessageInterface) {
-    this._documents.push(new DatabaseFrontendMessage(document));
-  }
-}
+//   add_document(document: DatabaseFrontendMessageInterface) {
+//     this._documents.push(new DatabaseFrontendMessage(document));
+//   }
+// }
 
 export class DatabaseROSIOStateArray extends DocumentArray {
   protected _documents: Array<ROSIOState> = [];
