@@ -7,7 +7,7 @@ import { immerable, produce } from "immer";
 import {
   DatabaseDocument,
   // DatabaseIOStateDocumentArray,
-  // DatabaseMessageArray,
+  DatabaseMessageArray,
 } from "@/lib/models/database_models";
 
 import {
@@ -49,7 +49,7 @@ export class ApplicationContext {
   [immerable] = true;
 
   // latest_document: DatabaseDocument | null = null;
-  // messages: DatabaseMessageArray | null = null;
+  messages: DatabaseMessageArray | null = null;
   configuration: UIConfiguration | null = null;
   // io_state: DatabaseIOStateDocumentArray | null = null;
   hardware_configuration: HardwareConfiguration | null = null;
@@ -71,7 +71,7 @@ export class ApplicationContext {
   constructor() {
     // this.latest_document = new DatabaseDocument();
     this.configuration = new UIConfiguration();
-    // this.messages = new DatabaseMessageArray();
+    this.messages = new DatabaseMessageArray();
     // this.io_state = new DatabaseIOStateDocumentArray();
     this.IO_config_services = new ConfigServices();
   }

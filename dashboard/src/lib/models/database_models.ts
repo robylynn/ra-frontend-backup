@@ -13,15 +13,15 @@ export interface DocumentMetadataInterface {
   experiment_id: string | undefined;
 }
 
-// export interface DatabaseFrontendMessageInterface {
-//   _id: string;
-//   metadata: DocumentMetadataInterface;
-//   record_hash: string;
-//   timestamp: Date;
-//   timestamp_seconds: number;
-//   severity: string;
-//   message: string;
-// }
+export interface DatabaseFrontendMessageInterface {
+  _id: string;
+  metadata: DocumentMetadataInterface;
+  record_hash: string;
+  timestamp: Date;
+  timestamp_seconds: number;
+  severity: string;
+  message: string;
+}
 
 export class DocumentMetadata implements DocumentMetadataInterface {
   commit_serial_number: number = -1;
@@ -43,26 +43,26 @@ export class DocumentMetadata implements DocumentMetadataInterface {
   }
 }
 
-// export class DatabaseFrontendMessage {
-//   _id: string = "";
-//   metadata: DocumentMetadata = new DocumentMetadata();
-//   record_hash: string = "";
-//   timestamp: Date = new Date("1970");
-//   timestamp_seconds: number = 0;
-//   severity: string = "";
-//   message: string = "";
+export class DatabaseFrontendMessage {
+  _id: string = "";
+  metadata: DocumentMetadata = new DocumentMetadata();
+  record_hash: string = "";
+  timestamp: Date = new Date("1970");
+  timestamp_seconds: number = 0;
+  severity: string = "";
+  message: string = "";
 
-//   constructor(document?: DatabaseFrontendMessageInterface) {
-//     if (document != undefined) {
-//       this._id = document._id;
-//       this.timestamp = document.timestamp;
-//       this.timestamp_seconds = document.timestamp_seconds;
-//       this.metadata = new DocumentMetadata(document.metadata);
-//       this.message = document.message;
-//       this.severity = document.severity;
-//     }
-//   }
-// }
+  constructor(document?: DatabaseFrontendMessageInterface) {
+    if (document != undefined) {
+      this._id = document._id;
+      this.timestamp = document.timestamp;
+      this.timestamp_seconds = document.timestamp_seconds;
+      this.metadata = new DocumentMetadata(document.metadata);
+      this.message = document.message;
+      this.severity = document.severity;
+    }
+  }
+}
 
 export interface DatabaseDocumentInterface {
   _id: string;
@@ -235,22 +235,22 @@ export class DocumentArray {
 //   }
 // }
 
-// export class DatabaseMessageArray extends DocumentArray {
-//   protected _documents: Array<DatabaseFrontendMessage> = [];
+export class DatabaseMessageArray extends DocumentArray {
+  protected _documents: Array<DatabaseFrontendMessage> = [];
 
-//   constructor(input_documents?: Array<DatabaseFrontendMessageInterface>) {
-//     super();
-//     if (input_documents != undefined) {
-//       input_documents.forEach((input_doc) => {
-//         this.add_document(input_doc);
-//       });
-//     }
-//   }
+  constructor(input_documents?: Array<DatabaseFrontendMessageInterface>) {
+    super();
+    if (input_documents != undefined) {
+      input_documents.forEach((input_doc) => {
+        this.add_document(input_doc);
+      });
+    }
+  }
 
-//   add_document(document: DatabaseFrontendMessageInterface) {
-//     this._documents.push(new DatabaseFrontendMessage(document));
-//   }
-// }
+  add_document(document: DatabaseFrontendMessageInterface) {
+    this._documents.push(new DatabaseFrontendMessage(document));
+  }
+}
 
 export class DatabaseROSIOStateArray extends DocumentArray {
   protected _documents: Array<ROSIOState> = [];
