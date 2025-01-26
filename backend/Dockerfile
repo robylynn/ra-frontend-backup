@@ -6,7 +6,7 @@ ARG CONFIG_FILE
 ARG CONFIG_FILE_DIR
 ARG PROJECT_ROOT
 
-WORKDIR ${APP_WORKDIR}
+WORKDIR /${APP_WORKDIR}
 
 ## Copy over necessary files for building and deployment
 COPY backend ${APP_WORKDIR}/backend
