@@ -1,7 +1,7 @@
 #/bin/bash
 
-export PROJECT_ROOT="$PWD/.."
-source $PROJECT_ROOT/.venv/bin/activate
+export PROJECT_ROOT="$PWD/"
+source $PROJECT_ROOT/backend/venv/bin/activate
 export PYTHONPATH=$PROJECT_ROOT/backend
 # export PYTHONPATH=$PROJECT_ROOT
 echo $PYTHONPATH

@@ -1,3 +1,5 @@
+#/bin/bash
+
 export USER=$(whoami)
 
 export MAIN_WORKING_DIRECTORY=/home/$USER/r2
@@ -12,3 +14,6 @@ export HOST_HOSTNAME=$(hostname)
 
 export DOCKER_UID="$(id $USER | sed -nr 's/.*uid=(....)\(.*\).*/\1/p')"
 export DOCKER_GID="$(id $USER | sed -nr 's/.*gid=(....)\(.*\).*/\1/p')"
+
+
+echo "Finished setting up env variables"

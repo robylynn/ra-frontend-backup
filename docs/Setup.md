@@ -30,19 +30,32 @@ The installation script is set up to for user `r2` (see `/scripts/install.sh`). 
 
 Set the environment variables, `. ./scripts/set_env_vars.sh` and create the database directory `./scripts/install.sh`. Start the database container and the database UI, `docker compose up`.
 
+` docker compose -f docker-compose.local.yml up`
+
 Install `mongosh` using the [official instructions](https://www.mongodb.com/docs/mongodb-shell/install/).
 
 Next, log into the database and set up the databases and users (see `docs/database_notes.md` for some extra information).
 ```
 mongosh --port 27017
+If not authorized:
+    `use admin`
+    `db.auth("r2", "password")`
 use ra_data
 db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"ra_data"}, { role: 'readWrite', db: 'ra_data' }],mechanisms:[ 'SCRAM-SHA-1', 'SCRAM-SHA-256' ]})
 ```
 
 ## Backend Python Application Setup
-Set up a virtual environment per the usual procedure. The `requirements.txt` file is provided in the repo.
+Set up a virtual environment call `venv` per the usual procedure. The `requirements.txt` file is provided in the repo.
+
+`python3 -m venv venv`
+`pip3 install -r requirements`
+`source venv/bin/activatge`
+`pip3 install -r requirements.txt`
+
 
 The backend (python application) and server side JS code (Next.JS application) are launched separately using the configurations in `launch.json`. They are not yet set up to be run in docker.
+
+
 
 ## Environment Setup
 The `.env.development` and `.env.production` are used to set environment variables when running in development mode (e.g. `yarn dev`) or production mode (e.g. `yarn build && yarn start`), respectively. There are two relevant variables:
@@ -51,3 +64,13 @@ The `.env.development` and `.env.production` are used to set environment variabl
 
 ### NEXTAUTH_URL
 NextAuth (or Auth.js) requires the definition of a redirect URL to be used after authenticaion is passed. This (inconveniently) has to be set manually. Set the `NEXTAUTH_URL` environment variable to the IP address of the network interface on which the NodeJS server is running. If running on RAC hardware, it should be the IP of the jetson. If running on a development machine, it should be `localhost`. This variable is set in the `docker-compose` file or in `launch.json`.
+
+
+
+## Testing in ros2_ws
+
+### Allow websocket communicaiton to/from frontend
+`ros2 run rosbridge_server rosbridge_websocket`
+
+### Run take node without hardware
+`ros2 run r2c_hardware fake_rac_node.py`
