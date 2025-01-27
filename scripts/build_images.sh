@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# echo $0
-# echo "$(dirname "$0")"
-# echo $PWD
-
 cd "$(dirname "$0")"
 . ./set_env_vars.sh
 # ls ../backend
@@ -14,7 +10,7 @@ echo $scripts_dir
 # cd cd "$(dirname "$0")"/../dashboard
 
 cd $scripts_dir/../dashboard
-# docker buildx build --platform linux/amd64,linux/arm64 --tag robylynn/rac:ra_frontend --push .
+docker buildx build --build-arg APP_WORKDIR=$APP_WORKDIR --platform linux/amd64,linux/arm64 --tag robylynn/rac:ra_frontend --push .
 
 cd $scripts_dir/..
-docker buildx build -f backend/Dockerfile . --platform linux/amd64,linux/arm64 --tag robylynn/rac:ra_backend --push
+docker buildx build -f backend/Dockerfile .  --build-arg APP_WORKDIR=$APP_WORKDIR --build-arg PROJECT_ROOT=$PROJECT_ROOT --platform linux/amd64,linux/arm64 --tag robylynn/rac:ra_backend --push
