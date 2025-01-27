@@ -1,0 +1,35 @@
+{
+  "$ref": "#/definitions/ROSIOState",
+  "definitions": {
+    "ROSIOState": {
+      "type": "object",
+      "properties": {
+        "stamp": {
+          "$ref": "./ROSTypes.json#/definitions/ROSTimestamp"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              }
+            },
+            {
+              "type": "object",
+              "patternProperties": {
+                "^+*$": { "type": "number" }
+              }
+            }
+          ]
+        },
+        "time_sec": {
+          "type": "integer"
+        },
+        "time_nsec": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

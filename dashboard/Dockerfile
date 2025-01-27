@@ -19,7 +19,7 @@ COPY [\
 COPY ["next.config.production.js", "./next.config.js"]
 COPY [".env.production", "./.env"]
 
-RUN ["yarn", "install"]
+RUN ["yarn", "--network-timeout", "100000", "install"]
 RUN ["npx", "next-ws-cli@latest", "patch"]
 RUN ["yarn", "build"]
 

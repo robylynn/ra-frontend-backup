@@ -6,7 +6,7 @@ import { immerable, produce } from "immer";
 
 import {
   DatabaseDocument,
-  DatabaseIOStateDocumentArray,
+  // DatabaseIOStateDocumentArray,
   DatabaseMessageArray,
 } from "@/lib/models/database_models";
 
@@ -48,10 +48,10 @@ export class ConfigServices {
 export class ApplicationContext {
   [immerable] = true;
 
-  latest_document: DatabaseDocument | null = null;
+  // latest_document: DatabaseDocument | null = null;
   messages: DatabaseMessageArray | null = null;
   configuration: UIConfiguration | null = null;
-  io_state: DatabaseIOStateDocumentArray | null = null;
+  // io_state: DatabaseIOStateDocumentArray | null = null;
   hardware_configuration: HardwareConfiguration | null = null;
   heartbeat: boolean = false;
   heartbeat_counter: number = 0;
@@ -69,10 +69,10 @@ export class ApplicationContext {
   axis_data: Record<number, IRosTypeR2CInterfacesEncoderEstimates> = {};
 
   constructor() {
-    this.latest_document = new DatabaseDocument();
+    // this.latest_document = new DatabaseDocument();
     this.configuration = new UIConfiguration();
     this.messages = new DatabaseMessageArray();
-    this.io_state = new DatabaseIOStateDocumentArray();
+    // this.io_state = new DatabaseIOStateDocumentArray();
     this.IO_config_services = new ConfigServices();
   }
 

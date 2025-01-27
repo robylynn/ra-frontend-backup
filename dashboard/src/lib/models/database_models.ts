@@ -2,6 +2,7 @@
 // Developed by R2 Labs for Seabound Carbon
 
 import { ROSTimestamp } from "@/lib/models/shared_ros_types";
+import { IRosTypeR2CInterfacesEncoderEstimates } from "@/lib/models/ros_types";
 
 export interface DocumentMetadataInterface {
   commit_serial_number: number;
@@ -169,11 +170,11 @@ export class ROSIOState extends DatabaseDocument implements ROSIOStateInterface 
   }
 }
 
-export interface ROSAxisStateInterface extends DatabaseDocumentInterface {
-  stamp: ROSTimestamp
-  velocity: number
-  position: number
-  axis_index: number
+export interface ROSAxisStateInterface extends DatabaseDocumentInterface, IRosTypeR2CInterfacesEncoderEstimates {
+  // stamp: ROSTimestamp
+  // velocity: number
+  // position: number
+  // axis_index: number
 }
 
 export class ROSAxisState extends DatabaseDocument implements ROSAxisStateInterface {
@@ -213,26 +214,26 @@ export class DocumentArray {
   }
 }
 
-export class DatabaseIOStateDocumentArray extends DocumentArray {
-  protected _documents: Array<DatabaseIOState> = [];
+// export class DatabaseIOStateDocumentArray extends DocumentArray {
+//   protected _documents: Array<DatabaseIOState> = [];
 
-  constructor(input_documents?: Array<DatabaseIOStateInterface>) {
-    super();
-    if (input_documents != undefined) {
-      input_documents.forEach((input_doc) => {
-        this.add_document(input_doc);
-      });
-    }
-  }
+//   constructor(input_documents?: Array<DatabaseIOStateInterface>) {
+//     super();
+//     if (input_documents != undefined) {
+//       input_documents.forEach((input_doc) => {
+//         this.add_document(input_doc);
+//       });
+//     }
+//   }
 
-  public get state_valid() {
-    return this._documents.length > 0;
-  }
+//   public get state_valid() {
+//     return this._documents.length > 0;
+//   }
 
-  add_document(document: DatabaseIOStateInterface) {
-    this._documents.push(new DatabaseIOState(document));
-  }
-}
+//   add_document(document: DatabaseIOStateInterface) {
+//     this._documents.push(new DatabaseIOState(document));
+//   }
+// }
 
 export class DatabaseMessageArray extends DocumentArray {
   protected _documents: Array<DatabaseFrontendMessage> = [];

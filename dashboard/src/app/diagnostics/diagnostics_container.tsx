@@ -10,7 +10,7 @@ import { DashboardContext } from "@/lib/components/client_components/DashboardCo
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import LoadingIndicator from "@/lib/components/server_components/loading_indicator";
 import { HardwareConfiguration, NextAPIResponseInterface } from "@/lib/models/api_models";
-import { DatabaseIOStateDocumentArray } from "@/lib/models/database_models"
+// import { DatabaseIOStateDocumentArray } from "@/lib/models/database_models"
 
 export default function DiagnosticsContainer(props: {
   id: string;
@@ -30,7 +30,7 @@ export default function DiagnosticsContainer(props: {
     ).then((res) => res.json());
     console.log("GET response: " + JSON.stringify(res.data));
 
-    const docs = new DatabaseIOStateDocumentArray(res.data.data);
+    // const docs = new DatabaseIOStateDocumentArray(res.data.data);
     const i = 5;
   }
 

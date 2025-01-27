@@ -38,13 +38,16 @@ services:
       dockerfile: ./Dockerfile
       args:
         - APP_WORKDIR=$APP_WORKDIR
-    image: r2/ra_frontend
+      # platforms:
+      #   - linux/amd64
+      #   - linux/arm64
+    image: robylynn/rac:ra_frontend
     container_name: ra_frontend
     hostname: ra_frontend
     environment:
       - HOST=0.0.0.0
       - PORT=80
-      - NEXTAUTH_URL=http://192.168.2.201:80
+      - NEXTAUTH_URL=http://192.168.2.205:80
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
@@ -74,7 +77,10 @@ services:
         # - DOCKER_GID=$DOCKER_GID
         # - HOST_LOG_FILE_DIR=$HOST_LOG_FILE_DIR
         # - HOST_CONFIG_FILE_DIR=$HOST_CONFIG_FILE_DIR
-    image: r2/ra_backend
+      # platforms:
+      #   - linux/amd64
+      #   - linux/arm64
+    image: robylynn/rac:ra_backend
     container_name: ra_backend
     hostname: ra_backend
     environment:
