@@ -1,15 +1,12 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-"use client";
-
-// import { Dispatch, SetStateAction, createContext } from "react";
 import ROSLIB from "roslib";
-import {immerable, produce} from "immer"
+import { immerable, produce } from "immer";
 
 import {
   DatabaseDocument,
-  DatabaseIOStateDocumentArray,
+  // DatabaseIOStateDocumentArray,
   DatabaseMessageArray,
 } from "@/lib/models/database_models";
 
@@ -18,7 +15,13 @@ import {
   IOPointType,
   UIConfiguration,
 } from "@/lib/models/api_models";
-import { AnalogInData, AxisData, DigitalInData } from "@/lib/models/ros_models";
+import {
+  IRosTypeR2CInterfacesAnalogInData,
+  IRosTypeR2CInterfacesAnalogOutData,
+  IRosTypeR2CInterfacesDigitalInData,
+  IRosTypeR2CInterfacesDigitalOutData,
+  IRosTypeR2CInterfacesEncoderEstimates,
+} from "@/lib/models/ros_types";
 
 type ConfigServicesMap = Record<IOPointType, ROSLIB.Service | null>;
 
@@ -43,12 +46,12 @@ export class ConfigServices {
 }
 
 export class ApplicationContext {
-  [immerable] = true
-  
-  latest_document: DatabaseDocument | null = null;
+  [immerable] = true;
+
+  // latest_document: DatabaseDocument | null = null;
   messages: DatabaseMessageArray | null = null;
   configuration: UIConfiguration | null = null;
-  io_state: DatabaseIOStateDocumentArray | null = null;
+  // io_state: DatabaseIOStateDocumentArray | null = null;
   hardware_configuration: HardwareConfiguration | null = null;
   heartbeat: boolean = false;
   heartbeat_counter: number = 0;
@@ -58,18 +61,18 @@ export class ApplicationContext {
   IO_config_services: ConfigServices;
 
   // Machine State
-  analog_in_data: AnalogInData = null;
-  analog_out_data: AnalogInData | null = null;
-  digital_in_data: DigitalInData | null = null;
-  digital_out_data: DigitalInData | null = null;
-  
-  axis_data: Record<number, AxisData> = {};
+  analog_in_data: IRosTypeR2CInterfacesAnalogInData = null;
+  analog_out_data: IRosTypeR2CInterfacesAnalogOutData | null = null;
+  digital_in_data: IRosTypeR2CInterfacesDigitalInData | null = null;
+  digital_out_data: IRosTypeR2CInterfacesDigitalOutData | null = null;
+
+  axis_data: Record<number, IRosTypeR2CInterfacesEncoderEstimates> = {};
 
   constructor() {
-    this.latest_document = new DatabaseDocument();
+    // this.latest_document = new DatabaseDocument();
     this.configuration = new UIConfiguration();
     this.messages = new DatabaseMessageArray();
-    this.io_state = new DatabaseIOStateDocumentArray();
+    // this.io_state = new DatabaseIOStateDocumentArray();
     this.IO_config_services = new ConfigServices();
   }
 
@@ -84,7 +87,6 @@ export class ApplicationContext {
       case IOPointType.ANALOG_OUTPUT:
         return this.analog_out_data;
     }
-
   }
 }
 

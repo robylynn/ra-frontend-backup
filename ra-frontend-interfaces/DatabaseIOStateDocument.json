@@ -1,0 +1,42 @@
+{
+  "$ref": "#/definitions/DatabaseIOStateDocument",
+  "definitions": {
+    "IOPoint": {
+      "type": "object",
+      "properties": {
+        "configured": {
+          "type": "boolean"
+        },
+        "state": {
+          "anyOf": [
+            {"type": "boolean"},
+            {"type": "number"}
+          ]
+        }
+      },
+      "required": ["configured"]
+    },
+    "IOPort": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/IOPoint"
+      }
+    },
+    "DatabaseIOStateDocument": {
+      "type": "object",
+      "$ref": "./DatabaseDocument.json#/definitions/DatabaseDocument",
+      "description": "Timeseries Record in mongoDB",
+      "unevaluatedProperties": false,
+      "properties": {
+        "digital_inputs": {
+          "$ref": "#/definitions/IOPort"
+        },
+        "digital_outputs": {
+          "$ref": "#/definitions/IOPort"
+        }
+      },
+      "title": "DatabaseIOStateDocument"
+    }
+    
+  }
+}

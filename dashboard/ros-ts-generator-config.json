@@ -1,0 +1,17 @@
+{
+    "output": "./src/lib/models/ros_types.ts",
+    "rosVersion": 2,
+    "typePrefix": "IRosType",
+    "useNamespaces": false,
+    "smartEnums": true,
+    "input": [
+      {
+        "namespace": "r2c_interfaces",
+        "path": "../r2-controller-interfaces/r2c_interfaces/msg"
+      },
+      {
+        "namespace": "r2c_interfaces",
+        "path": "../r2-controller-interfaces/r2c_interfaces/srv"
+      }
+    ]
+  }

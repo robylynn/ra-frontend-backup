@@ -1,0 +1,73 @@
+{
+  "$ref": "#/definitions/DatabaseDocument",
+  "definitions": {
+    "DocumentType": {
+      "enum": [
+        "SENSOR_DATA",
+        "EVENT",
+        "FRONTEND_MESSAGE",
+        "IO_STATE",
+        "ANALOG_INPUT_STATE",
+        "DIGITAL_INPUT_STATE",
+        "AXIS_STATE",
+        "SYSTEM_CONFIGURATION",
+        "UI_CONFIGURATION"
+      ],
+      "title": "DocumentType"
+    },
+    "DocumentMetadata": {
+      "type": "object",
+      "description": "metadata",
+      "additionalProperties": false,
+      "properties": {
+        "document_type": {
+          "$ref": "#/definitions/DocumentType"
+        },
+        "commit_serial_number": {
+          "type": "integer"
+        },
+        "machine_startup_time": {
+          "type": "string",
+          "format": "date"
+        },
+        "machine_uid": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "experiment_id": {
+          "type": "string"
+        }
+      },
+      "required": ["document_type", "commit_serial_number", "machine_startup_time", "machine_uid"],
+      "title": "DocumentMetadata"
+    },
+    "DatabaseDocument": {
+      "type": "object",
+      "description": "Timeseries Record in mongoDB",
+      "additionalProperties": false,
+      "properties": {
+        "_id": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/DocumentMetadata"
+        },
+        "record_hash": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date"
+        },
+        "timestamp_seconds": {
+          "type": "number"
+        }
+      },
+      "required": ["_id", "metadata", "record_hash", "timestamp", "timestamp_seconds"],
+      "title": "DatabaseDocument"
+    }
+    
+  }
+}

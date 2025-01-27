@@ -1,0 +1,19 @@
+{
+    "$ref": "#/definitions/ROSTimestamp",
+    "definitions": {
+        "ROSTimestamp": {
+            "$id": "ROSTimestamp",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "seconds": {
+                    "type": "integer"
+                },
+                "nanosec": {
+                    "type": "integer"
+                }
+            },
+            "title": "ROSTimestamp"
+        }
+    }
+}

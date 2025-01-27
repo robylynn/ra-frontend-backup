@@ -3,6 +3,11 @@
 
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+import {
+  IRosTypeR2CInterfacesAnalogInConfigConst,
+  IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType,
+  IRosTypeR2CInterfacesAnalogOutConfigConst,
+} from "@/lib/models/ros_types";
 
 export interface BackendAPIResponseInterface {
   error: boolean;
@@ -112,9 +117,6 @@ export class UIConfiguration implements UIConfigurationInterface {
             plot_type as keyof typeof IOPointType
           ].map((p) => new PlotConfiguration(p));
         });
-        // input.io_plots?.forEach((p) => {
-        //   this.io_plots.push(new PlotConfiguration(p));
-        // });
       }
 
       input.motion_plots?.forEach((p) =>
@@ -170,10 +172,10 @@ export enum AnalogIOPointType {
   CURRENT,
 }
 
-export enum TransferFunctionType {
-  LINEAR,
-  CUSTOM,
-}
+// export enum TransferFunctionType {
+//   LINEAR,
+//   CUSTOM,
+// }
 
 export class HardwareComponentConfiguration {
   public get identifier(): number {
@@ -209,11 +211,13 @@ export interface IOPointConfigurationInterface {
   id?: string;
   channel: number;
   type: IOPointType;
-  analog_type?: AnalogIOPointType;
+  analog_type?: IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType;
   enabled: boolean;
   configured: boolean;
   label?: string;
-  transfer_function_type?: TransferFunctionType;
+  transfer_function_type?:
+    | IRosTypeR2CInterfacesAnalogInConfigConst
+    | IRosTypeR2CInterfacesAnalogOutConfigConst;
   measurement_unit?: string;
   min_value?: number;
   min_signal_v?: number;
@@ -229,11 +233,13 @@ export class IOPointConfiguration
   id: string;
   channel: number;
   type: IOPointType;
-  analog_type?: AnalogIOPointType;
+  analog_type?: IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType;
   enabled: boolean;
   configured: boolean;
   label: string;
-  transfer_function_type: TransferFunctionType;
+  transfer_function_type?:
+    | IRosTypeR2CInterfacesAnalogInConfigConst
+    | IRosTypeR2CInterfacesAnalogOutConfigConst;
   measurement_unit: string;
   min_value: number;
   min_signal_v: number;
@@ -260,10 +266,11 @@ export class IOPointConfiguration
       ) {
         this.analog_type =
           typeof input.analog_type === "string"
-            ? AnalogIOPointType[
-                (input.analog_type ?? "NULL") as keyof typeof AnalogIOPointType
+            ? IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType[
+                (input.analog_type ??
+                  "NULL") as keyof typeof IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType
               ]
-            : (input.analog_type as AnalogIOPointType);
+            : (input.analog_type as IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType);
       }
 
       this.measurement_unit = input.measurement_unit ?? "";
@@ -271,12 +278,25 @@ export class IOPointConfiguration
       this.max_value = input.max_value ?? 0;
       this.min_signal_v = input.min_signal_v ?? 0;
       this.max_signal_v = input.max_signal_v ?? 0;
-      this.transfer_function_type =
-        typeof input.type === "string"
-          ? TransferFunctionType[
-              (input.type ?? "NULL") as keyof typeof TransferFunctionType
-            ]
-          : (input.transfer_function_type as TransferFunctionType);
+
+      if (this.type == IOPointType.ANALOG_INPUT) {
+        this.transfer_function_type =
+          typeof input.type === "string"
+            ? IRosTypeR2CInterfacesAnalogInConfigConst[
+                (input.type ??
+                  "NULL") as keyof typeof IRosTypeR2CInterfacesAnalogInConfigConst
+              ]
+            : (input.transfer_function_type as IRosTypeR2CInterfacesAnalogInConfigConst);
+      } else if (this.type == IOPointType.ANALOG_OUTPUT) {
+        this.transfer_function_type =
+          typeof input.type === "string"
+            ? IRosTypeR2CInterfacesAnalogOutConfigConst[
+                (input.type ??
+                  "NULL") as keyof typeof IRosTypeR2CInterfacesAnalogOutConfigConst
+              ]
+            : (input.transfer_function_type as IRosTypeR2CInterfacesAnalogOutConfigConst);
+      }
+
       this.value = input.value;
     }
   }
@@ -371,32 +391,6 @@ export class IOConfiguration implements IOConfigurationInterface {
 
   public getMaximumChannels(point_type: IOPointType): number {
     return this.configuration_constants[point_type];
-    switch (point_type) {
-      case IOPointType.DIGITAL_INPUT:
-        if (this.digital_inputs.length == 0) {
-          return this.configuration_constants[point_type];
-        } else {
-          return this.digital_inputs.length;
-        }
-      case IOPointType.DIGITAL_OUTPUT:
-        if (this.digital_outputs.length == 0) {
-          return this.configuration_constants[point_type];
-        } else {
-          return this.digital_outputs.length;
-        }
-      case IOPointType.ANALOG_INPUT:
-        if (this.analog_inputs.length == 0) {
-          return this.configuration_constants[point_type];
-        } else {
-          return this.analog_inputs.length;
-        }
-      case IOPointType.ANALOG_OUTPUT:
-        if (this.analog_outputs.length == 0) {
-          return this.configuration_constants[point_type];
-        } else {
-          return this.analog_inputs.length;
-        }
-    }
   }
 
   public getIOPoints(point_type: IOPointType): Array<IOPointConfiguration> {
@@ -523,24 +517,6 @@ export class IOConfiguration implements IOConfigurationInterface {
     let point_array: Array<IOPointConfiguration>;
     try {
       point_array = this.getIOPoints(point_type);
-
-      // switch (point_type) {
-      //   case IOPointType.DIGITAL_INPUT:
-      //     point_array = this.digital_inputs;
-      //     break;
-      //   case IOPointType.DIGITAL_OUTPUT:
-      //     point_array = this.digital_outputs;
-      //     break;
-      //   case IOPointType.ANALOG_INPUT:
-      //     point_array = this.analog_inputs;
-      //     break;
-      //   case IOPointType.ANALOG_OUTPUT:
-      //     point_array = this.analog_outputs;
-      //     break;
-      //   default:
-      //     return;
-      // }
-
       let [moved_point] = point_array.splice(source_index, 1);
       point_array.splice(destination_index, 0, moved_point);
     } catch (e) {
@@ -549,8 +525,6 @@ export class IOConfiguration implements IOConfigurationInterface {
       );
     }
   }
-
-  // private getPointArray(point_type)
 
   public isPointAvailable(point_type: IOPointType) {
     const point_array = this.getIOPoints(point_type);
@@ -564,7 +538,6 @@ export class IOConfiguration implements IOConfigurationInterface {
     const point_array = this.getIOPoints(point_type);
     if (point_array.length > 0) {
       const used_channels = point_array.map((p) => p.channel);
-      // this.configuration_constants[point_type];
       const possible_channels = [
         ...Array(this.configuration_constants[point_type]).keys(),
       ]

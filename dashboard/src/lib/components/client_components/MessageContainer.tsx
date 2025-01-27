@@ -46,7 +46,7 @@ export default function MessageContainer(props: MessageContainerInterface) {
         icon_path="/icons/messages.svg"
         fill_tile_id={"message_container"}
       >
-        {dashboardContext.latest_document.document_valid ? (
+        {dashboardContext.ra_ros_websocket.isConnected ? (
           <div className="">
             <div className="flex flex-col-reverse w-full h-full p-0 px-5 m-0 space-y-0 text-xs rounded-sm grow dark:text-r2-white">
               {messages()}

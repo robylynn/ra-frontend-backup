@@ -1,7 +1,7 @@
-import { AxisData } from "@/lib/models/ros_models";
+import { IRosTypeR2CInterfacesEncoderEstimates } from "@/lib/models/ros_types";
 
 export type PlotTimeData = Array<AxisTimeDataInterface>;
-export type PlotAxisData = Record<number, Array<AxisData>>;
+export type PlotAxisData = Record<number, Array<IRosTypeR2CInterfacesEncoderEstimates>>;
 
 export interface AxisTimeDataInterface {
   time: number;
