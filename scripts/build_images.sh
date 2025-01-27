@@ -2,12 +2,8 @@
 
 cd "$(dirname "$0")"
 . ./set_env_vars.sh
-# ls ../backend
-scripts_dir=$PWD
-echo $scripts_dir
 
-# docker compose -f $PROJECT_ROOT/docker-compose.local.yml build ra_frontend ra_backend
-# cd cd "$(dirname "$0")"/../dashboard
+scripts_dir=$PWD
 
 cd $scripts_dir/../dashboard
 docker buildx build --build-arg APP_WORKDIR=$APP_WORKDIR --platform linux/amd64,linux/arm64 --tag robylynn/rac:ra_frontend --push .
