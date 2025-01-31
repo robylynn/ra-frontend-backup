@@ -10,6 +10,7 @@ import IOConfigurationContainer from "@/app/io_configuration/io_configuration_co
 import IOPlotPanel from "@/app/io_plot/io_plot_panel";
 import IOStateContainer from "@/app/io_state/io_state_container";
 import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
+import AxisPositionsPanel from "@/app/axis_positions/axis_positions_panel";
 import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 
 export default function DashboardMainPanel(props: { className?: string }) {
@@ -79,6 +80,13 @@ export default function DashboardMainPanel(props: { className?: string }) {
         fill_tile_callback={setFillTile}
       />
 
+      <AxisPositionsPanel
+        id={"axis_positions"}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "motion_plot"
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
     </PagePanel>
   );
 }

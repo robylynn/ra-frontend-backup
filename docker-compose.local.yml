@@ -47,13 +47,9 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=80
-<<<<<<< HEAD
       # - NEXTAUTH_URL=http://192.168.2.201:80
       - NEXTAUTH_URL=http://localhost:80
 
-=======
-      - NEXTAUTH_URL=http://192.168.2.205:80
->>>>>>> remotes/origin/roby/api-type-synchronization
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro

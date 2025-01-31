@@ -2,13 +2,13 @@
 // Developed by R2 Labs
 
 import ProtectedPage from "@/lib/components/server_components/protected_page";
-import ChartMainPanel from "./axis_positions_panel";
+import { AxisPositionContainer } from "@/lib/components/client_components/MotionPositionContainer";
 
-export default function ChartsPage() {
+export default function AxisdPositionPage() {
   return (
     <ProtectedPage>
       <div className="flex items-center w-full h-full">
-          <ChartMainPanel className="h-[80%] grow overflow-y-auto" />
+          <AxisPositionContainer />
       </div>
     </ProtectedPage>
 

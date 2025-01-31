@@ -3,18 +3,48 @@
 
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
+import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
+import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
+import { AxisPositionContainer } from "@/lib/components/client_components/MotionPositionContainer";
+import { NextAPIResponseInterface } from "@/lib/models/api_models";
 
-import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
-
-export default function ChartMainPanel(props: { className?: string }) {
-
+export default function AxisPositionsPanel(props: {
+    id: string;
+    className?: string;
+    fill_tile_callback?: Dispatch<SetStateAction<string>>;
+    force_expanded?: boolean;
+  }) {
+    const { dashboardContext } = useContext(DashboardContext);
+    const save_configuration = async () => {
+      const res: NextAPIResponseInterface = await fetch(
+        "api/backend/ui/configuration",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          mode: "cors",
+          body: JSON.stringify(dashboardContext.configuration),
+        }
+      ).then((res) => res.json());
+      console.log("POST response: " + JSON.stringify(res.data));
+    };
+  
     return (
-        <MotionPlotPanel
-            id={"motion_plot"}
-            className={`w-full h-full peer-[:has(#control_fullscreen:checked)]:hidden`}
-        />
-
-    )
-
-}
+      <DashboardHeaderContainer
+        header_text={"Axis Positions"}
+        icon_path={"/icons/sliders.svg"}
+        className={`${props.className ?? ""}`}
+        fill_tile_id={props.id}
+        fill_tile_callback={props.fill_tile_callback}
+        button_text="Save Configuration"
+        button_callback={() => {
+          save_configuration();
+        }}
+      >
+        <AxisPositionContainer />
+      </DashboardHeaderContainer>
+    );
+  }
