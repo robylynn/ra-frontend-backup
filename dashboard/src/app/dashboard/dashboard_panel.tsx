@@ -83,7 +83,7 @@ export default function DashboardMainPanel(props: { className?: string }) {
       <AxisPositionsPanel
         id={"axis_positions"}
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "motion_plot"
+          "axis_positions"
         )}`}
         fill_tile_callback={setFillTile}
       />
