@@ -19,11 +19,49 @@ import {
 } from "@/lib/models/api_models";
 
 
+// TODO: jogging buttons, axis jog speed, axis jog distance, axis jog direction
+// TODO: add button to R2 buttons
+interface JogAxisProps {
+  axis: string;
+}
+
+const JogAxis: React.FC<JogAxisProps> = ({ axis }) => {
+  return (
+    <div className="flex w-full grid grid-cols-3 items-center justify-center p-4">
+      <R2Button text="Jog - " onClick={() => {}} />
+      <div className="flex flex-col items-center justify-center">
+        <h2> Jog Axis {axis}</h2>
+      </div>
+      <R2Button text="Jog +" onClick={() => {}} />
+    </div>
+  );
+}
+
+const JogPanel = () => {
+  return (
+    <div className="flex grid grid-col-1 w-full items-center jutiify-center p-4">
+      <div className="flex flex-col items-center justify-center">
+        <JogAxis axis="0" />
+        </div>    
+      <div className="flex flex-col items-center justify-center">
+        <JogAxis axis="1" />
+        </div>
+      <div className="flex flex-col items-center justify-center">
+        <JogAxis axis="2" />
+        </div>
+      <div className="flex flex-col items-center justify-center">
+        <JogAxis axis="3" />
+        </div>
+    </div>
+  );
+}
+
+
 const JogContainer = () => {
   const { dashboardContext } = useContext(DashboardContext);
 
   return (
-    <p> Jog Container</p>
+    <JogPanel />
   );
 };
 
