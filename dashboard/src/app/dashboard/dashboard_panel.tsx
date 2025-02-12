@@ -10,6 +10,7 @@ import IOConfigurationContainer from "@/app/io_configuration/io_configuration_co
 import IOPlotPanel from "@/app/io_plot/io_plot_panel";
 import IOStateContainer from "@/app/io_state/io_state_container";
 import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
+import JogPanel from "../jog_positions/io_plot/jog_panel";
 import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 
 export default function DashboardMainPanel(props: { className?: string }) {
@@ -33,6 +34,14 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${props.className ?? ""}
       `}
     >
+      <JogPanel
+        id="jogging_panel"
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+          "jogging_panel"
+        )}`}
+        fill_tile_callback={setFillTile}
+      />
+      
       <IOConfigurationContainer
         id="io_configuration"
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
@@ -40,6 +49,8 @@ export default function DashboardMainPanel(props: { className?: string }) {
         )}`}
         fill_tile_callback={setFillTile}
       />
+
+
 
       {/* <IOStateContainer
         id="io_state"
