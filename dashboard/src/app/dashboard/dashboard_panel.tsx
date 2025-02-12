@@ -10,16 +10,16 @@ import IOConfigurationContainer from "@/app/io_configuration/io_configuration_co
 import IOPlotPanel from "@/app/io_plot/io_plot_panel";
 import IOStateContainer from "@/app/io_state/io_state_container";
 import MotionPlotPanel from "@/app/motion_plot/motion_plot_panel";
-import AxisPositionsPanel from "@/app/axis_positions/axis_positions_panel";
 import { PagePanel } from "@/lib/components/client_components/DashboardHeaderContainer";
 
 export default function DashboardMainPanel(props: { className?: string }) {
   const [fillTile, setFillTile] = useState<string>("");
 
   const grid_state = () =>
-    // fillTile == "" ? "grid grid-cols-[35%_30%_35%] grid-rows-2" : "";
-    fillTile == "" ? "grid grid-cols-[50%_50%] grid-rows-auto" : "";
-    // fillTile == "" ? "flex flex-col" : "";
+    fillTile == ""
+      ? "grid grid-cols-[50%_50%] grid-rows-auto"
+      : "grid grid-cols-1 grid-rows-1 h-full";
+
   const tile_hidden = (tile_name: string) =>
     fillTile != tile_name && fillTile != "" ? "hidden" : "";
 
@@ -31,59 +31,36 @@ export default function DashboardMainPanel(props: { className?: string }) {
         transition-all
         overflow-y-scroll
         ${props.className ?? ""}
-        `}
+      `}
     >
-      {/* <DiagnosticsContainer
-        id={"diagnostics"}
-        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "diagnostics"
-        )}`}
-        fill_tile_callback={setFillTile}
-      /> */}
       <IOConfigurationContainer
-        id={"io_configuration"}
+        id="io_configuration"
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "io_configuration"
         )}`}
         fill_tile_callback={setFillTile}
       />
-      
-      <IOStateContainer
-        id={"io_state"}
+
+      {/* <IOStateContainer
+        id="io_state"
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "io_state"
         )}`}
         fill_tile_callback={setFillTile}
-      />
-      
+      /> */}
+
       <IOPlotPanel
-        id={"io_plot"}
+        id="io_plot"
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "io_plot"
         )}`}
         fill_tile_callback={setFillTile}
       />
 
-      {/* <AnalogInputPlotContainer
-        id={"analog_input_plot"}
-        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "analog_input_plot"
-        )}`}
-        fill_tile_callback={setFillTile}
-      /> */}
-      
       <MotionPlotPanel
-        id={"motion_plot"}
+        id="motion_plot"
         className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
           "motion_plot"
-        )}`}
-        fill_tile_callback={setFillTile}
-      />
-
-      <AxisPositionsPanel
-        id={"axis_positions"}
-        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "axis_positions"
         )}`}
         fill_tile_callback={setFillTile}
       />

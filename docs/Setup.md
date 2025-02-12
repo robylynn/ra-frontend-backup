@@ -92,3 +92,7 @@ and invoke with
 quicktype --src ../ra-frontend-interfaces/models.json --src-lang schema --lang python --python
 -version 3.7  --out ../ra-frontend-interfaces/models.py --just-types
 ```
+
+
+
+# 

@@ -10,31 +10,16 @@ function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
     const { dashboardContext } = useContext(DashboardContext);
 
     // Log axis_data whenever it updates
-    useEffect(() => {
-        console.log("Axis data updated:", dashboardContext.axis_data);
-    }, [dashboardContext.axis_data]);
+    // useEffect(() => {
+    //     console.log("Axis data updated:", dashboardContext.axis_data);
+    // }, [dashboardContext.axis_data]);
 
-    // Helper function to format the timestamp
-    const formatTimestamp = (timestamp: { sec: number; nanosec: number } | undefined): string => {
-        if (!timestamp) return "N/A";
-
-        // Convert seconds to milliseconds and add nanoseconds (converted to milliseconds)
-        const date = new Date(timestamp.sec * 1000 + Math.floor(timestamp.nanosec / 1_000_000));
-        return date.toLocaleString(); // Formats date and time in a human-readable format
-    };
-
-    // Get the timestamp from the first axis data
-    const firstAxisTimestamp = dashboardContext.axis_data?.[props.available_axes[0]]?.stamp;
 
     return (
-        <div className="p-10 bg-gray-900 text-white rounded-lg shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-              <h1 className="text-6xl font-bold">Axis Data</h1>
-          </div>            
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="p-2 bg-gray-900 text-white rounded-lg shadow-lg border border-r2-green-300">         
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {props.available_axes.map((axis) => {
                     const axisInfo = dashboardContext.axis_data?.[axis];
-
                     return (
                         <div
                             key={axis}

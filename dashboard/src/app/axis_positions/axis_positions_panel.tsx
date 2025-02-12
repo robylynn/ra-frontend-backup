@@ -33,18 +33,6 @@ export default function AxisPositionsPanel(props: {
     };
   
     return (
-      <DashboardHeaderContainer
-        header_text={"Axis Positions"}
-        icon_path={"/icons/sliders.svg"}
-        className={`${props.className ?? ""}`}
-        fill_tile_id={props.id}
-        fill_tile_callback={props.fill_tile_callback}
-        button_text="Save Configuration"
-        button_callback={() => {
-          save_configuration();
-        }}
-      >
-        <AxisPositionContainer />
-      </DashboardHeaderContainer>
+      <AxisPositionContainer />
     );
   }

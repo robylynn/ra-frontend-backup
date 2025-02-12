@@ -128,7 +128,7 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
     // userSelect: "none",
     userSelect: null,
     padding: 4,
-    margin: `0 0 8px 0`,
+    margin: `4px`,
     borderRadius: "4px",
 
     // change background colour if dragging, this is green-300 and slate-500
@@ -145,15 +145,42 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="w-full">
-        <div className="flex flex-row justify-between">
-          <p className="text-white font-bold">{`${group_name}s`}</p>
-          <R2Button
+        <div className="flex flex-row grid grid-cols-[92%_8%]">
+          <p className="text-white font-bold px-2 py-2">{`${group_name}s`}</p>
+          {/* <R2Button
             text={`Add ${group_name}`}
-            className="w-[180px]"
+            className="w-[180px] px-2"
             onClick={
               () => addButtonCallback(point_type)()
             }
-          />
+          /> */}
+          <div className="relative group p-2">
+            <button
+              className="w-6 h-6 flex items-center justify-center bg-gray-200 border border-black shadow-md text-white rounded-full shadow-md hover:bg-green-400 transition"
+              onClick={() => addButtonCallback(point_type)()}
+            >
+              ➕
+            </button>
+
+            {/* Hover Tooltip */}
+            <span
+              className="absolute 
+              right-full
+              top-1/2 -translate-y-1/2
+              px-2 
+              py-1 
+              text-sm 
+              text-white 
+              bg-gray-800 
+              rounded-md 
+              shadow-md 
+              opacity-0 
+              group-hover:opacity-100 
+              transition"
+            >
+              {"Add " + group_name}
+            </span>
+          </div>
         </div>
         <Droppable droppableId="digitalInputGroup">
           {(provided, snapshot) => (

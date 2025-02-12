@@ -27,6 +27,10 @@ import {
   IRosTypeR2CInterfacesConfigureDigitalInRequest
 } from "@/lib/models/ros_types";
 
+
+import { DigitalValueDisplayElement, AnalogValueDisplayElement } from "./IODisplay";
+import Dashboard from "@/app/dashboard/page";
+
 type IOPointContainerProps = {
   index: number;
   io_point: IOPointConfiguration;
@@ -47,6 +51,30 @@ const IOPointContainer = ({
   const [showConfig, setShowConfig] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [errorMessage, setErrorMessage] = useState(""); // Add error message state
+
+  // Store digital value in state for immediate UI update
+  const [digitalValue, setDigitalValue] = useState(false);
+  const [isDigitalEnabled, setIsDigitalEnabled] = useState(false);
+
+  // Update digitalValue when dashboardContext updates (real-time sync)
+  useEffect(() => {
+    if (dashboardContext.digital_in_data?.values) {
+      const newValue = dashboardContext.digital_in_data.values[io_point.channel];
+      setDigitalValue(newValue);
+      console.log(`Digital Value Updated for Channel ${io_point.channel}:`, newValue);
+    }
+
+    const enabledState = IOPoints.digital_inputs?.find((input) => input.channel === io_point.channel)?.enabled ?? false;
+    setIsDigitalEnabled(enabledState);
+  }, [dashboardContext.digital_in_data, IOPoints, io_point.channel]);
+
+  // const digitalValue = dashboardContext.digital_in_data?.values?.[io_point.channel] ?? false;
+  // const isDigitalEnabled = IOPoints.digital_inputs?.find((input) => input.channel === io_point.channel)?.enabled ?? false;
+  
+  // useEffect(() => {
+  //   console.log("Digital Input Updated:", { digitalValue, isDigitalEnabled });
+  // }, [digitalValue, isDigitalEnabled]);
+
 
   const callConfigService = (
     updatedIOPoint: IOPointConfiguration,
@@ -220,11 +248,16 @@ const IOPointContainer = ({
     );
   };
 
+
+
+  
+
   return (
     <div className="flex items-center justify-between h-[40px]">
-      <div className="grid grid-cols-3 w-[40%] items-center">
+      {/* <div className="grid grid-cols-4 w-full items-center"> */}
+      <div className="grid grid-cols-[15%_35%_25%_18%_7%] w-full items-center">
         <div
-          className="bg-slate-200 rounded-[50%] w-[20px] h-[20px] flex justify-center items-center"
+          className="bg-slate-200 w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300"
           style={{
             backgroundColor: io_point.value
               ? "rgb(59, 136, 195)"
@@ -233,8 +266,29 @@ const IOPointContainer = ({
         >
           {io_point.channel}
         </div>
+
+        <div
+          className="bg-white w-[80%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300"
+        >
+          <span className="m-[8px] text-r2-black">{io_point.label}</span>
+        </div>
+
+        <R2SliderToggle
+          text={""}
+          state={io_point.enabled}
+          // onChange={() => {}}
+          onClick={handleToggleChange}
+        />
+
+
+        {io_point.type === IOPointType.ANALOG_INPUT ? (
+            <AnalogValueDisplayElement value={io_point.value} enabled={io_point.enabled} />
+          ) : (
+            <DigitalValueDisplayElement value={digitalValue} enabled={isDigitalEnabled} />
+          )}
+        
         <button
-          className="m-[8px]"
+          className="m-[8px] mr-4"
           onClick={() => {
             setShowConfig(true);
             setIsConfigOpen(true);
@@ -243,15 +297,10 @@ const IOPointContainer = ({
           ⚙️
         </button>
 
-        <R2SliderToggle
-          text={""}
-          state={io_point.enabled}
-          // onChange={() => {}}
-          onClick={handleToggleChange}
-        />
+
       </div>
 
-      <span className="m-[8px] text-r2-white">{io_point.label}</span>
+      {/* <span className="m-[8px] text-r2-white">{io_point.label}</span> */}
 
       <Modal
         isOpen={showConfig}
