@@ -390,7 +390,7 @@ function MotionPlots(props: {
           />
         )
       )}
-      <div className="flex flex-row w-full justify-between">
+      <div className="flex flex-row w-full justify-between p-2">
         <R2Button
           text={"Add New Motion Plot"}
           onClick={() =>
@@ -411,9 +411,10 @@ function MotionPlots(props: {
         <select
           onChange={(e) => setSelectedPlotType(() => e.target.value)}
           value={selectedPlotType}
+          className="text-black bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500"
         >
-          <option id="position" value="position">Position</option>
-          <option id="velocity" value="velocity">Velocity</option>
+          <option id="position" value="position" className="text-black">Position</option>
+          <option id="velocity" value="velocity" className="text-black">Velocity</option>
         </select>
       </div>
     </>

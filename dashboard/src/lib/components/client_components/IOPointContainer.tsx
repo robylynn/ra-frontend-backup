@@ -257,7 +257,7 @@ const IOPointContainer = ({
       {/* <div className="grid grid-cols-4 w-full items-center"> */}
       <div className="grid grid-cols-[15%_35%_25%_18%_7%] w-full items-center">
         <div
-          className="bg-slate-200 w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300"
+          className="bg-slate-200 w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300 text-black"
           style={{
             backgroundColor: io_point.value
               ? "rgb(59, 136, 195)"
@@ -270,7 +270,7 @@ const IOPointContainer = ({
         <div
           className="bg-white w-[80%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300"
         >
-          <span className="m-[8px] text-r2-black">{io_point.label}</span>
+          <span className="m-[8px] text-black">{io_point.label}</span>
         </div>
 
         <R2SliderToggle
@@ -406,16 +406,18 @@ const IOPointConfigDialog = ({
       : "(V)";
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full bg bg-color-gray-900 text-black rounded-lg shadow-lg border border-r2-green-300 p-[20px]">
       <div className="flex flex-col mb-[10px]">
         <label>Label</label>
-        <input
-          type="text"
-          name="label"
-          value={localPoint.label}
-          onChange={handleStringChange}
-          className="w-full p-[5px] box-border"
-        />
+        <div className="color-gray-200">
+          <input
+            type="text"
+            name="label"
+            value={localPoint.label}
+            onChange={handleStringChange}
+            className="w-full p-[5px] box-border"
+          />
+        </div>
       </div>
       <div className="flex flex-col mb-[10px]">
         <label className="mb-[5px]">Channel</label>

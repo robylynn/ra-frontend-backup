@@ -19,20 +19,25 @@ import {
 } from "@/lib/models/api_models";
 
 
-// TODO: jogging buttons, axis jog speed, axis jog distance, axis jog direction
-// TODO: add button to R2 buttons
+// TODO: jogging button for different distances, axis jog direction, add home, and reset
+
+
 interface JogAxisProps {
   axis: string;
 }
 
 const JogAxis: React.FC<JogAxisProps> = ({ axis }) => {
   return (
-    <div className="flex w-full grid grid-cols-3 items-center justify-center p-4">
-      <R2Button text="Jog - " onClick={() => {}} />
-      <div className="flex flex-col items-center justify-center">
+    <div className="flex w-full grid grid-cols-5 items-center justify-center p-4">
+      <R2Button text="Jog -2 " onClick={() => {}} />
+
+      <R2Button text="Jog -1 " onClick={() => {}} />
+      <div className="flex flex-col items-center justify-center text-white">
         <h2> Jog Axis {axis}</h2>
       </div>
-      <R2Button text="Jog +" onClick={() => {}} />
+      <R2Button text="Jog +1" onClick={() => {}} />
+      <R2Button text="Jog +2" onClick={() => {}} />
+
     </div>
   );
 }

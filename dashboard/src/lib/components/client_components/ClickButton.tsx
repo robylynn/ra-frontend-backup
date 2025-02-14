@@ -13,7 +13,7 @@ export function R2Button(props: {
 }) {
   return (
     <button
-      className={`border-2 rounded-lg hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] disabled:dark:bg-slate-600 ${
+      className={`border-2 rounded-lg text-black hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] disabled:dark:bg-slate-600 ${
         props.className ?? ""
       }`}
       onClick={props.onClick}

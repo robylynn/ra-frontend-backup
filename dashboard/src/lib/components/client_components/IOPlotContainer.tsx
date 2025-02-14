@@ -384,14 +384,16 @@ const IOPlots = (props: {
           </div>
         </div>
       )}
-      <R2Button
-        // text={`New ${point_type_name(props.point_type)} Plot`}
-        text={`New ${IOPointTypeFriendlyName[props.point_type]} Plot`}
-        className="w-[100%]"
-        onClick={() => {
-          handleAddPlot();
-        }}
-      />
+      <div className = "flex flex-col items-center justify-center p-2">
+        <R2Button
+          // text={`New ${point_type_name(props.point_type)} Plot`}
+          text={`New ${IOPointTypeFriendlyName[props.point_type]} Plot`}
+          className="w-[95%]"
+          onClick={() => {
+            handleAddPlot();
+          }}
+        />
+        </div>
     </>
   ) : (
     <LoadingIndicator />

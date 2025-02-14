@@ -80,7 +80,7 @@ export default function Header(props: {
       <RoundedContainer
       className="text-xl font-bold dark:text-white"
       >
-        R2 Autonomy Monitor
+        R2 Autonomy Controller
       </RoundedContainer>
     </PagePanel>
   );

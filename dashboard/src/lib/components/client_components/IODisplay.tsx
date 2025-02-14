@@ -31,7 +31,7 @@ export const AnalogValueDisplayElement = (props: {
         <>
           {/* <p className="p-1 dark:text-r2-gray-600">State</p> */}
           <div
-            className={`flex w-[40px] h-[40px] rounded-[50%] items-center justify-center text-r2-black transition ease-in-out delay-100`}
+            className={`flex w-[40px] h-[40px] rounded-[50%] items-center justify-center text-black transition ease-in-out delay-100`}
             style={{ backgroundColor: interpolateColor(props.value) }}
           >
             <p>{props.value?.toFixed(2)}</p>
@@ -54,7 +54,7 @@ export const DigitalValueDisplayElement = (props: {
         <>
           {/* <p className="p-1 dark:text-r2-gray-600">State:</p> */}
           <div
-            className={`flex w-[40px] h-[40px] rounded-[30%] items-center justify-center text-r2-black transition ease-in-out delay-100 ${props.value ? "bg-r2-green-300" : "bg-r2-red-300"}`}
+            className={`flex w-[40px] h-[40px] rounded-[30%] items-center justify-center text-black transition ease-in-out delay-100 ${props.value ? "bg-r2-green-300" : "bg-r2-red-300"}`}
           >
             <p>{props.value.toString()}</p>
           </div>

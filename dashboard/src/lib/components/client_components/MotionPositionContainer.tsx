@@ -6,6 +6,7 @@
 import React, { useContext, ReactElement, useEffect, useState} from "react";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import { R2Button, R2SliderToggle } from "@/lib/components/client_components/ClickButton";
+import { IRosTypeR2CInterfacesAxisState, IRosTypeR2CInterfacesAxisStateAxisIndex } from "@/lib/models/ros_types";
 
 function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
     const { dashboardContext } = useContext(DashboardContext);
