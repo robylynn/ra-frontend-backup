@@ -65,15 +65,24 @@ The `.env.development` and `.env.production` are used to set environment variabl
 ### NEXTAUTH_URL
 NextAuth (or Auth.js) requires the definition of a redirect URL to be used after authenticaion is passed. This (inconveniently) has to be set manually. Set the `NEXTAUTH_URL` environment variable to the IP address of the network interface on which the NodeJS server is running. If running on RAC hardware, it should be the IP of the jetson. If running on a development machine, it should be `localhost`. This variable is set in the `docker-compose` file or in `launch.json`.
 
+## Testing dashboard in debug mode
+Debug mode allows changes to frontend without rebuilding containers. `launch.json` file in `.vscode/` has the python backend and Next.js frontend debugger settings. Note: Change the `NEXTAUTH_URL` if needed. 
 
+* Run the `Next.js: debug server-side frontend app` debugger
+* Run the `Python: Backend` debugger
+* Run the mongo docker in local `~ra-frontend`: `docker compose -f docker-compose.local.yml up mongo`
 
 ## Testing in ros2_ws
 
 ### Allow websocket communicaiton to/from frontend
-`ros2 run rosbridge_server rosbridge_websocket`
+    run `ros2 run rosbridge_server rosbridge_websocket`
 
 ### Run take node without hardware
-`ros2 run r2c_hardware fake_rac_node.py`
+    run `ros2 run r2c_hardware fake_rac_node.py`
+
+### Run realtime manager node (gpio updates)
+    run `ros2 run r2c_hardware realtime_system_manager_node`
+
 ## R2 Controller Interfaces
 The `r2-controller-interfaces` [repo](https://github.com/R2-Labs/r2-controller-interfaces) is included as a submodule in this project. We can use the `ros-typescript-generator` [project](https://github.com/Greenroom-Robotics/ros-typescript-generator/tree/master) to build TypeScript interfaces from the message and service definitions we use for the RAC. The configuration for the generation of TypeScript interfaces is defined in `dashboard/ros-ts-generator-config.json`. The `ros-typescript-generator` apparently only works on node v14, so we can switch to that with node version manager
 ```
@@ -92,7 +101,3 @@ and invoke with
 quicktype --src ../ra-frontend-interfaces/models.json --src-lang schema --lang python --python
 -version 3.7  --out ../ra-frontend-interfaces/models.py --just-types
 ```
-
-
-
-# 
