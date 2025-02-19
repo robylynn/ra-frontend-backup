@@ -28,15 +28,14 @@ interface JogAxisProps {
 
 const JogAxis: React.FC<JogAxisProps> = ({ axis }) => {
   return (
-    <div className="flex w-full grid grid-cols-5 items-center justify-center p-4">
-      <R2Button text="Jog -2 " onClick={() => {}} />
-
-      <R2Button text="Jog -1 " onClick={() => {}} />
+    <div className="flex w-full grid grid-cols-5 items-center justify-center p-4 gap-4">
+      <R2Button className="flex-grow" text="Jog -2 " onClick={() => {}} />
+      <R2Button className="flex-grow" text="Jog -1 " onClick={() => {}} />
       <div className="flex flex-col items-center justify-center text-white">
         <h2> Jog Axis {axis}</h2>
       </div>
-      <R2Button text="Jog +1" onClick={() => {}} />
-      <R2Button text="Jog +2" onClick={() => {}} />
+      <R2Button className="flex-grow" text="Jog +1" onClick={() => {}} />
+      <R2Button className="flex-grow" text="Jog +2" onClick={() => {}} />
 
     </div>
   );
@@ -44,19 +43,11 @@ const JogAxis: React.FC<JogAxisProps> = ({ axis }) => {
 
 const JogPanel = () => {
   return (
-    <div className="flex grid grid-col-1 w-full items-center jutiify-center p-4">
-      <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col w-full items-center justify-center h-full">
         <JogAxis axis="0" />
-        </div>    
-      <div className="flex flex-col items-center justify-center">
         <JogAxis axis="1" />
-        </div>
-      <div className="flex flex-col items-center justify-center">
         <JogAxis axis="2" />
-        </div>
-      <div className="flex flex-col items-center justify-center">
         <JogAxis axis="3" />
-        </div>
     </div>
   );
 }

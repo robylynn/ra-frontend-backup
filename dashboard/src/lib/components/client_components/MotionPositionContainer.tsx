@@ -55,13 +55,13 @@ function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
                       </h2>
                       {axisInfo ? (
                         <>
-                          <p className="text-lg text-gray-400">
+                          <p className="text-md text-gray-400">
                             Position:{" "}
                             <span className="text-blue-400 font-medium">
                               {axisInfo.position.toFixed(2)}
                             </span>
                           </p>
-                          <p className="text-lg text-gray-400">
+                          <p className="text-md text-gray-400">
                             Velocity:{" "}
                             <span className="text-green-400 font-medium">
                               {axisInfo.velocity.toFixed(2)}
