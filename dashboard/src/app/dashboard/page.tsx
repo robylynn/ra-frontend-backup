@@ -5,7 +5,8 @@ import Header from "@/lib/components/client_components/Header";
 import { ApplicationStateContainer } from "@/lib/components/client_components/ApplicationStateContainer";
 import MessageContainer from "@/lib/components/client_components/MessageContainer";
 import ProtectedPage from "@/lib/components/server_components/protected_page";
-import AxisPositionsPanel from "../axis_positions/axis_positions_panel";
+// import AxisPositionsPanel from "../axis_positions/axis_positions_panel";
+import { AxisPositionContainer } from "@/lib/components/client_components/MotionPositionContainer";
 
 import DashboardMainPanel from "./dashboard_panel";
 
@@ -17,10 +18,7 @@ export default function Dashboard() {
           <Header className="h-full w-[30%]" />
           <ApplicationStateContainer className="h-full w-[70%]" />
         </div>
-        <AxisPositionsPanel
-        id={"axis_positions"}
-        className="w-full h-[120px] sm:h-[150px] md:h-[180px] lg:h-[220px] flex-shrink-0"
-        />
+        <AxisPositionContainer />
         <DashboardMainPanel className="h-full grow overflow-y-auto" />
         {/* <MessageContainer className="h-[15%]" /> */}
       </div>
