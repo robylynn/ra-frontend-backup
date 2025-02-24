@@ -36,29 +36,18 @@ export default function DashboardMainPanel(props: { className?: string }) {
     >
       <JogPanel
         id="jogging_panel"
-        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "jogging_panel"
-        )}`}
-        fill_tile_callback={setFillTile}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${
+          tile_hidden("jogging_panel")
+        } ${fillTile === "jogging_panel" ? "h-full" : "min-h-[400px] overflow-y-auto"}`}
       />
       
       <IOConfigurationContainer
         id="io_configuration"
-        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "io_configuration"
-        )}`}
+        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${
+          tile_hidden("io_configuration")
+        } ${fillTile === "io_configuration" ? "h-full" : "min-h-[400px] overflow-y-auto"}`}
         fill_tile_callback={setFillTile}
       />
-
-
-
-      {/* <IOStateContainer
-        id="io_state"
-        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-          "io_state"
-        )}`}
-        fill_tile_callback={setFillTile}
-      /> */}
 
       <IOPlotPanel
         id="io_plot"
