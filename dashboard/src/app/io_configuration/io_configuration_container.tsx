@@ -25,7 +25,7 @@ export default function IOConfigurationContainer(props: {
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
     >
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-y-4">
           {/* <AnalogInputGroup />
           <DigitalInputGroup /> */}
           <IOPointGroup

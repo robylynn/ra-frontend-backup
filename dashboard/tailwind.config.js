@@ -32,6 +32,7 @@ module.exports = {
         "r2-green-300": "#BCE1B9",
         "r2-green-500": "#64DB62",
         "r2-white": "#ECECEC",
+        "r2-black": "#1E2128",
         "r2-red-300": "#FF6C6C",
         "r2-gray-300": "#D9D9D9",
         "r2-yellow-500": "#FFEE52",

@@ -18,6 +18,11 @@ Start the `ra_database` container:
 Then log into the database and set up the databases and users
 ```
 mongosh --port 27017
+
+if not authorized: Login as admin
+    `use admin`
+    `db.auth("r2", "password")`
+
 use ra_data
 db.createUser({user:"r2",pwd:"password",roles:[{role:"dbAdmin",db:"ra_data"}, { role: 'readWrite', db: 'ra_data' }],mechanisms:[ 'SCRAM-SHA-1', 'SCRAM-SHA-256' ]})
 ```

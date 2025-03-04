@@ -72,13 +72,15 @@ export default function Header(props: {
             justify-around 
             my-1 
             place-items-center
+            border-r-0
+            rounded-r-none
             ${props.className ?? ""}
             `}
     >
       <RoundedContainer
       className="text-xl font-bold dark:text-white"
       >
-        R2 Autonomy Monitor
+        R2 Autonomy Controller
       </RoundedContainer>
     </PagePanel>
   );
