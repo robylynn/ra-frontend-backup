@@ -29,7 +29,7 @@ function ApplicationState(props: { className?: string; state?: string }): ReactE
             </p>
 
             {/* Emergency Stop Button on the Right */}
-            <button className="px-2 py-1 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
+            <button className="px-2 py-1 height-[60%] bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
                 Emergency Stop
             </button>
         </div>

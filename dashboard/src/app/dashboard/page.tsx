@@ -5,7 +5,6 @@ import Header from "@/lib/components/client_components/Header";
 import { ApplicationStateContainer } from "@/lib/components/client_components/ApplicationStateContainer";
 import MessageContainer from "@/lib/components/client_components/MessageContainer";
 import ProtectedPage from "@/lib/components/server_components/protected_page";
-// import AxisPositionsPanel from "../axis_positions/axis_positions_panel";
 import { AxisPositionContainer } from "@/lib/components/client_components/MotionPositionContainer";
 
 import DashboardMainPanel from "./dashboard_panel";

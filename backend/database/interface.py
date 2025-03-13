@@ -200,6 +200,8 @@ class DatabaseInstance:
                 collection = self._database.create_collection(
                     **{k:v for k, v in kwargs.items() if v is not None}
                 )
+                # collection.create_index({"metadata": 1})
+                collection.create_index({"timestamp_seconds": 1})
             else:
                 collection = getattr(self._database, stored_collection_name)
             
@@ -572,32 +574,13 @@ class DatabasePuller(DatabaseThread):
                             [
                                 {
                                     "$sort": {
-                                        "timestamp": DESCENDING
+                                        "_id": DESCENDING
                                     }
                                 },
-                                # {
-                                #     "$project": {
-                                #         "computed_time": {
-                                #             "$sum": ["stamp.sec", "stamp.nanosec"]
-                                #         }
-                                #     }
-                                # },
-                                # {
-                                #     "$sort": {
-                                #         # "$add": ["stamp.sec", "$divide": ["stamp.nanosec", 1e9]]
-                                #         "computed_time": DESCENDING
-                                #     }
-                                # },
-                                # {
-                                #     "$sort": {
-                                #         # "$add": ["stamp.sec", "$divide": ["stamp.nanosec", 1e9]]
-                                #         "timestamp": DESCENDING
-                                #     }
-                                # },
                                 {
                                     "$limit": command.number_of_documents
                                 },
-
+                                
                             ]
                         )
                         self._return_pipe.send([r for r in records])
@@ -606,20 +589,19 @@ class DatabasePuller(DatabaseThread):
                         records = collection.aggregate(
                             [
                                 {
-                                    "$sort": {
-                                        "timestamp": DESCENDING
-                                    }
-                                },
-                                {
                                     "$match": {
                                         "axis_index": command.axis_index
                                     }
                                 },
                                 {
+                                    "$sort": {
+                                        "_id": DESCENDING
+                                    }
+                                },
+                                {
                                     "$limit": command.number_of_documents
                                 },
-
-
+                                
                             ]
                         )
                         self._return_pipe.send([r for r in records])

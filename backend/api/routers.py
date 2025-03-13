@@ -223,7 +223,7 @@ def get_sensor_data(number_of_data_points: int) -> APIResponse:
 
 @historian_router.get("/axis/{axis_index}")
 def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_axis_state(axis_index=axis_index, number_of_points=number_of_points, timeout=5)
+    points = initializer.ra_database.get_axis_state(axis_index=axis_index, number_of_points=number_of_points, timeout=30)
     # points = initializer.ra_database.get_digital_in_state(number_of_points=number_of_points, timeout=1)
     return APIResponse(
         error=False,

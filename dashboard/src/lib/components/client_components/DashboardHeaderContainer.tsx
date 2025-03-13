@@ -28,7 +28,11 @@ export function PagePanel(props: { className?: string; children?: ReactNode }) {
       {props.children}
     </div>
   );
+
+  
 }
+
+
 
 export function DashboardHeaderContainer(props: {
   ref?: MutableRefObject<boolean>;
@@ -43,6 +47,9 @@ export function DashboardHeaderContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   expansion_state?: boolean;
   set_expansion_state?: Dispatch<SetStateAction<boolean>>;
+  loading?: boolean;
+  errorMessage?: string;
+  onClearError?: () => void;
 }) {
   let expansionState: boolean;
   let setExpansionState: Dispatch<SetStateAction<boolean>>;
@@ -100,8 +107,31 @@ export function DashboardHeaderContainer(props: {
         
 
       </div>
-      <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400">
-        {props.children}
+      <div className="relative h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-hidden">        
+        <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400">
+          {props.children}
+        </div>
+
+        {props.loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50 rounded-xl">
+            <div className="border-[8px] border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div>
+          </div>
+        )}
+
+        {props.errorMessage && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-red-600 bg-opacity-90 rounded-xl p-4">
+            <div className="text-white flex flex-col items-center gap-4">
+              <p className="text-sm text-center">{props.errorMessage}</p>
+              <button
+                className="bg-white text-red-600 px-3 py-1 rounded shadow hover:bg-gray-100 transition"
+                onClick={props.onClearError}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+        
       </div>
     </div>
   );

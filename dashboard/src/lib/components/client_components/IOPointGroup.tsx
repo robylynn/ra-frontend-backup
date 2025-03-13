@@ -4,13 +4,12 @@
 "use client"
 
 import React, { useEffect, useContext, useState } from "react";
-import IOPointContainer from "@/lib/components/client_components/IOPointContainer";
+import IOPointContainer, { callConfigService } from "@/lib/components/client_components/IOPointContainer";
 import { DashboardContext } from "@/lib/components/client_components/DashboardContextWrapper";
 import {
   IOPointConfiguration,
   IOPointType
 } from "@/lib/models/api_models";
-import { R2Button } from "@/lib/components/client_components/ClickButton";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { DropResult } from "react-beautiful-dnd";
 import { IOPointContext } from "@/lib/components/client_components/IOPointContext";
@@ -19,13 +18,17 @@ import { IRosTypeR2CInterfacesAnalogInConfigConst, IRosTypeR2CInterfacesAnalogIn
 interface IOPointGroupInterface {
   point_type: IOPointType;
   group_name: string;
+  setLoading?: (loading: boolean) => void;
+  setErrorMessage?: (error: string) => void;
 }
 
-const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
+const IOPointGroup = ({ point_type, group_name, setLoading, setErrorMessage}: IOPointGroupInterface) => {
   const { IOPoints, setIOPoints } =
     useContext(IOPointContext);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const { dashboardContext } = useContext(DashboardContext);
+  // const [errorMessage, setErrorMessage] = useState("");
+  // const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   useEffect(() => {
     if (dashboardContext.hardware_configuration) {
@@ -38,28 +41,49 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
   }, [dashboardContext.heartbeat_counter]);
 
   const addDigitalInput = () => {
+
     let point_index = IOPoints.getNextAvailablePointIndex(
       IOPointType.DIGITAL_INPUT
     );
+
+    setLoading(true);
+
     if (point_index >= 0) {
-      setIOPoints({
-        payload: {
-          point: new IOPointConfiguration({
-            id: "",
-            label: "Digital Input",
-            type: IOPointType.DIGITAL_INPUT,
-            channel: point_index,
-            configured: false,
-            measurement_unit: "",
-            min_value: 0,
-            min_signal_v: 0,
-            max_value: 0,
-            max_signal_v: 0,
-            value: 0,
-            enabled: false,
-          }),
+      const newIOPoint = new IOPointConfiguration({
+        id: "",
+        label: "Digital Input",
+        type: IOPointType.DIGITAL_INPUT,
+        channel: point_index,
+        configured: true, 
+        measurement_unit: "",
+        min_value: 0,
+        min_signal_v: 0,
+        max_value: 0,
+        max_signal_v: 0,
+        value: 0,
+        enabled: false,
+      })
+
+      callConfigService(
+        dashboardContext,
+        newIOPoint,
+        () => {
+          setIOPoints({
+            payload: { point: newIOPoint },
+            type: "config/add",
+          });
+          console.log("Digital Input sent to ROS");
         },
-        type: "config/add",
+        () => {
+          setLoading(false);
+          console.log("Digital Input add completed")
+        },
+        true,
+        false
+      ).catch((error) => {
+        console.error("Error adding Digital Input");
+        setLoading(false);
+        setErrorMessage(error.toString() || "Unknown error occurred");      
       });
     }
   };
@@ -68,28 +92,49 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
     let point_index = IOPoints.getNextAvailablePointIndex(
       IOPointType.ANALOG_INPUT
     );
+
+    setLoading(true);
+
     if (point_index >= 0) {
-      setIOPoints({
-        payload: {
-          point: new IOPointConfiguration({
-            id: "",
-            label: "Analog Input",
-            type: IOPointType.ANALOG_INPUT,
-            analog_type: IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_VOLTAGE,
-            channel: point_index,
-            configured: false,
-            transfer_function_type: IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR,
-            measurement_unit: "",
-            min_value: 0,
-            min_signal_v: 0,
-            max_value: 0,
-            max_signal_v: 0,
-            value: 0,
-            enabled: false,
-          }),
+      const newIOPoint = new IOPointConfiguration({
+        id: "",
+        label: "Analog Input",
+        type: IOPointType.ANALOG_INPUT,
+        analog_type: IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_VOLTAGE,
+        channel: point_index,
+        configured: true,
+        transfer_function_type: IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR,
+        measurement_unit: "",
+        min_value: 0,
+        min_signal_v: 0,
+        max_value: 0,
+        max_signal_v: 0,
+        value: 0,
+        enabled: false,
+      })
+
+      callConfigService(
+        dashboardContext,
+        newIOPoint,
+        () => {
+          setIOPoints({
+            payload: { point: newIOPoint },
+            type: "config/add",
+          });
+          console.log("Analog Input sent to ROS");
         },
-        type: "config/add",
+        () => {
+          setLoading(false);
+          console.log("Analog Input add completed")
+        },
+        true,
+        false
+      ).catch((error) => {
+        console.error("Error adding Analog Input");
+        setLoading(false);
+        setErrorMessage(error.toString() || "Unknown error occurred");      
       });
+
     }
   };
 
@@ -109,11 +154,12 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-
+    const destinationPointChannel = IOPoints.getConfiguredIOPoints(point_type)[result.destination.index].channel;
+    const sourcePointChannel = IOPoints.getConfiguredIOPoints(point_type)[result.source.index].channel;
     setIOPoints({
       payload: {
-        destination_index: result.destination.index,
-        source_index: result.source.index,
+        destination_channel: destinationPointChannel,
+        source_channel: sourcePointChannel,
         point_type: point_type,
       },
       type: "config/reorder",
@@ -138,22 +184,16 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
     ...draggableStyle,
   });
 
-  useEffect(() => {
-    console.log("updates points");
-  }, [IOPoints.analog_inputs]);
+  // useEffect(() => {
+  //   console.log("updates points");
+  // }, [IOPoints.analog_inputs]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="w-full">
+
         <div className="flex flex-row grid grid-cols-[92%_8%]">
           <p className="text-white font-bold px-2 py-2">{`${group_name}s`}</p>
-          {/* <R2Button
-            text={`Add ${group_name}`}
-            className="w-[180px] px-2"
-            onClick={
-              () => addButtonCallback(point_type)()
-            }
-          /> */}
           <div className="relative group p-2">
             <button
               className="w-6 h-6 flex items-center justify-center bg-gray-200 border border-black shadow-md text-white rounded-full shadow-md hover:bg-green-400 transition"
@@ -189,7 +229,7 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
               ref={provided.innerRef}
               className={`${snapshot.isDraggingOver ? "bg-sky-300" : "bg-slate-300"} grid grid-cols-1 w-full rounded-[4px]`}
             >
-              {IOPoints?.getIOPoints(point_type)
+              {IOPoints?.getConfiguredIOPoints(point_type)
                 .filter((p) => p.label)
                 .map((point, index) => (
                   <Draggable
@@ -223,7 +263,7 @@ const IOPointGroup = ({ point_type, group_name }: IOPointGroupInterface) => {
                           deletePoint={() => {
                             setIOPoints({
                               payload: {
-                                point_type: point.type,
+                                point: point,
                                 index: index
                               },
                               type: 'config/delete'

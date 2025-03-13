@@ -17,7 +17,8 @@ export default function StateReadout(props: { className?: string }) {
           props.className ?? ""
         }`}
       >
-        {"NOT IMPLEMENTED"}
+        {/* {"NOT IMPLEMENTED"} */}
+        {"AUTOMATIC"}
       </p>
     </div>
   );

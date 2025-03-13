@@ -18,22 +18,22 @@ database:
       collection_size_bytes: 1000
     io_state:
       document_type: IO_STATE
-      drop_on_start: True
+      drop_on_start: False
       capped: False
       collection_size_bytes: 10000
     analog_input_state:
       document_type: ANALOG_INPUT_STATE
-      drop_on_start: True
+      drop_on_start: False
       capped: False
       collection_size_bytes: 10000
     digital_input_state:
       document_type: DIGITAL_INPUT_STATE
-      drop_on_start: True
+      drop_on_start: False
       capped: False
       collection_size_bytes: 10000
     axis_state:
       document_type: AXIS_STATE
-      drop_on_start: True
+      drop_on_start: False
       capped: False
       collection_size_bytes: 10000
     hardware_configuration:
@@ -47,8 +47,8 @@ database:
 
   local:
     enabled: True
-    connection_timeout_ms: 1000
-    socket_timeout_ms: 5000
+    connection_timeout_ms: 10000
+    socket_timeout_ms: 10000
     server_selection_timeout_ms: 5000
     cycle_count_before_yield: 150
     batch_insertion_size: 10

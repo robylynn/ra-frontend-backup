@@ -93,6 +93,9 @@ export class UIConfiguration implements UIConfigurationInterface {
   motion_plots: Array<PlotConfiguration> = [];
 
   configured: boolean = false;
+  
+  saved_motion_plot_configuration: Array<PlotConfiguration> = [];
+  saved_io_plot_configuration: Record<IOPointType | number, Array<PlotConfiguration>> = {};
 
   public copy(): UIConfiguration {
     let config = new UIConfiguration();
@@ -127,9 +130,21 @@ export class UIConfiguration implements UIConfigurationInterface {
     }
   }
 
-  // public plot_active(plot_index: number) {
-  //   return this.io_plots.length > plot_index;
-  // }
+  save_motion_plot_configuration() {
+    this.saved_motion_plot_configuration = this.motion_plots;
+  }
+
+  save_io_plot_confiuration() {
+    this.saved_io_plot_configuration = this.io_plots;
+  }
+  
+  serialize_saved_confiuration(): string {
+    let confiuration_to_serialize = this.copy()
+    confiuration_to_serialize.io_plots = this.saved_io_plot_configuration
+    confiuration_to_serialize.motion_plots = this.saved_motion_plot_configuration;
+    // const json_value = JSON.parse(JSON.stringify(confiuration_to_serialize));
+    return JSON.stringify(confiuration_to_serialize);
+  }
 
   serialize(): UIConfigurationInterface {
     const json_value = JSON.parse(JSON.stringify(this));
@@ -156,7 +171,7 @@ export enum IOPointType {
 export enum AxisDataType {
   NULL,
   VELOCITY,
-  POSTIION,
+  POSITION,
 }
 
 export const IOPointTypeFriendlyName: Record<IOPointType, string> = {
@@ -414,6 +429,12 @@ export class IOConfiguration implements IOConfigurationInterface {
     return this.getIOPoints(point_type).filter((p) => p.configured);
   }
 
+  public getConfiguredAndEnabledIOPoints(
+    point_type: IOPointType
+  ): Array<IOPointConfiguration> {
+    return this.getIOPoints(point_type).filter((p) => p.configured && p.enabled);
+  }
+
   public insertPoint(point: IOPointConfiguration) {
     switch (point.type) {
       case IOPointType.DIGITAL_INPUT:
@@ -459,30 +480,185 @@ export class IOConfiguration implements IOConfigurationInterface {
     }
   }
 
-  public insertPointByIndex(point: IOPointConfiguration, index: number) {
+
+  public channelExists(pointArray: Array<IOPointConfiguration | null>, channelLookup: number) {
+    // return if channel exists
+    return pointArray.some((p) => p?.channel === channelLookup);
+  }
+
+  public getPointIndexByChannel(pointArray: Array<IOPointConfiguration | null>, channel: number) {
+    /// return first null index if channel number doesn't exist in array, otherwise, return index of existing
     try {
+      const channelExists = this.channelExists(pointArray,  channel)
+      if (channelExists) {
+        const updateIndex = pointArray.findIndex((p) => p?.channel === channel);
+        return updateIndex;
+    }
+
+    // If the channel does not exist, return the first available slot (null)
+    const firstNullIndex = pointArray.findIndex((p) => p.channel === null);
+    return firstNullIndex;
+    } catch (e) {
+      console.error(
+        `Point channel ${channel} does not exist`
+      );
+      return -1;
+    }
+  }
+
+  public getIOArrayByType(point_type: IOPointType) {
+    switch (point_type) {
+      case IOPointType.DIGITAL_INPUT:
+        return [this.digital_inputs, 'digital_inputs'];
+      case IOPointType.DIGITAL_OUTPUT:
+        return [this.digital_outputs, 'digital_outputs'];
+      case IOPointType.ANALOG_INPUT:
+        return [this.analog_inputs, 'analog_inputs'];
+      case IOPointType.ANALOG_OUTPUT:
+        return [this.analog_outputs, 'analogs_outputs'];
+      default:
+        return [];
+    }
+  }
+
+  public insertPointByIndex(point: IOPointConfiguration, index: number) {
+    switch (point.type) {
+      case IOPointType.DIGITAL_INPUT:
+        this.digital_inputs[index] = point;
+        break;
+      case IOPointType.DIGITAL_OUTPUT:
+        this.digital_outputs[index] = point;
+        break;
+      case IOPointType.ANALOG_INPUT:
+        this.analog_inputs[index] = point;
+        break;
+      case IOPointType.ANALOG_OUTPUT:
+        this.analog_outputs[index] = point;
+        break;
+      default:
+        break;
+    }
+  }
+
+  public insertPointByChannel(point: IOPointConfiguration, channel: number) {
+    try {
+      let ioArray: Array<IOPointConfiguration | null> | null = null;
+      let arrayType: "digital_inputs" | "digital_outputs" | "analog_inputs" | "analog_outputs" | null = null;
+
+      // let ioArrayAndType = this.getIOArrayByType(point.type);
+      // ioArray = ioArrayAndType[0];
+      // arrayType = ioArrayAndType[1];
+
+
       switch (point.type) {
         case IOPointType.DIGITAL_INPUT:
-          this.digital_inputs[index] = point;
+          ioArray = this.digital_inputs;
+          arrayType = "digital_inputs"
           break;
         case IOPointType.DIGITAL_OUTPUT:
-          this.digital_outputs[index] = point;
+          ioArray = this.digital_outputs;
+          arrayType = "digital_outputs"
           break;
         case IOPointType.ANALOG_INPUT:
-          this.analog_inputs[index] = point;
+          ioArray = this.analog_inputs;
+          arrayType = "analog_inputs"
           break;
         case IOPointType.ANALOG_OUTPUT:
-          this.analog_outputs[index] = point;
+          ioArray = this.analog_outputs;
+          arrayType = "analog_outputs"
           break;
         default:
           break;
       }
+
+      if (!ioArray) {
+        console.log(`Target array of type ${point.type} not found`)
+      }
+
+      const insertionIndex = this.getPointIndexByChannel(ioArray, channel);
+
+      if (insertionIndex === -1) {
+        console.log(`Can't find channel for insertion`);
+      }
+
+      // console.info("Current io array state", ioArray);
+      ioArray[insertionIndex] = point;
+      this[arrayType] = ioArray;
+
+
     } catch (e) {
       console.log(
-        `Point index ${index} with type ${IOPointType[point.type]} does not exist`
+        `Point channel ${channel} with type ${IOPointType[point.type]} does not exist`
       );
     }
   }
+
+  public resetPointByChannel(point: IOPointConfiguration, index: number) {
+    try {
+
+        let ioArray: Array<IOPointConfiguration | null> | null = null;
+        let arrayType: "digital_inputs" | "digital_outputs" | "analog_inputs" | "analog_outputs" | null = null;
+        const channel = point.channel;
+
+        switch (point.type) {
+          case IOPointType.DIGITAL_INPUT:
+            ioArray = this.digital_inputs;
+            arrayType = "digital_inputs"
+            break;
+          case IOPointType.DIGITAL_OUTPUT:
+            ioArray = this.digital_outputs;
+            arrayType = "digital_outputs"
+            break;
+          case IOPointType.ANALOG_INPUT:
+            ioArray = this.analog_inputs;
+            arrayType = "analog_inputs"
+            break;
+          case IOPointType.ANALOG_OUTPUT:
+            ioArray = this.analog_outputs;
+            arrayType = "analog_outputs"
+            break;
+          default:
+            break;
+        }
+
+
+        const removeIndex = this.getPointIndexByChannel(ioArray, channel);
+
+        if (removeIndex === -1) {
+          console.log(`Can't find channel for insertion`);
+        }
+
+        // remove the point
+        ioArray.splice(removeIndex, 1);
+  
+        // Reset the IO point at the given index
+        const resetPoint = new IOPointConfiguration({
+            id: uuidv4(),
+            channel: null,
+            type: point.type,
+            enabled: false,
+            configured: false,
+            label: "",
+            measurement_unit: "",
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: null,
+        });
+
+        ioArray.push(resetPoint);
+
+        this[arrayType] = [...ioArray];
+
+      } catch (e) {
+          console.error(
+              `Error resetting point channel ${point.channel} with type ${IOPointType[point.type]}:`,
+              e
+          );
+      }
+  }
+
 
   public deletePointByIndex(point_type: IOPointType, index: number) {
     try {
@@ -511,20 +687,49 @@ export class IOConfiguration implements IOConfigurationInterface {
 
   public reorderPointByIndex(
     point_type: IOPointType,
-    source_index: number,
-    destination_index: number
-  ) {
-    let point_array: Array<IOPointConfiguration>;
-    try {
-      point_array = this.getIOPoints(point_type);
-      let [moved_point] = point_array.splice(source_index, 1);
-      point_array.splice(destination_index, 0, moved_point);
-    } catch (e) {
-      console.log(
-        `Point index ${source_index} with type ${IOPointType[point_type]} does not exist`
-      );
+    source_channel: number,
+    destination_channel: number
+  ): void {
+      const point_array = this.getIOPoints(point_type);
+    
+      if (!point_array || point_array.length === 0) {
+        console.warn(`No points found for type ${IOPointType[point_type]}`);
+        return;
+      }
+
+      // Getting index of channles to move 
+      const source_index = this.getPointIndexByChannel(point_array, source_channel);
+      const destination_index = this.getPointIndexByChannel(point_array, destination_channel);
+
+      const newPointArray = [...point_array];
+    
+      const [moved_point] = newPointArray.splice(source_index, 1);
+    
+      if (!moved_point) {
+        console.warn(`Invalid source index ${source_index}`);
+        return;
+      }
+    
+      newPointArray.splice(destination_index, 0, moved_point);
+
+    
+      switch (point_type) {
+        case IOPointType.DIGITAL_INPUT:
+          this.digital_inputs = newPointArray;
+          break;
+        case IOPointType.DIGITAL_OUTPUT:
+          this.digital_outputs = newPointArray;
+          break;
+        case IOPointType.ANALOG_INPUT:
+          this.analog_inputs = newPointArray;
+          break;
+        case IOPointType.ANALOG_OUTPUT:
+          this.analog_outputs = newPointArray;
+          break;
+        default:
+          console.warn("Unknown point type");
+      }
     }
-  }
 
   public isPointAvailable(point_type: IOPointType) {
     const point_array = this.getIOPoints(point_type);
@@ -537,7 +742,9 @@ export class IOConfiguration implements IOConfigurationInterface {
   public getNextAvailablePointIndex(point_type: IOPointType): number {
     const point_array = this.getIOPoints(point_type);
     if (point_array.length > 0) {
-      const used_channels = point_array.map((p) => p.channel);
+      const used_channels = point_array
+      .filter((p) => p.configured)
+      .map((p) => p.channel);
       const possible_channels = [
         ...Array(this.configuration_constants[point_type]).keys(),
       ]

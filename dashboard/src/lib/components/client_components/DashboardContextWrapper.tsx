@@ -88,7 +88,7 @@ export default function DashboardContextProvider(props: {
     configuration: PlotConfiguration;
   }>("motion_plots/add");
   const updatePlotConfiguration =
-    createAction<ModifyPlotInterface>("plots/update");
+    createAction<ModifyPlotInterface>("io_plots/update");
   const updateMotionPlotConfiguration = createAction<ModifyPlotInterface>(
     "motion_plots/update"
   );
@@ -99,6 +99,8 @@ export default function DashboardContextProvider(props: {
   const deleteMotionPlotAction = createAction<{ plot_index: number }>(
     "motion_plots/delete"
   );
+  const saveMotionPlotsAction = createAction<{}>("motion_plots/save");
+  const saveIOPlotsAction = createAction<{}>("io_plots/save");
 
   function updatePlot(
     plot_configurations: PlotConfiguration[],
@@ -193,6 +195,14 @@ export default function DashboardContextProvider(props: {
         })
         .addCase(deleteMotionPlotAction, (state, action) => {
           deletePlot(state.configuration.motion_plots, action.payload);
+          return state;
+        })
+        .addCase(saveMotionPlotsAction, (state, action) => {
+          state.configuration.save_motion_plot_configuration();
+          return state;
+        })
+        .addCase(saveIOPlotsAction, (state, action) => {
+          state.configuration.save_motion_plot_configuration();
           return state;
         });
     }

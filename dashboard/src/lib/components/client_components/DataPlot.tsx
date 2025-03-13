@@ -1,22 +1,22 @@
-"use client"
+'use client';
 
-import { R2Button } from '@/lib/components/client_components/ClickButton'
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator'
+import { R2Button } from '@/lib/components/client_components/ClickButton';
+import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
 import {
     AxisConfiguration,
     AxisDataType,
     IOPointConfiguration,
     IOPointType,
-} from '@/lib/models/api_models'
+} from '@/lib/models/api_models';
 import {
     PlotAxisData,
     PlotDataPoint,
     PlotInputData,
     PlotInputDataInterface,
-} from '@/lib/models/plotting_models'
-import { strokeColor } from '@/lib/utils/chartColorPicker'
-import { plotDateFormatter } from '@/lib/utils/plotDateFormatter'
-import { useEffect, useMemo, useState } from 'react'
+} from '@/lib/models/plotting_models';
+import { strokeColor } from '@/lib/utils/chartColorPicker';
+import { plotDateFormatter } from '@/lib/utils/plotDateFormatter';
+import { useEffect, useMemo, useState } from 'react';
 import {
     CartesianGrid,
     Legend,
@@ -26,56 +26,56 @@ import {
     Tooltip,
     XAxis,
     YAxis,
-} from 'recharts'
+} from 'recharts';
 
 const DataPlot = (props: {
-    data: Array<PlotDataPoint> | PlotAxisData
-    data_type: IOPointType | AxisDataType
-    y_label?: string
-    data_parser: (data: Array<PlotDataPoint> | PlotAxisData) => PlotInputData
-    plot_index: number
-    data_sources: Array<number>
-    initial_data_acquired: boolean
-    selected_sources: Array<IOPointConfiguration> | Array<AxisConfiguration>
-    available_sources: Array<IOPointConfiguration> | Array<AxisConfiguration>
-    base_plot_length: number
-    selected_update_rate: number
-    selected_plot_length: number
-    delete_plot_callback: (plot_index: number) => void
-    add_trace_callback: (io_channel: number) => void
-    change_update_rate_callback: (update_rate: number) => void
-    change_plot_length_callback: (plot_length: number) => void
+    data: Array<PlotDataPoint> | PlotAxisData;
+    data_type: IOPointType | AxisDataType;
+    // y_label?: string;
+    data_parser: (data: Array<PlotDataPoint> | PlotAxisData) => PlotInputData;
+    plot_index: number;
+    data_sources: Array<number>;
+    initial_data_acquired: boolean;
+    selected_sources: Array<IOPointConfiguration> | Array<AxisConfiguration>;
+    available_sources: Array<IOPointConfiguration> | Array<AxisConfiguration>;
+    base_plot_length: number;
+    selected_update_rate: number;
+    selected_plot_length: number;
+    delete_plot_callback: (plot_index: number) => void;
+    add_trace_callback: (io_channel: number) => void;
+    change_update_rate_callback: (update_rate: number) => void;
+    change_plot_length_callback: (plot_length: number) => void;
 }) => {
     const [plotUpdateCounter, setPlotUpdateCounter] = useState<number>(
         props.selected_update_rate
-    )
+    );
 
     const plottedData = useMemo(
         () => props.data_parser(props.data),
         [plotUpdateCounter, props.initial_data_acquired]
-    )
+    );
     const [selectedDataSource, setSelectedDataSource] = useState<number>(
         props.available_sources?.[0]?.identifier
-    )
+    );
     const [activeSeries, setActiveSeries] = useState<Array<number>>(
         props.data_sources
-    )
+    );
 
     useEffect(() => {
-        setSelectedDataSource(() => props.available_sources?.[0]?.identifier)
-    }, [JSON.stringify(props.available_sources)])
+        setSelectedDataSource(() => props.available_sources?.[0]?.identifier);
+    }, [JSON.stringify(props.available_sources)]);
 
     useEffect(() => {
         const intervalId = setInterval(
             () => {
-                setPlotUpdateCounter((counter) => counter + 1)
+                setPlotUpdateCounter((counter) => counter + 1);
             },
             props.selected_update_rate > 0
                 ? props.selected_update_rate * 1000
                 : 1000
-        )
-        return () => clearInterval(intervalId)
-    }, [props.selected_update_rate])
+        );
+        return () => clearInterval(intervalId);
+    }, [props.selected_update_rate]);
 
     const handleLegendClick = (data_source_index: number) => {
         if (activeSeries.includes(data_source_index)) {
@@ -84,15 +84,17 @@ const DataPlot = (props: {
                     (displayed_data_source) =>
                         displayed_data_source !== data_source_index
                 )
-            )
+            );
         } else {
-            setActiveSeries((s) => [...s, data_source_index])
+            setActiveSeries((s) => [...s, data_source_index]);
         }
-    }
+    };
 
     const y_axis_label = (): string => {
         if (
-            typeof props.selected_sources == typeof Array<IOPointConfiguration>
+            props.selected_sources.every(
+                (s) => s instanceof IOPointConfiguration
+            )
         ) {
             if (
                 props.data_type == IOPointType.ANALOG_INPUT ||
@@ -106,29 +108,38 @@ const DataPlot = (props: {
                             io_channel.measurement_unit &&
                             io_channel.measurement_unit != ''
                     )
-                    .map((io_channel) => io_channel.measurement_unit)
+                    .map((io_channel) => io_channel.measurement_unit);
                 if (units.some((unit) => unit)) {
-                    const unit_string = units.join(' / ')
-                    return unit_string
+                    const unit_string = units.join(' / ');
+                    return unit_string;
                 }
 
-                return 'Unknown Units'
+                return 'Unknown Units';
             } else {
-                return 'State'
+                return 'State';
+            }
+        } else {
+            // This is axis data
+            if (props.data_type == AxisDataType.VELOCITY) {
+                return 'Velocity (rev/s)';
+            } else if (props.data_type == AxisDataType.POSITION) {
+                return 'Position (rev)';
             }
         }
-    }
+
+        return "Unknown";
+    };
 
     const findDataEntry = (
         data_source_identifier: number
     ): PlotInputDataInterface | undefined => {
         for (const input_data of plottedData) {
             if (input_data.id == data_source_identifier) {
-                return input_data
+                return input_data;
             }
         }
-        return undefined
-    }
+        return undefined;
+    };
 
     return (
         <div>
@@ -142,27 +153,27 @@ const DataPlot = (props: {
                     disabled={props.available_sources.length < 1}
                 >
                     {props.available_sources.map((source, index) => {
-                        let label: string
+                        let label: string;
                         if (source instanceof IOPointConfiguration) {
                             const point_configuration =
-                                source as IOPointConfiguration
+                                source as IOPointConfiguration;
                             label =
                                 point_configuration.label != ''
                                     ? `${point_configuration.label} (Input ${point_configuration.channel})`
-                                    : `Input ${point_configuration.channel}`
+                                    : `Input ${point_configuration.channel}`;
                         } else if (source instanceof AxisConfiguration) {
                             const axis_configuration =
-                                source as AxisConfiguration
+                                source as AxisConfiguration;
                             label =
                                 axis_configuration.label != ''
                                     ? `${axis_configuration.label} (Axis ${axis_configuration.index})`
-                                    : `Axis ${axis_configuration.index}`
+                                    : `Axis ${axis_configuration.index}`;
                         }
                         return (
                             <option key={index} value={source.identifier}>
                                 {label}
                             </option>
-                        )
+                        );
                     })}
                 </select>
 
@@ -172,9 +183,9 @@ const DataPlot = (props: {
                     onClick={() => {
                         setSelectedDataSource(
                             () => props.available_sources?.[0]?.identifier
-                        )
-                        setActiveSeries((s) => [...s, selectedDataSource])
-                        props.add_trace_callback(selectedDataSource)
+                        );
+                        setActiveSeries((s) => [...s, selectedDataSource]);
+                        props.add_trace_callback(selectedDataSource);
                     }}
                 />
                 <div className="flex flex-col items-center">
@@ -223,7 +234,7 @@ const DataPlot = (props: {
                 <R2Button
                     text="Remove Plot"
                     onClick={() => {
-                        props.delete_plot_callback(props.plot_index)
+                        props.delete_plot_callback(props.plot_index);
                     }}
                 />
             </div>
@@ -272,13 +283,14 @@ const DataPlot = (props: {
                             .sort((a, b) => (b > a ? -1 : 1))
                             .map((s) => {
                                 // if (s != 0) return
-                                const data_series = findDataEntry(s)
+                                const data_series = findDataEntry(s);
                                 return (
                                     <Line
                                         data={data_series?.data}
                                         id={s.toString()}
                                         key={s}
-                                        type="monotone"
+                                        type="linear"
+                                        dot={false}
                                         dataKey={s}
                                         name={data_series?.name}
                                         hide={!activeSeries.includes(s)}
@@ -288,13 +300,13 @@ const DataPlot = (props: {
                                         animationDuration={500}
                                         animationEasing="ease-in-out"
                                     />
-                                )
+                                );
                             })}
                     </LineChart>
                 )}
             </ResponsiveContainer>
         </div>
-    )
-}
+    );
+};
 
-export default DataPlot
+export default DataPlot;

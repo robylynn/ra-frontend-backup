@@ -3,7 +3,7 @@
 
 // "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState} from "react";
 
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 // import AnalogInputGroup from "@/lib/components/client_components/AnalogInputGroup";
@@ -17,6 +17,10 @@ export default function IOConfigurationContainer(props: {
   fill_tile_callback?: Dispatch<SetStateAction<string>>;
   force_expanded?: boolean;
 }) {
+
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   return (
     <DashboardHeaderContainer
       header_text={"IO CONFIGURATION"}
@@ -24,18 +28,25 @@ export default function IOConfigurationContainer(props: {
       className={`${props.className ?? ""}`}
       fill_tile_id={props.id}
       fill_tile_callback={props.fill_tile_callback}
+      loading={loading}
+      errorMessage={errorMessage}
+      onClearError={() => setErrorMessage("")}
     >
         <div className="flex flex-col gap-y-4">
           {/* <AnalogInputGroup />
           <DigitalInputGroup /> */}
-          <IOPointGroup
+            <IOPointGroup
             point_type={IOPointType.ANALOG_INPUT}
             group_name="Analog Input"
-          />
-          <IOPointGroup
+            setLoading={(loading: boolean) => setLoading(loading)}
+            setErrorMessage={setErrorMessage}
+            />
+            <IOPointGroup
             point_type={IOPointType.DIGITAL_INPUT}
             group_name="Digital Input"
-          />
+            setLoading={(loading: boolean) => setLoading(loading)}
+            setErrorMessage={setErrorMessage}
+            />
         </div>
     </DashboardHeaderContainer>
   );

@@ -66,6 +66,10 @@ export default function DataUpdater(props: {
                 received_configuration.client_id
             );
 
+            received_configuration.saved_motion_plot_configuration = received_configuration.motion_plots;
+            received_configuration.saved_io_plot_configuration = received_configuration.io_plots;
+
+
             setDashboardContext({
               payload: { configuration: received_configuration },
               type: "ui_config/set",
@@ -90,7 +94,6 @@ export default function DataUpdater(props: {
           750
         );
         if (config != undefined) {
-          console.log("Got hardware configuration");
           setDashboardContext({
             payload: {
               hardware_configuration: new HardwareConfiguration(config),

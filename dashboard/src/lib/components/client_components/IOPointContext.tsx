@@ -9,6 +9,7 @@ import {
     IOPointType,
 } from '@/lib/models/api_models';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
+import { networkInterfaces } from 'os';
 import { createContext, Dispatch, useReducer } from 'react';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid to generate unique IDs
 
@@ -23,14 +24,15 @@ interface IOPointContextReducerInterface {
 }
 
 interface IOPointContextReducerDeleteInterface {
-    point_type: IOPointType;
+    // point_type: IOPointType;
+    point: IOPointConfiguration;
     index: number;
 }
 
 interface IOPointContextReducerReorderInterface {
     point_type: IOPointType;
-    source_index: number;
-    destination_index: number;
+    source_channel: number;
+    destination_channel: number;
 }
 
 interface IOConfigurationContextReducerInterface {
@@ -66,20 +68,23 @@ export const IOPointContextProvider = ({ children }) => {
         builder
             .addCase(updateIOPointAction, (state, action) => {
                 console.log('updated');
-                state.insertPointByIndex(
+                state.insertPointByChannel(
                     action.payload.point,
-                    action.payload.index
-                );
+                    action.payload.point.channel
+                )
+                // state.insertPointByIndex(
+                //     action.payload.point,
+                //     action.payload.index
+                // );
                 return state;
             })
             .addCase(setIOPointsAction, (state, action) => {
-                console.log('points set');
                 state = action.payload.configuration;
                 return state;
             })
             .addCase(addIOPointAction, (state, action) => {
-                console.log('points added');
                 let point = action.payload.point;
+                
 
                 if (point.channel > state.getMaximumChannels(point.type))
                     return;
@@ -87,32 +92,37 @@ export const IOPointContextProvider = ({ children }) => {
                 // Find the first available channel
                 const usedChannels = state
                     .getIOPoints(point.type)
-                    .filter((p) => p.label)
+                    .filter((p) => p.label && p.configured == true)
                     .map((point) => point.channel);
 
+                
                 const availableChannel = [
                     ...Array(state.getMaximumChannels(point.type)).keys(),
                 ].find((channel) => !usedChannels.includes(channel));
 
                 point.id = uuidv4();
                 point.channel = availableChannel;
-                state.insertPointByIndex(point, availableChannel);
+                state.insertPointByChannel(point, availableChannel);
                 console.log('added');
                 return state;
             })
             .addCase(deleteIOPointAction, (state, action) => {
                 console.log('point deleted');
-                state.deletePointByIndex(
-                    action.payload.point_type,
-                    action.payload.index
+                let point = action.payload.point;
+                state.resetPointByChannel(
+                    point,
+                    point.channel
                 );
+                
                 return state;
+
             })
             .addCase(reorderIOPointsAction, (state, action) => {
+                console.log("point reordered");
                 state.reorderPointByIndex(
                     action.payload.point_type,
-                    action.payload.source_index,
-                    action.payload.destination_index
+                    action.payload.source_channel,
+                    action.payload.destination_channel
                 );
                 return state;
             });

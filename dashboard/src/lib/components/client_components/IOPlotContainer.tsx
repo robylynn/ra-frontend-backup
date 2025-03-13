@@ -27,7 +27,6 @@ const IOPlots = (props: {
   default_length: number;
   default_update_rate: number;
   point_type: IOPointType;
-  // point_channels: Array<number>;
   plot_configuration: Array<PlotConfiguration>;
 }) => {
   const { IOPoints } = useContext(IOPointContext);
@@ -106,15 +105,9 @@ const IOPlots = (props: {
         .then((data?) => {
           if (data) {
             let data_documents = new DatabaseROSIOStateArray(data);
-            console.log("Got initial data");
-            // setCompleteIOData((prevData) => {
+            console.log(`Got ${length} database documents for ${IOPointType[props.point_type]}`);
+
             const initial_chart_data = data_documents.documents.map((d) => {
-              // let time = d.time_sec + d.time_nsec / 1e9;
-
-              // if (props.point_type == IOPointType.DIGITAL_INPUT) {
-              //   let a = 5;
-              // }
-
               let time = d.stamp.sec + d.stamp.nanosec / 1e9;
 
               let data_point: PlotDataPoint = {
@@ -132,9 +125,6 @@ const IOPlots = (props: {
 
               return data_point;
             });
-            //   initial_data_acquired.current = true;
-            //   initial_chart_data.reverse();
-            // });
 
             initial_data = new Promise<IOFetchDataInterface>(
               (resolve, reject) => resolve(initial_chart_data.reverse())
@@ -143,7 +133,6 @@ const IOPlots = (props: {
         })
         .catch((e) => {
           console.error(`Error acquiring initial plot data: ${e}`);
-          //   initial_data_acquired.current = false;
         });
 
       return initial_data;
@@ -171,11 +160,9 @@ const IOPlots = (props: {
       });
     };
 
-    // if (!initial_data_acquired.current) get_initial_data();
     fill_initial_data();
   }, [
     dashboardContext.heartbeat_counter,
-    // plotContext.plot_lengths,
     JSON.stringify(dashboardContext.configuration.io_plots),
   ]);
 
@@ -203,12 +190,14 @@ const IOPlots = (props: {
               -dashboardContext.configuration.io_plots[props.point_type][plot_index]?.length
             ),
           }));
+        } else {
+          console.log("Got IO data before initial data");
         }
       });
     }
   }, [dashboardContext.getIOSState(props.point_type)]);
 
-  const configured_IO_points = IOPoints.getConfiguredIOPoints(props.point_type);
+  const configured_enabled_IO_points = IOPoints.getConfiguredAndEnabledIOPoints(props.point_type);
 
   const handleAddPlot = () => {
     setDashboardContext({
@@ -227,7 +216,6 @@ const IOPlots = (props: {
 
   const parseIOData = (
     data: PlotDataPoint[]
-    // data_key: string
   ): PlotInputData => {
     if (data && data.length > 0) {
       const data_arrays: PlotInputData = Object.keys(data?.[0]).map(
@@ -293,27 +281,25 @@ const IOPlots = (props: {
                     <DataPlot
                       key={plot_index}
                       data_type={props.point_type}
-                      // point_type_name={point_type_name}
                       data_sources={plot_configuration.data_sources.sort(
                         (a, b) => (a < b ? -1 : 1)
                       )}
                       data={completeIOData[plot_index]}
-                      // data_parser={(data: PlotDataPoint[]) => data}
                       data_parser={(data) =>
                         data ? parseIOData(data as PlotDataPoint[]) : []
                       }
-                      y_label={"y_label"}
+                      // y_label={"y_label"}
                       plot_index={plot_index}
                       initial_data_acquired={
                         initialDataAcquired.current?.[plot_index]
                       }
-                      available_sources={configured_IO_points.filter(
+                      available_sources={configured_enabled_IO_points.filter(
                         (point) =>
                           !dashboardContext.configuration.io_plots[props.point_type][
                             plot_index
                           ].data_sources.includes(point.channel)
                       )}
-                      selected_sources={configured_IO_points
+                      selected_sources={configured_enabled_IO_points
                         .filter((point) =>
                           dashboardContext.configuration.io_plots[props.point_type][
                             plot_index
@@ -349,7 +335,7 @@ const IOPlots = (props: {
                               io_channel,
                             ],
                           },
-                          type: "plots/update",
+                          type: "io_plots/update",
                         });
                       }}
                       change_update_rate_callback={(update_rate: number) => {
@@ -359,7 +345,7 @@ const IOPlots = (props: {
                             plot_index: plot_index,
                             update_rate: update_rate,
                           },
-                          type: "plots/update",
+                          type: "io_plots/update",
                         });
                       }}
                       change_plot_length_callback={(length: number) => {
@@ -373,7 +359,7 @@ const IOPlots = (props: {
                             plot_index: plot_index,
                             length: length,
                           },
-                          type: "plots/update",
+                          type: "io_plots/update",
                         });
                       }}
                     />
@@ -386,7 +372,6 @@ const IOPlots = (props: {
       )}
       <div className = "flex flex-col items-center justify-center p-2">
         <R2Button
-          // text={`New ${point_type_name(props.point_type)} Plot`}
           text={`New ${IOPointTypeFriendlyName[props.point_type]} Plot`}
           className="w-[95%]"
           onClick={() => {

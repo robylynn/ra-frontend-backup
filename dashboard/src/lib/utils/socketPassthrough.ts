@@ -1,5 +1,6 @@
 import { WebSocket, WebSocketServer, ErrorEvent } from "ws";
 import { getSession } from "next-auth/react";
+import { debug_mode } from "./utilities";
 
 export async function socketPassthrough(
   props: {
@@ -14,7 +15,8 @@ export async function socketPassthrough(
     return `${props.socket_name.toUpperCase()}: ${message}`;
   };
 
-  console.log(format_message("Websocket client connected."));
+  if (debug_mode())
+    console.log(format_message("Websocket client connected."));
 
   const session = await getSession({ req: props.request });
 
@@ -29,7 +31,8 @@ export async function socketPassthrough(
 
     let backend_socket = new WebSocket(`ws://${props.proxy_address}`);
 
-    console.log(format_message("Proxy target websocket created"));
+    if (debug_mode())
+      console.log(format_message("Proxy target websocket created"));
 
     const onBackendWebsocketClose = () => {
       console.warn(format_message("Proxy target websocket closed."));
@@ -38,7 +41,8 @@ export async function socketPassthrough(
     };
 
     const onBackendWebsocketMessage = (message: string) => {
-      console.log(format_message(`Got message from proxy target websocket: ${message}`));
+      if (process.env.DEBUG.toLowerCase() == 'true')
+        console.log(format_message(`Got message from proxy target websocket: ${message}`));
       props.client.send(message.toString());
     };
 
@@ -58,7 +62,8 @@ export async function socketPassthrough(
     };
 
     const onClientWebsocketMessage = (message: string) => {
-      console.log(format_message(`Got message from client on proxy websocket: ${message}`));
+      if (debug_mode())
+        console.log(format_message(`Got message from client on proxy websocket: ${message}`));
       backend_socket.send(message.toString());
     };
 

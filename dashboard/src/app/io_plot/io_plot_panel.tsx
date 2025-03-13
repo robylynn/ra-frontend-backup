@@ -10,6 +10,7 @@ import { DashboardHeaderContainer } from "@/lib/components/client_components/Das
 import IOPlotContainer from "@/lib/components/client_components/IOPlotContainer";
 import { IOPointType } from "@/lib/models/api_models";
 import { NextAPIResponseInterface } from "@/lib/models/api_models";
+import { save_UI_configuration } from "@/lib/utils/saveUIConfiguration";
 
 export default function IOPlotPanel(props: {
   id: string;
@@ -20,18 +21,28 @@ export default function IOPlotPanel(props: {
   const { dashboardContext, setDashboardContext } = useContext(DashboardContext);
 
   const save_configuration = async () => {
-    const res: NextAPIResponseInterface = await fetch(
-      "api/backend/ui/configuration",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-        body: JSON.stringify(dashboardContext.configuration),
-      }
-    ).then((res) => res.json());
+    let saved_configuration = dashboardContext.configuration.copy();
+    saved_configuration.saved_io_plot_configuration = dashboardContext.configuration.io_plots;
+
+    const res: NextAPIResponseInterface = await save_UI_configuration(saved_configuration);
+
+    setDashboardContext({
+      payload: {},
+      type: "io_plots/save",
+    });
+
+    // const res: NextAPIResponseInterface = await fetch(
+    //   "api/backend/ui/configuration",
+    //   {
+    //     method: "POST",
+    //     headers: {
+    //       Accept: "application/json",
+    //       "Content-Type": "application/json",
+    //     },
+    //     mode: "cors",
+    //     body: JSON.stringify(dashboardContext.configuration),
+    //   }
+    // ).then((res) => res.json());
     console.log("POST response: " + JSON.stringify(res.data));
   };
 
@@ -46,7 +57,6 @@ export default function IOPlotPanel(props: {
       button_text="Save Configuration"
       button_callback={() => {save_configuration()}}
     >
-      {/* {dashboardContext.configuration?.configured ? ( */}
       <>
         {/* <IOPlotContainer point_type={IOPointType.ANALOG_INPUT} /> */}
         <IOPlotContainer point_type={IOPointType.DIGITAL_INPUT} />
