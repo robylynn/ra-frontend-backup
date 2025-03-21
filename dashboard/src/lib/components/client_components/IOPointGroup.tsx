@@ -4,9 +4,7 @@
 'use client';
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
-import IOPointContainer, {
-    callConfigService,
-} from '@/lib/components/client_components/IOPointContainer';
+import IOPointContainer from '@/lib/components/client_components/IOPointContainer';
 import { IOPointContext } from '@/lib/components/client_components/IOPointContext';
 import { IOPointConfiguration, IOPointType } from '@/lib/models/api_models';
 import {
@@ -57,14 +55,13 @@ const IOPointGroup = ({
             setIOPoints({
                 payload: {
                     point_type: point_type,
-                    point_configuration_states: dashboardContext.getGpioConfigurationState(point_type),
+                    point_configuration_states:
+                        dashboardContext.getGpioConfigurationState(point_type),
                 },
                 type: 'config/update',
             });
         }
-    }, [
-        dashboardContext.getGpioConfigurationState(point_type),
-    ]);
+    }, [dashboardContext.getGpioConfigurationState(point_type)]);
 
     const addDigitalInput = () => {
         let point_index = IOPoints.getNextAvailablePointIndex(
@@ -89,27 +86,30 @@ const IOPointGroup = ({
                 enabled: false,
             });
 
-            callConfigService(
-                dashboardContext,
-                newIOPoint,
-                () => {
-                    setIOPoints({
-                        payload: { point: newIOPoint },
-                        type: 'config/add',
-                    });
-                    console.log('Digital Input sent to ROS');
-                },
-                () => {
+            dashboardContext.io_configuration_services
+                .configure_io_point(
+                    newIOPoint,
+                    () => {
+                        setIOPoints({
+                            payload: { point: newIOPoint },
+                            type: 'config/add',
+                        });
+                        console.log('Digital Input sent to ROS');
+                    },
+                    undefined,
+                    undefined,
+                    () => {
+                        setLoading(false);
+                        console.log('Digital Input add completed');
+                    }
+                )
+                .catch((error) => {
+                    console.error('Error adding Digital Input');
                     setLoading(false);
-                    console.log('Digital Input add completed');
-                },
-                true,
-                false
-            ).catch((error) => {
-                console.error('Error adding Digital Input');
-                setLoading(false);
-                setErrorMessage(error.toString() || 'Unknown error occurred');
-            });
+                    setErrorMessage(
+                        error.toString() || 'Unknown error occurred'
+                    );
+                });
         }
     };
 
@@ -140,27 +140,30 @@ const IOPointGroup = ({
                 enabled: false,
             });
 
-            callConfigService(
-                dashboardContext,
-                newIOPoint,
-                () => {
-                    setIOPoints({
-                        payload: { point: newIOPoint },
-                        type: 'config/add',
-                    });
-                    console.log('Analog Input sent to ROS');
-                },
-                () => {
+            dashboardContext.io_configuration_services
+                .configure_io_point(
+                    newIOPoint,
+                    () => {
+                        setIOPoints({
+                            payload: { point: newIOPoint },
+                            type: 'config/add',
+                        });
+                        console.log('Analog Input sent to ROS');
+                    },
+                    () => {},
+                    () => {},
+                    () => {
+                        setLoading(false);
+                        console.log('Analog Input add completed');
+                    }
+                )
+                .catch((error) => {
+                    console.error('Error adding Analog Input');
                     setLoading(false);
-                    console.log('Analog Input add completed');
-                },
-                true,
-                false
-            ).catch((error) => {
-                console.error('Error adding Analog Input');
-                setLoading(false);
-                setErrorMessage(error.toString() || 'Unknown error occurred');
-            });
+                    setErrorMessage(
+                        error.toString() || 'Unknown error occurred'
+                    );
+                });
         }
     };
 
@@ -343,6 +346,9 @@ const IOPointGroup = ({
                                                         }}
                                                         setIsConfigOpen={
                                                             setIsConfigOpen
+                                                        }
+                                                        setErrorMessage={
+                                                            setErrorMessage
                                                         }
                                                     />
                                                 </div>

@@ -1,11 +1,11 @@
-import { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { WebSocket, WebSocketServer } from 'ws'
+import { getServerSession } from 'next-auth';
+import { NextRequest } from 'next/server';
+import { WebSocket, WebSocketServer } from 'ws';
 
-import authOptions from '@/lib/auth/auth_options'
-import { createAPIResponse } from '@/lib/models/api_models'
-import { socketPassthrough } from '@/lib/utils/socketPassthrough'
-import { debug_mode } from '@/lib/utils/utilities'
+import authOptions from '@/lib/auth/auth_options';
+import { createAPIResponse } from '@/lib/models/api_models';
+import { socketPassthrough } from '@/lib/utils/socketPassthrough';
+import { debug_mode } from '@/lib/utils/utilities';
 
 export async function SOCKET(
     client: WebSocket,
@@ -18,28 +18,28 @@ export async function SOCKET(
         client: client,
         server: server,
         request: request,
-    })
+    });
 }
 
 export async function GET(
     req: NextRequest,
     { params }: { params: { stream_name: string; count: string } }
 ) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
 
     if (session == null) {
         if (debug_mode())
             console.log(
                 `Attempted rosbridge websocket access without authentication`
-            )
+            );
         return createAPIResponse({
             data: null,
             authenticated: false,
-        })
+        });
     }
 
     return createAPIResponse({
         data: null,
         authenticated: true,
-    })
+    });
 }

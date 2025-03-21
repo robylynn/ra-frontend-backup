@@ -55,7 +55,11 @@ Set up a virtual environment call `venv` per the usual procedure. The `requireme
 
 The backend (python application) and server side JS code (Next.JS application) are launched separately using the configurations in `launch.json`. They are not yet set up to be run in docker.
 
-
+## Prettier Setup
+We use `prettier` to format TypeScript code in this repo. Install the prettier extension in VSCode and all files should format on save. To format the entire TS codebase, 
+```
+npm run prettier-format
+```
 
 ## Environment Setup
 The `.env.development` and `.env.production` are used to set environment variables when running in development mode (e.g. `yarn dev`) or production mode (e.g. `yarn build && yarn start`), respectively. There are two relevant variables:

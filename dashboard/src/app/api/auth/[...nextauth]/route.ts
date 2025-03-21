@@ -1,9 +1,9 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-import NextAuth from "next-auth";
+import NextAuth from 'next-auth';
 
-import authOptions from "@/lib/auth/auth_options";
+import authOptions from '@/lib/auth/auth_options';
 
 const handler = NextAuth(authOptions);
 

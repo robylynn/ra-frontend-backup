@@ -1,4 +1,4 @@
 export interface ROSTimestamp {
-    sec: number
-    nanosec: number
+    sec: number;
+    nanosec: number;
 }

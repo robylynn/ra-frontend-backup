@@ -1,10 +1,13 @@
-"use client";
+'use client';
 
-import { ReactElement, ReactNode } from "react";
-import { PagePanel } from "./DashboardHeaderContainer";
+import { ReactElement } from 'react';
+import { PagePanel } from './DashboardHeaderContainer';
 
-function ApplicationState(props: { className?: string; state?: string }): ReactElement {
-    const { className, state = "Running" } = props;
+function ApplicationState(props: {
+    className?: string;
+    state?: string;
+}): ReactElement {
+    const { className, state = 'Running' } = props;
 
     return (
         <div
@@ -49,7 +52,7 @@ export function ApplicationStateContainer(props: { className?: string }) {
               border-l-0
               rounded-l-none
               shadow-none
-              ${props.className ?? ""}
+              ${props.className ?? ''}
               `}
         >
             <ApplicationState className={props.className} />

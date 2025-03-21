@@ -15,7 +15,6 @@ import {
     IRosTypeR2CInterfacesDigitalOutHardwareConfig,
 } from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
-import { networkInterfaces } from 'os';
 import { createContext, Dispatch, useReducer } from 'react';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid to generate unique IDs
 
@@ -91,7 +90,7 @@ export const IOPointContextProvider = ({ children }) => {
                 state.insertPointByChannel(
                     action.payload.point,
                     action.payload.point.channel
-                )
+                );
                 return state;
             })
             .addCase(setIOPointsAction, (state, action) => {
@@ -110,7 +109,6 @@ export const IOPointContextProvider = ({ children }) => {
                     .filter((p) => p.label && p.configured == true)
                     .map((point) => point.channel);
 
-                
                 const availableChannel = [
                     ...Array(state.getMaximumChannels(point.type)).keys(),
                 ].find((channel) => !usedChannels.includes(channel));
@@ -124,16 +122,12 @@ export const IOPointContextProvider = ({ children }) => {
             .addCase(deleteIOPointAction, (state, action) => {
                 console.log('point deleted');
                 let point = action.payload.point;
-                state.resetPointByChannel(
-                    point,
-                    point.channel
-                );
-                
-                return state;
+                state.resetPointByChannel(point, point.channel);
 
+                return state;
             })
             .addCase(reorderIOPointsAction, (state, action) => {
-                console.log("point reordered");
+                console.log('point reordered');
                 state.reorderPointByIndex(
                     action.payload.point_type,
                     action.payload.source_channel,
@@ -142,12 +136,20 @@ export const IOPointContextProvider = ({ children }) => {
                 return state;
             })
             .addCase(updateGpioConfigurationAction, (state, action) => {
-                state.getIOPoints(action.payload.point_type).forEach((point, point_index) => {
-                    if (point.channel !== null) {
-                        point.enabled = action.payload.point_configuration_states[point.channel].enabled;
-                        point.configured = action.payload.point_configuration_states[point.channel].configured;
-                    }
-                });
+                state
+                    .getIOPoints(action.payload.point_type)
+                    .forEach((point, point_index) => {
+                        if (point.channel !== null) {
+                            point.enabled =
+                                action.payload.point_configuration_states[
+                                    point.channel
+                                ].enabled;
+                            point.mcu_configuration_valid =
+                                action.payload.point_configuration_states[
+                                    point.channel
+                                ].configured;
+                        }
+                    });
                 return state;
             });
     });

@@ -4,15 +4,18 @@
 'use client';
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
-import { IOConfigurationInterface, IOPointType } from '@/lib/models/api_models';
-import { IOCommandServices, IOConfigurationServices } from '@/lib/models/dashboard_context';
+import { IOPointType } from '@/lib/models/api_models';
+import {
+    IOCommandServices,
+    IOConfigurationServices,
+} from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInData,
     IRosTypeR2CInterfacesAnalogOutData,
     IRosTypeR2CInterfacesDigitalInData,
     IRosTypeR2CInterfacesDigitalOutData,
     IRosTypeR2CInterfacesEncoderEstimates,
-    IRosTypeR2CInterfacesGpioConfigurationState
+    IRosTypeR2CInterfacesGpioConfigurationState,
 } from '@/lib/models/ros_types';
 import { getSession } from 'next-auth/react';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -167,7 +170,8 @@ function initializeIOConfigurationServices(
         serviceType: 'r2c_interfaces/ConfigureAnalogIn',
     });
 
-    let config_services: IOConfigurationServices = new IOConfigurationServices();
+    let config_services: IOConfigurationServices =
+        new IOConfigurationServices();
     config_services.set_service(
         IOPointType.ANALOG_INPUT,
         analog_in_config_service
@@ -180,7 +184,9 @@ function initializeIOConfigurationServices(
     return config_services;
 }
 
-function initializeIOCommandServices(ros_websocket: ROSLIB.Ros): IOCommandServices {
+function initializeIOCommandServices(
+    ros_websocket: ROSLIB.Ros
+): IOCommandServices {
     const digital_out_command_service = new ROSLIB.Service({
         ros: ros_websocket,
         name: '/gpio/set_digital_out',

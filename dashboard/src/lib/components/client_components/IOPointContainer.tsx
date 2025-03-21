@@ -1,8 +1,9 @@
-import {
-    R2Button,
-    R2SliderToggle,
-} from '@/lib/components/client_components/ClickButton';
+import { R2SliderToggle } from '@/lib/components/client_components/ClickButton';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
+import {
+    AnalogValueDisplayElement,
+    DigitalValueDisplayElement,
+} from '@/lib/components/client_components/IODisplay';
 import { IOPointContext } from '@/lib/components/client_components/IOPointContext';
 import Modal from '@/lib/components/client_components/Modal';
 import {
@@ -10,20 +11,11 @@ import {
     IOPointConfiguration,
     IOPointType,
 } from '@/lib/models/api_models';
-import ApplicationContext from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInConfigConst,
     IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType,
-    IRosTypeR2CInterfacesConfigureAnalogInRequest,
-    IRosTypeR2CInterfacesConfigureDigitalInRequest,
 } from '@/lib/models/ros_types';
-import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
 import { Dispatch, SetStateAction, useContext, useState } from 'react';
-import ROSLIB from 'roslib';
-import {
-    AnalogValueDisplayElement,
-    DigitalValueDisplayElement,
-} from './IODisplay';
 
 type IOPointContainerProps = {
     index: number;
@@ -31,102 +23,7 @@ type IOPointContainerProps = {
     updatePoint: (point: IOPointConfiguration) => void;
     deletePoint: () => void;
     setIsConfigOpen: Dispatch<SetStateAction<any>>;
-};
-
-export const callConfigService = (
-    dashboardContext: ApplicationContext,
-    updatedIOPoint: IOPointConfiguration,
-    onSuccess = () => {},
-    onComplete = () => {},
-    is_config_request: boolean = false,
-    is_enable_disable_request: boolean = false
-) => {
-    return new Promise<void>((resolve, reject) => {
-        // Check if the config service is available
-        if (
-            !dashboardContext.io_configuration_services?.get_service(
-                updatedIOPoint.type
-            )
-        ) {
-            const errorMsg = `Service for point type ${IOPointType[updatedIOPoint.type]} not defined`;
-            console.error(errorMsg);
-            reject(errorMsg);
-            return;
-        }
-
-        let request_data:
-            | IRosTypeR2CInterfacesConfigureAnalogInRequest
-            | IRosTypeR2CInterfacesConfigureDigitalInRequest;
-
-        switch (updatedIOPoint.type) {
-            case IOPointType.ANALOG_INPUT: {
-                request_data = {
-                    is_enable_disable_request: is_enable_disable_request,
-                    is_config_request: is_config_request,
-                    config: {
-                        channel: updatedIOPoint.channel,
-                        hardware_config: {
-                            configured: updatedIOPoint.configured,
-                            enabled: updatedIOPoint.enabled,
-                            channel_type: updatedIOPoint.analog_type,
-                        },
-                        label: updatedIOPoint.label,
-                        unit: updatedIOPoint.measurement_unit,
-                        max_electrical_value: updatedIOPoint.max_signal_v,
-                        min_electrical_value: updatedIOPoint.min_signal_v,
-                        max_measurement_value: updatedIOPoint.max_value,
-                        min_measurement_value: updatedIOPoint.min_value,
-                        transfer_function_type:
-                            updatedIOPoint.transfer_function_type,
-                    },
-                };
-                break;
-            }
-            case IOPointType.DIGITAL_INPUT: {
-                request_data = {
-                    is_enable_disable_request: is_enable_disable_request,
-                    is_config_request: is_config_request,
-                    config: {
-                        channel: updatedIOPoint.channel,
-                        hardware_config: {
-                            configured: updatedIOPoint.configured,
-                            enabled: updatedIOPoint.enabled,
-                        },
-                        label: updatedIOPoint.label,
-                    },
-                };
-                break;
-            }
-        }
-
-        const request = new ROSLIB.ServiceRequest(request_data);
-
-        timeoutServiceCall(
-            dashboardContext.io_configuration_services.get_service(
-                updatedIOPoint.type
-            ),
-            request,
-            3000
-        )
-            .then((result) => {
-                // console.log("Service call successful:", result);
-                if ((result as any).success) {
-                    if (onSuccess) onSuccess();
-                    resolve();
-                } else {
-                    const errorMsg = 'Failed to update configuration';
-                    console.error(errorMsg);
-                    reject(errorMsg);
-                }
-            })
-            .catch((error) => {
-                console.error('Configuration update failed: ', error);
-                reject(error);
-            })
-            .finally(() => {
-                if (onComplete) onComplete();
-            });
-    });
+    setErrorMessage: (message: string) => void;
 };
 
 const IOPointContainer = ({
@@ -135,12 +32,12 @@ const IOPointContainer = ({
     updatePoint,
     deletePoint,
     setIsConfigOpen,
+    setErrorMessage,
 }: IOPointContainerProps) => {
     const { dashboardContext } = useContext(DashboardContext);
     const { IOPoints } = useContext(IOPointContext);
     const [showConfig, setShowConfig] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // Add loading state
-    const [errorMessage, setErrorMessage] = useState(''); // Add error message state
 
     const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
         // Validate the channel
@@ -165,45 +62,47 @@ const IOPointContainer = ({
         if (updatedIOPointChannel !== oldIOPointChannel) {
             const oldIOPoint = io_point.copy();
             oldIOPoint.configured = false;
-            callConfigService(
-                dashboardContext,
-                oldIOPoint,
+            dashboardContext.io_configuration_services
+                .configure_io_point(
+                    oldIOPoint,
+                    () => {
+                        deletePoint();
+                        setShowConfig(false);
+                        setIsConfigOpen(false);
+                    },
+                    undefined,
+                    undefined,
+                    () => console.log('Deleted old point')
+                )
+                .catch((error) => {
+                    setShowConfig(false);
+                    setErrorMessage(
+                        error && error.message
+                            ? error.message.toString()
+                            : 'Unknown error occurred'
+                    );
+                });
+        }
+
+        dashboardContext.io_configuration_services
+            .configure_io_point(
+                updatedIOPoint,
                 () => {
-                    deletePoint();
+                    updatedIOPoint.configured = true;
+                    updatePoint(updatedIOPoint);
                     setShowConfig(false);
                     setIsConfigOpen(false);
                 },
-                () => console.log('Deleted old point'),
-                false,
-                true
-            ).catch((error) => {
+                undefined,
+                undefined,
+                () => setIsLoading(false)
+            )
+            .catch((error) => {
+                setShowConfig(false);
                 setErrorMessage(
-                    error && error.message
-                        ? error.message.toString()
-                        : 'Unknown error occurred'
+                    error ? error.toString() : 'Unknown error occurred'
                 );
             });
-        }
-
-        callConfigService(
-            dashboardContext,
-            updatedIOPoint,
-            () => {
-                updatedIOPoint.configured = true;
-                updatePoint(updatedIOPoint);
-                setShowConfig(false);
-                setIsConfigOpen(false);
-            },
-            () => setIsLoading(false),
-            true,
-            false
-        ).catch((error) => {
-            setErrorMessage(
-                error && error.message
-                    ? error.message.toString()
-                    : 'Unknown error occurred'
-            );
-        });
     };
 
     const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
@@ -214,31 +113,47 @@ const IOPointContainer = ({
         }
 
         const updatedIOPoint = deletableIOPoint.copy();
-        updatedIOPoint.configured = false;
 
         // Set loading state to true
         setIsLoading(true);
 
-        callConfigService(
-            dashboardContext,
-            updatedIOPoint,
-            () => {
-                deletePoint();
-                setShowConfig(false);
+        updatedIOPoint.enabled = false;
+        dashboardContext.io_configuration_services
+            .enable_io_point(
+                updatedIOPoint,
+                () => {},
+                undefined,
+                undefined,
+                undefined
+            )
+            .catch((error) => {
+                console.log('Error in enable toggle: ', error);
+                setErrorMessage(
+                    error ? error.toString() : 'Unknown error occurred.'
+                );
+            });
+
+        updatedIOPoint.configured = false;
+        dashboardContext.io_configuration_services
+            .configure_io_point(
+                updatedIOPoint,
+                () => {
+                    deletePoint();
+                    setShowConfig(false);
+                    setIsConfigOpen(false);
+                },
+                undefined,
+                undefined,
+                () => {
+                    setIsLoading(false);
+                }
+            )
+            .catch((error) => {
                 setIsConfigOpen(false);
-            },
-            () => {
-                setIsLoading(false);
-            },
-            true,
-            false
-        ).catch((error) => {
-            setErrorMessage(
-                error && error.message
-                    ? error.message.toString()
-                    : 'Unknown error occurred'
-            );
-        });
+                setErrorMessage(
+                    error ? error.message.toString() : 'Unknown error occurred'
+                );
+            });
     };
 
     const handleToggleChange = (e) => {
@@ -264,32 +179,32 @@ const IOPointContainer = ({
 
         let updatedIOPoint = io_point.copy();
         updatedIOPoint.enabled = checked;
-        callConfigService(
-            dashboardContext,
-            updatedIOPoint,
-            () => {},
-            undefined,
-            false,
-            true
-        ).catch((error) => {
-            console.log('Error in enable toggle: ', error.message);
-            setErrorMessage(
-                error && error.message
-                    ? error.message.toString()
-                    : 'Unknown error occurred'
-            );
-        });
+
+        dashboardContext.io_configuration_services
+            .enable_io_point(
+                updatedIOPoint,
+                () => {},
+                undefined,
+                undefined,
+                undefined
+            )
+            .catch((error) => {
+                console.log('Error in enable toggle: ', error);
+                setErrorMessage(
+                    error ? error.toString() : 'Unknown error occurred.'
+                );
+            });
     };
 
     return (
         <div className="flex items-center justify-between h-[40px]">
             <div className="grid grid-cols-[15%_35%_25%_18%_7%] w-full items-center">
                 <div
-                    className="bg-slate-200 w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300 text-black"
+                    className="w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300 text-black"
                     style={{
-                        backgroundColor: io_point.value
-                            ? 'rgb(59, 136, 195)'
-                            : 'rgb(200, 200, 200)', // TODO: Global vars for these colors
+                        backgroundColor: io_point.mcu_configuration_valid
+                            ? 'rgb(20, 200, 20, 1)' // TODO: Global vars for these colors
+                            : 'rgb(200, 200, 200, 1)',
                     }}
                 >
                     {io_point.channel}
@@ -303,6 +218,7 @@ const IOPointContainer = ({
                     text={''}
                     state={io_point.enabled}
                     // onChange={() => {}}
+                    enabled={io_point.mcu_configuration_valid}
                     onClick={handleToggleChange}
                 />
 
@@ -310,6 +226,7 @@ const IOPointContainer = ({
                     <AnalogValueDisplayElement
                         value={io_point.value}
                         enabled={io_point.enabled}
+                        configured={io_point.mcu_configuration_valid}
                     />
                 ) : (
                     <DigitalValueDisplayElement
@@ -319,6 +236,7 @@ const IOPointContainer = ({
                             ]
                         }
                         enabled={io_point.enabled}
+                        configured={io_point.mcu_configuration_valid}
                     />
                 )}
 
@@ -339,18 +257,6 @@ const IOPointContainer = ({
                     </div>
                 )}
             </div>
-
-            {errorMessage && (
-                <div className="flex fixed inset-0 bg-red-600/[0.5] z-[10000] items-center justify-center">
-                    <div className="bg-white p-[20px] rounded-[5px] border shadow-[0px,2px,10px] shadow-black/0.1 max-w-[50%]">
-                        <p>Error: {errorMessage}.</p>
-                        <R2Button
-                            text={'Close'}
-                            onClick={() => setErrorMessage('')}
-                        />
-                    </div>
-                </div>
-            )}
 
             <Modal
                 isOpen={showConfig}

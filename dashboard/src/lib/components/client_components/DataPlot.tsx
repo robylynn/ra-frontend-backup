@@ -127,7 +127,7 @@ const DataPlot = (props: {
             }
         }
 
-        return "Unknown";
+        return 'Unknown';
     };
 
     const findDataEntry = (

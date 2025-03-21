@@ -1,69 +1,69 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-"use-client";
+'use-client';
 
-import { MouseEventHandler } from "react";
+import { MouseEventHandler } from 'react';
 
 export function R2Button(props: {
-  text: string;
-  onClick: React.MouseEventHandler;
-  className?: string;
-  disabled?: boolean
+    text: string;
+    onClick: React.MouseEventHandler;
+    className?: string;
+    disabled?: boolean;
 }) {
-  return (
-    <button
-      className={`border-2 rounded-lg text-black hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] disabled:dark:bg-slate-600 ${
-        props.className ?? ""
-      }`}
-      onClick={props.onClick}
-      disabled={props.disabled}
-    >
-      {props.text}
-    </button>
-  );
+    return (
+        <button
+            className={`border-2 rounded-lg text-black hover:dark:bg-slate-300 active:border-purple-500 dark:bg-r2-white/[.61] disabled:dark:bg-slate-600 ${
+                props.className ?? ''
+            }`}
+            onClick={props.onClick}
+            disabled={props.disabled}
+        >
+            {props.text}
+        </button>
+    );
 }
 
 export function R2ToggleButton(props: {
-  text: string;
-  onClick: React.MouseEventHandler;
-  state: boolean;
-  on_color?: string;
-  off_color?: string;
-  className?: string;
+    text: string;
+    onClick: React.MouseEventHandler;
+    state: boolean;
+    on_color?: string;
+    off_color?: string;
+    className?: string;
 }) {
-  const color = props.state
-    ? props.on_color ?? "dark:!bg-r2-green-500/[.61]"
-    : props.off_color ?? "dark:!bg-r2-red-300/[.61]";
-  return (
-    <button
-      className={`border-2 rounded-lg w-[50px] active:border-purple-500 ${
-        props.className ?? ""
-      } ${color} hover:dark:bg-slate-300`}
-      onClick={props.onClick}
-    >
-      {props.text}
-    </button>
-  );
+    const color = props.state
+        ? (props.on_color ?? 'dark:!bg-r2-green-500/[.61]')
+        : (props.off_color ?? 'dark:!bg-r2-red-300/[.61]');
+    return (
+        <button
+            className={`border-2 rounded-lg w-[50px] active:border-purple-500 ${
+                props.className ?? ''
+            } ${color} hover:dark:bg-slate-300`}
+            onClick={props.onClick}
+        >
+            {props.text}
+        </button>
+    );
 }
 
 export function R2AlarmSliderToggle(props: {
-  text: string;
-  state: boolean;
-  onClick?: MouseEventHandler;
+    text: string;
+    state: boolean;
+    onClick?: MouseEventHandler;
 }) {
-  return (
-    <label className="relative flex items-center justify-between p-4 text-lg group">
-      <input
-        type="checkbox"
-        className="absolute w-full h-full -translate-x-1/2 rounded-md appearance-none left-1/2 peer"
-        onClick={props.onClick}
-        checked={props.state}
-        onChange={() => {}}
-      />
-      <span
-        id={props.text}
-        className="w-48 
+    return (
+        <label className="relative flex items-center justify-between p-4 text-lg group">
+            <input
+                type="checkbox"
+                className="absolute w-full h-full -translate-x-1/2 rounded-md appearance-none left-1/2 peer"
+                onClick={props.onClick}
+                checked={props.state}
+                onChange={() => {}}
+            />
+            <span
+                id={props.text}
+                className="w-48 
                             h-10 
                             flex 
                             items-center 
@@ -90,28 +90,30 @@ export function R2AlarmSliderToggle(props: {
                             group-hover:after:translate-x-1 
                             after:content-[attr(id)]
                             "
-      ></span>
-    </label>
-  );
+            ></span>
+        </label>
+    );
 }
 
 export function R2SliderToggle(props: {
-  text: string;
-  state: boolean;
-  onClick?: MouseEventHandler;
+    text: string;
+    state: boolean;
+    enabled?: boolean;
+    onClick?: MouseEventHandler;
 }) {
-  return (
-    <label className="relative flex items-center justify-between p-4 text-lg group">
-      <input
-        type="checkbox"
-        className="absolute w-full h-full -translate-x-1/2 rounded-md appearance-none left-1/2 peer"
-        onClick={props.onClick}
-        onChange={() => {}}
-        checked={props.state}
-      />
-      <span
-        id={props.text}
-        className="w-20 
+    return (
+        <label className="relative flex items-center justify-between p-4 text-lg group">
+            <input
+                type="checkbox"
+                className="absolute w-full h-full -translate-x-1/2 rounded-md appearance-none left-1/2 peer"
+                onClick={props.enabled === true ? props.onClick : undefined}
+                onChange={() => {}}
+                checked={props.state}
+            />
+            <span
+                id={props.text}
+                className={`
+        w-20 
                     h-10
                     flex 
                     items-center 
@@ -127,8 +129,9 @@ export function R2SliderToggle(props: {
                     duration-300 
                     ease-in-out 
                     after:w-10 after:h-10
-                    after:bg-red-600
-                    peer-checked:before:bg-red-600
+                    
+                    ${props.enabled === true ? 'after:bg-red-600' : 'after:bg-gray-600'}
+                    ${props.enabled === true ? 'peer-checked:before:bg-red-600' : 'peer-checked:before:bg-gray-600'}
                     peer-checked:after:bg-green-600
                     peer-checked:after:border-gray-600
                     after:rounded-full 
@@ -139,10 +142,11 @@ export function R2SliderToggle(props: {
                     after:ml-1
                     after:border-gray-600
                     peer-checked:after:translate-x-8
-                    group-hover:after:translate-x-1 
+                    
+                    ${props.enabled === true ? 'group-hover:after:translate-x-1' : ''}
                     after:content-[attr(id)]
-                    "
-      ></span>
-    </label>
-  );
+                    `}
+            ></span>
+        </label>
+    );
 }

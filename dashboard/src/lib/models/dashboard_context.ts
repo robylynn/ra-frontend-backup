@@ -4,13 +4,11 @@
 import { immerable } from 'immer';
 import ROSLIB from 'roslib';
 
-import {
-    // DatabaseIOStateDocumentArray,
-    DatabaseMessageArray,
-} from '@/lib/models/database_models';
+import { DatabaseMessageArray } from '@/lib/models/database_models';
 
 import {
     HardwareConfiguration,
+    IOPointConfiguration,
     IOPointType,
     UIConfiguration,
 } from '@/lib/models/api_models';
@@ -19,6 +17,10 @@ import {
     IRosTypeR2CInterfacesAnalogInHardwareConfig,
     IRosTypeR2CInterfacesAnalogOutData,
     IRosTypeR2CInterfacesAnalogOutHardwareConfig,
+    IRosTypeR2CInterfacesConfigureAnalogInRequest,
+    IRosTypeR2CInterfacesConfigureAnalogOutRequest,
+    IRosTypeR2CInterfacesConfigureDigitalInRequest,
+    IRosTypeR2CInterfacesConfigureDigitalOutRequest,
     IRosTypeR2CInterfacesDigitalInData,
     IRosTypeR2CInterfacesDigitalInHardwareConfig,
     IRosTypeR2CInterfacesDigitalOutData,
@@ -32,6 +34,15 @@ import {
 import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
 
 type IOServicesMap = Record<IOPointType, ROSLIB.Service | null>;
+type IOConfigurationRequest =
+    | IRosTypeR2CInterfacesConfigureAnalogInRequest
+    | IRosTypeR2CInterfacesConfigureDigitalInRequest
+    | IRosTypeR2CInterfacesConfigureAnalogOutRequest
+    | IRosTypeR2CInterfacesConfigureDigitalOutRequest;
+
+type IOCommandRequestData =
+    | IRosTypeR2CInterfacesSetDigitalOutputStatesRequest
+    | IRosTypeR2CInterfacesSetAnalogOutputStatesRequest;
 
 class IOServices {
     [immerable] = true;
@@ -59,16 +70,24 @@ export class IOCommandServices extends IOServices {
     [immerable] = true;
 
     private _set_io_point(
-        request_data:
-            | IRosTypeR2CInterfacesSetDigitalOutputStatesRequest
-            | IRosTypeR2CInterfacesSetAnalogOutputStatesRequest,
-        service: ROSLIB.Service,
+        request_data: IOCommandRequestData,
+        point_type: IOPointType,
         onSuccess: () => void,
         onFailure: () => void,
         onError: (error: any) => void,
         onComplete: () => void
     ) {
         let success = false;
+
+        const service = this.get_service(point_type);
+        if (!service) {
+            console.error(
+                `Service for IO point type ${IOPointType[point_type]} is not available`
+            );
+            onFailure();
+            return success;
+        }
+
         timeoutServiceCall(service, request_data, 3000)
             .then((result) => {
                 if ((result as any).success) {
@@ -112,7 +131,7 @@ export class IOCommandServices extends IOServices {
 
         return this._set_io_point(
             request_data,
-            this.get_service(IOPointType.DIGITAL_OUTPUT),
+            IOPointType.DIGITAL_OUTPUT,
             () => {
                 console.log(
                     `Successfully set digital output ${point_index} to ${state}`
@@ -162,7 +181,7 @@ export class IOCommandServices extends IOServices {
 
         return this._set_io_point(
             request_data,
-            this.get_service(IOPointType.ANALOG_OUTPUT),
+            IOPointType.ANALOG_OUTPUT,
             () => {
                 console.log(
                     `Successfully set analog output ${point_index} to ${state}`
@@ -188,7 +207,201 @@ export class IOCommandServices extends IOServices {
     }
 }
 
-export class IOConfigurationServices extends IOServices {}
+export class IOConfigurationServices extends IOServices {
+    private _build_service_request(
+        io_point_configuration: IOPointConfiguration,
+        is_config_request: boolean,
+        is_enable_disable_request: boolean
+    ): IOConfigurationRequest {
+        let request_data: IOConfigurationRequest;
+
+        switch (io_point_configuration.type) {
+            case IOPointType.ANALOG_INPUT: {
+                request_data = {
+                    is_enable_disable_request: is_enable_disable_request,
+                    is_config_request: is_config_request,
+                    config: {
+                        channel: io_point_configuration.channel,
+                        hardware_config: {
+                            configured: io_point_configuration.configured,
+                            enabled: io_point_configuration.enabled,
+                            channel_type: io_point_configuration.analog_type,
+                        },
+                        label: io_point_configuration.label,
+                        unit: io_point_configuration.measurement_unit,
+                        max_electrical_value:
+                            io_point_configuration.max_signal_v,
+                        min_electrical_value:
+                            io_point_configuration.min_signal_v,
+                        max_measurement_value: io_point_configuration.max_value,
+                        min_measurement_value: io_point_configuration.min_value,
+                        transfer_function_type:
+                            io_point_configuration.transfer_function_type,
+                    },
+                };
+                break;
+            }
+            case IOPointType.DIGITAL_INPUT: {
+                request_data = {
+                    is_enable_disable_request: is_enable_disable_request,
+                    is_config_request: is_config_request,
+                    config: {
+                        channel: io_point_configuration.channel,
+                        hardware_config: {
+                            configured: io_point_configuration.configured,
+                            enabled: io_point_configuration.enabled,
+                        },
+                        label: io_point_configuration.label,
+                    },
+                };
+                break;
+            }
+        }
+
+        return request_data;
+    }
+
+    private _check_service_availability(
+        point_type: IOPointType,
+        reject: (reason: any) => void,
+        onError?: (message: string) => void
+    ): ROSLIB.Service | null {
+        const service = this.get_service(point_type);
+        if (!service) {
+            const errorMsg = `Service for point type ${IOPointType[point_type]} not defined`;
+
+            console.error(errorMsg);
+
+            if (onError) onError(errorMsg);
+            reject(errorMsg);
+        }
+        return service;
+    }
+
+    private _call_config_service(
+        service: ROSLIB.Service,
+        request: ROSLIB.ServiceRequest,
+        onSuccess?: () => void,
+        onError?: (message: string) => void,
+        onFailure?: () => void,
+        onComplete?: () => void
+    ) {
+        timeoutServiceCall(service, request, 3000)
+            .then((result) => {
+                if ((result as any).success) {
+                    if (onSuccess) onSuccess();
+                } else {
+                    const errorMsg = `Configuration service call unsuccessful`;
+                    console.error(errorMsg);
+                    if (onFailure) onFailure();
+                }
+            })
+            .catch((error) => {
+                const errorMsg = `Configuration service call failed: ${error}`;
+                console.error(errorMsg);
+                if (onError) onError(error);
+            })
+            .finally(() => {
+                if (onComplete) onComplete();
+            });
+    }
+
+    public enable_io_point(
+        io_point_configuration: IOPointConfiguration,
+        onSuccess?: () => void,
+        onError?: (message: string) => void,
+        onFailure?: () => void,
+        onComplete?: () => void
+    ): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const service = this._check_service_availability(
+                io_point_configuration.type,
+                reject,
+                onError
+            );
+
+            const request_data = this._build_service_request(
+                io_point_configuration,
+                false,
+                true
+            );
+            const request = new ROSLIB.ServiceRequest(request_data);
+
+            this._call_config_service(
+                service,
+                request,
+                () => {
+                    console.log(
+                        `Successfully enabled IO channel ${io_point_configuration.channel} with type ${IOPointType[io_point_configuration.type]}`
+                    );
+                    if (onSuccess) onSuccess();
+                    resolve();
+                },
+                (error: any) => {
+                    const errorMsg = `Enable/Disable for IO channel ${io_point_configuration.channel} with type ${IOPointType[io_point_configuration.type]} failed: ${error}`;
+                    console.info(errorMsg);
+                    if (onError) onError(errorMsg);
+                    reject(errorMsg);
+                },
+                () => {
+                    const errorMsg = `Enable/Disable for IO channel ${io_point_configuration.channel} with type ${IOPointType[io_point_configuration.type]} unsuccessful`;
+                    console.error(errorMsg);
+                    if (onFailure) onFailure();
+                    reject(errorMsg);
+                },
+                onComplete
+            );
+        });
+    }
+
+    public configure_io_point(
+        io_point_configuration: IOPointConfiguration,
+        onSuccess?: () => void,
+        onError?: (message: string) => void,
+        onFailure?: () => void,
+        onComplete?: () => void
+    ): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const service = this._check_service_availability(
+                io_point_configuration.type,
+                reject,
+                onError
+            );
+
+            const request_data = this._build_service_request(
+                io_point_configuration,
+                true,
+                false
+            );
+            const request = new ROSLIB.ServiceRequest(request_data);
+
+            this._call_config_service(
+                service,
+                request,
+                () => {
+                    console.log(
+                        `Successfully enabled IO channel ${io_point_configuration.channel} with type ${IOPointType[io_point_configuration.type]}`
+                    );
+                    if (onSuccess) onSuccess();
+                    resolve;
+                },
+                (error: any) => {
+                    const errorMsg = `Configuration update for IO channel ${io_point_configuration.channel} with type ${IOPointType[io_point_configuration.type]} failed: ${error}`;
+                    console.info(errorMsg);
+                    if (onError) onError(errorMsg);
+                    reject(errorMsg);
+                },
+                () => {
+                    const errorMsg = `Configuration update for IO channel ${io_point_configuration.channel} with type ${IOPointType[io_point_configuration.type]} unsuccessful`;
+                    console.error(errorMsg);
+                    if (onFailure) onFailure();
+                    reject(errorMsg);
+                },
+                onComplete
+            );
+        });
+    }
+}
 
 export class ApplicationContext {
     [immerable] = true;
@@ -244,7 +457,8 @@ export class ApplicationContext {
         | IRosTypeR2CInterfacesDigitalInHardwareConfig[]
         | IRosTypeR2CInterfacesDigitalOutHardwareConfig[]
         | IRosTypeR2CInterfacesAnalogInHardwareConfig[]
-        | IRosTypeR2CInterfacesAnalogOutHardwareConfig[] | null {
+        | IRosTypeR2CInterfacesAnalogOutHardwareConfig[]
+        | null {
         switch (point_type) {
             case IOPointType.ANALOG_INPUT:
                 return this.gpio_configuration_state?.analog_input_configs;

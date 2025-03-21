@@ -1,43 +1,41 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-'use client'
+'use client';
 
-import { useSession } from 'next-auth/react'
-import { useContext, useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react';
+import { useContext, useEffect, useState } from 'react';
 
-import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper'
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 
 export default function ConnectionStateIndicator(props: {
-    className?: string
+    className?: string;
 }) {
-    const { dashboardContext } = useContext(DashboardContext)
-    const [isClient, setIsClient] = useState<boolean>(false)
-    const { data: session } = useSession()
+    const { dashboardContext } = useContext(DashboardContext);
+    const [isClient, setIsClient] = useState<boolean>(false);
+    const { data: session } = useSession();
 
     useEffect(() => {
-        setIsClient(() => true)
-    }, [])
+        setIsClient(() => true);
+    }, []);
 
     const connected_color =
         dashboardContext.heartbeat && session
             ? 'bg-r2-green-500'
-            : 'bg-r2-red-300'
+            : 'bg-r2-red-300';
     // const connection_text = session
     //     ? `BACKEND SERVER ${dashboardContext.heartbeat ? 'ONLINE' : 'OFFLINE'}`
     //     : 'NOT LOGGED IN'
 
-    const connection_text = session
-        ? `BACKEND SERVER ONLINE`
-        : 'NOT LOGGED IN'
+    const connection_text = session ? `BACKEND SERVER ONLINE` : 'NOT LOGGED IN';
 
     const websocket_text = () => {
         const websocket_connected = dashboardContext.ra_ros_websocket
             ? true
-            : false
+            : false;
         const text = websocket_connected
             ? 'WEBSOCKET CONNECTED'
-            : 'WAITING FOR WEBSOCKET'
+            : 'WAITING FOR WEBSOCKET';
 
         return (
             <p
@@ -45,8 +43,8 @@ export default function ConnectionStateIndicator(props: {
             >
                 {text}
             </p>
-        )
-    }
+        );
+    };
 
     return (
         <div
@@ -66,5 +64,5 @@ export default function ConnectionStateIndicator(props: {
                     : 'WAITING FOR CLIENT RENDER'
             }`}</p>
         </div>
-    )
+    );
 }

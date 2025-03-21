@@ -1,17 +1,9 @@
 'use client';
 
-import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
-import {
-    MutableRefObject,
-    ReactElement,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
 import { R2Button } from '@/lib/components/client_components/ClickButton';
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import DataPlot from '@/lib/components/client_components/DataPlot';
+import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
 import { AxisDataType, PlotConfiguration } from '@/lib/models/api_models';
 import {
     DatabaseROSAxisStateArray,
@@ -26,6 +18,14 @@ import {
 } from '@/lib/models/plotting_models';
 import { IRosTypeR2CInterfacesEncoderEstimates } from '@/lib/models/ros_types';
 import timeoutFetch from '@/lib/utils/timeoutFetch';
+import {
+    MutableRefObject,
+    ReactElement,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 
 interface InitialFetchDataInterface {
     time_data: PlotTimeData | null;
@@ -167,7 +167,9 @@ function MotionPlots(props: {
                         let data_documents = new DatabaseROSAxisStateArray(
                             data
                         );
-                        console.log(`Got ${length} database documents for axis ${axis_index}`);
+                        console.log(
+                            `Got ${length} database documents for axis ${axis_index}`
+                        );
 
                         const time_data = data_documents.documents
                             .map((d) => ({
@@ -574,7 +576,11 @@ function MotionPlots(props: {
                     <DataPlot
                         key={plot_index}
                         data={completeAxisData[plot_index]}
-                        data_type={AxisDataType[plot_configuration.plot_type.toUpperCase() as keyof typeof AxisDataType]}
+                        data_type={
+                            AxisDataType[
+                                plot_configuration.plot_type.toUpperCase() as keyof typeof AxisDataType
+                            ]
+                        }
                         data_parser={(data) =>
                             data
                                 ? parseDataByType(
@@ -710,7 +716,9 @@ export function MotionPlotContainer(): ReactElement {
             {/* <PlotContextProvider> */}
             <MotionPlots
                 // available_axes={[0, 1, 2, 3]}
-                available_axes={Object.keys(dashboardContext.axis_data).map((k) => parseInt(k))}
+                available_axes={Object.keys(dashboardContext.axis_data).map(
+                    (k) => parseInt(k)
+                )}
                 plot_types={['velocity', 'position']}
                 default_update_rate={5}
                 default_length={100}
