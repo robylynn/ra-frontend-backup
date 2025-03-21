@@ -3,12 +3,14 @@ import {
     R2SliderToggle,
 } from '@/lib/components/client_components/ClickButton';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
+import { IOPointContext } from '@/lib/components/client_components/IOPointContext';
 import Modal from '@/lib/components/client_components/Modal';
 import {
     AnalogIOPointType,
     IOPointConfiguration,
     IOPointType,
 } from '@/lib/models/api_models';
+import ApplicationContext from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInConfigConst,
     IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType,
@@ -16,21 +18,12 @@ import {
     IRosTypeR2CInterfacesConfigureDigitalInRequest,
 } from '@/lib/models/ros_types';
 import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
-import {
-    Dispatch,
-    SetStateAction,
-    useContext,
-    useEffect,
-    useState,
-} from 'react';
+import { Dispatch, SetStateAction, useContext, useState } from 'react';
 import ROSLIB from 'roslib';
 import {
     AnalogValueDisplayElement,
     DigitalValueDisplayElement,
 } from './IODisplay';
-import { IOPointContext } from './IOPointContext';
-import { Updock } from 'next/font/google';
-import ApplicationContext from '@/lib/models/dashboard_context';
 
 type IOPointContainerProps = {
     index: number;
@@ -50,7 +43,11 @@ export const callConfigService = (
 ) => {
     return new Promise<void>((resolve, reject) => {
         // Check if the config service is available
-        if (!dashboardContext.IO_config_services?.get_service(updatedIOPoint.type)) {
+        if (
+            !dashboardContext.io_configuration_services?.get_service(
+                updatedIOPoint.type
+            )
+        ) {
             const errorMsg = `Service for point type ${IOPointType[updatedIOPoint.type]} not defined`;
             console.error(errorMsg);
             reject(errorMsg);
@@ -79,7 +76,8 @@ export const callConfigService = (
                         min_electrical_value: updatedIOPoint.min_signal_v,
                         max_measurement_value: updatedIOPoint.max_value,
                         min_measurement_value: updatedIOPoint.min_value,
-                        transfer_function_type: updatedIOPoint.transfer_function_type,
+                        transfer_function_type:
+                            updatedIOPoint.transfer_function_type,
                     },
                 };
                 break;
@@ -104,7 +102,9 @@ export const callConfigService = (
         const request = new ROSLIB.ServiceRequest(request_data);
 
         timeoutServiceCall(
-            dashboardContext.IO_config_services.get_service(updatedIOPoint.type),
+            dashboardContext.io_configuration_services.get_service(
+                updatedIOPoint.type
+            ),
             request,
             3000
         )
@@ -114,13 +114,13 @@ export const callConfigService = (
                     if (onSuccess) onSuccess();
                     resolve();
                 } else {
-                    const errorMsg = "Failed to update configuration";
+                    const errorMsg = 'Failed to update configuration';
                     console.error(errorMsg);
                     reject(errorMsg);
                 }
             })
             .catch((error) => {
-                console.error("Configuration update failed: ", error);
+                console.error('Configuration update failed: ', error);
                 reject(error);
             })
             .finally(() => {
@@ -128,7 +128,6 @@ export const callConfigService = (
             });
     });
 };
-
 
 const IOPointContainer = ({
     index,
@@ -143,39 +142,17 @@ const IOPointContainer = ({
     const [isLoading, setIsLoading] = useState(false); // Add loading state
     const [errorMessage, setErrorMessage] = useState(''); // Add error message state
 
-    // Store digital value in state for immediate UI update
-    const [digitalValue, setDigitalValue] = useState(false);
-    const [isDigitalEnabled, setIsDigitalEnabled] = useState(false);
-
-    // Update digitalValue when dashboardContext updates (real-time sync)
-    useEffect(() => {
-
-        if (dashboardContext.digital_in_data?.values) {
-            const newValue =
-                dashboardContext.digital_in_data.values[io_point.channel];
-            setDigitalValue(newValue);
-        }
-
-        const enabledState =
-            IOPoints.digital_inputs?.find(
-                (input) => input.channel === io_point.channel
-            )?.enabled ?? false;
-        setIsDigitalEnabled(enabledState);
-    }, [dashboardContext.digital_in_data, IOPoints, io_point.channel]);
-
-
-
     const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
         // Validate the channel
         const isChannelUsed = IOPoints.getIOPoints(updatedIOPoint.type).some(
-        (p) =>
-            p.channel === updatedIOPoint.channel &&
-            p.id !== io_point.id &&
-            p.enabled
+            (p) =>
+                p.channel === updatedIOPoint.channel &&
+                p.id !== io_point.id &&
+                p.enabled
         );
 
         if (isChannelUsed) {
-            alert("This channel is already used by another enabled input.");
+            alert('This channel is already used by another enabled input.');
             return;
         }
 
@@ -196,17 +173,17 @@ const IOPointContainer = ({
                     setShowConfig(false);
                     setIsConfigOpen(false);
                 },
-                () => console.log("Deleted old point"),
+                () => console.log('Deleted old point'),
                 false,
-                true,
+                true
             ).catch((error) => {
                 setErrorMessage(
                     error && error.message
-                      ? error.message.toString()
-                      : "Unknown error occurred"
-                  );
+                        ? error.message.toString()
+                        : 'Unknown error occurred'
+                );
             });
-        } 
+        }
 
         callConfigService(
             dashboardContext,
@@ -223,16 +200,16 @@ const IOPointContainer = ({
         ).catch((error) => {
             setErrorMessage(
                 error && error.message
-                  ? error.message.toString()
-                  : "Unknown error occurred"
-              );
+                    ? error.message.toString()
+                    : 'Unknown error occurred'
+            );
         });
     };
 
     const handleDelete = (deletableIOPoint: IOPointConfiguration) => {
         if (!deletableIOPoint) {
-            console.log("Not a deletable input");
-            setErrorMessage("Not a deletable input.");
+            console.log('Not a deletable input');
+            setErrorMessage('Not a deletable input.');
             return;
         }
 
@@ -241,7 +218,7 @@ const IOPointContainer = ({
 
         // Set loading state to true
         setIsLoading(true);
-        
+
         callConfigService(
             dashboardContext,
             updatedIOPoint,
@@ -251,14 +228,16 @@ const IOPointContainer = ({
                 setIsConfigOpen(false);
             },
             () => {
-                setIsLoading(false)
-            }
+                setIsLoading(false);
+            },
+            true,
+            false
         ).catch((error) => {
             setErrorMessage(
                 error && error.message
                     ? error.message.toString()
-                    : "Unknown error occurred"
-                );
+                    : 'Unknown error occurred'
+            );
         });
     };
 
@@ -267,18 +246,20 @@ const IOPointContainer = ({
 
         // Validate enabling the input
         if (checked) {
-        // TODO: after channel reordering, enable and disable get lost. Check the getIOPoints from toggle
-        const isChannelUsed = IOPoints.getIOPoints(io_point.type).some(
-            (p) =>
-            p.channel === io_point.channel && p.id !== io_point.id && p.enabled
-        );
-
-        if (isChannelUsed) {
-            alert(
-            "Cannot enable this input. Another input with the same channel is already enabled."
+            // TODO: after channel reordering, enable and disable get lost. Check the getIOPoints from toggle
+            const isChannelUsed = IOPoints.getIOPoints(io_point.type).some(
+                (p) =>
+                    p.channel === io_point.channel &&
+                    p.id !== io_point.id &&
+                    p.enabled
             );
-            return;
-        }
+
+            if (isChannelUsed) {
+                alert(
+                    'Cannot enable this input. Another input with the same channel is already enabled.'
+                );
+                return;
+            }
         }
 
         let updatedIOPoint = io_point.copy();
@@ -286,26 +267,22 @@ const IOPointContainer = ({
         callConfigService(
             dashboardContext,
             updatedIOPoint,
-            () => {1
-                // deletePoint();
-                updatePoint(updatedIOPoint);
-            },
+            () => {},
             undefined,
             false,
             true
-            ).catch((error) => { 
-                console.log("Error in enable toggle: ", error.message);   
-                setErrorMessage(
-                    error && error.message
-                      ? error.message.toString()
-                      : "Unknown error occurred"
-                  );
-            });
-        };
+        ).catch((error) => {
+            console.log('Error in enable toggle: ', error.message);
+            setErrorMessage(
+                error && error.message
+                    ? error.message.toString()
+                    : 'Unknown error occurred'
+            );
+        });
+    };
 
     return (
         <div className="flex items-center justify-between h-[40px]">
-            {/* <div className="grid grid-cols-4 w-full items-center"> */}
             <div className="grid grid-cols-[15%_35%_25%_18%_7%] w-full items-center">
                 <div
                     className="bg-slate-200 w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300 text-black"
@@ -336,8 +313,12 @@ const IOPointContainer = ({
                     />
                 ) : (
                     <DigitalValueDisplayElement
-                        value={digitalValue}
-                        enabled={isDigitalEnabled}
+                        value={
+                            dashboardContext.digital_in_data?.values[
+                                io_point.channel
+                            ]
+                        }
+                        enabled={io_point.enabled}
                     />
                 )}
 
@@ -353,10 +334,10 @@ const IOPointContainer = ({
             </div>
             <div className="flex items-center justify-between h-[40px] relative">
                 {isLoading && (
-                        <div className="flex fixed inset-0 bg-black/[0.5] z-[9999] justify-center items-center">
-                            <div className="border-[8px] border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div>
-                        </div>
-                    )}
+                    <div className="flex fixed inset-0 bg-black/[0.5] z-[9999] justify-center items-center">
+                        <div className="border-[8px] border-black/[0.3] border-t-[8px] border-t-white rounded-[50%] w-[60px] h-[60px] animate-spin"></div>
+                    </div>
+                )}
             </div>
 
             {errorMessage && (

@@ -197,6 +197,22 @@ export interface IRosTypeR2CInterfacesConfigureAnalogInResponse {
   message: string;
 }
 
+export interface IRosTypeR2CInterfacesConfigureAnalogOut {
+  request: IRosTypeR2CInterfacesConfigureAnalogOutRequest;
+  response: IRosTypeR2CInterfacesConfigureAnalogOutResponse;
+}
+
+export interface IRosTypeR2CInterfacesConfigureAnalogOutRequest {
+  is_config_request: boolean;
+  is_enable_disable_request: boolean;
+  config: IRosTypeR2CInterfacesAnalogOutConfig;
+}
+
+export interface IRosTypeR2CInterfacesConfigureAnalogOutResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface IRosTypeR2CInterfacesConfigureDigitalIn {
   request: IRosTypeR2CInterfacesConfigureDigitalInRequest;
   response: IRosTypeR2CInterfacesConfigureDigitalInResponse;
@@ -209,6 +225,22 @@ export interface IRosTypeR2CInterfacesConfigureDigitalInRequest {
 }
 
 export interface IRosTypeR2CInterfacesConfigureDigitalInResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface IRosTypeR2CInterfacesConfigureDigitalOut {
+  request: IRosTypeR2CInterfacesConfigureDigitalOutRequest;
+  response: IRosTypeR2CInterfacesConfigureDigitalOutResponse;
+}
+
+export interface IRosTypeR2CInterfacesConfigureDigitalOutRequest {
+  is_config_request: boolean;
+  is_enable_disable_request: boolean;
+  config: IRosTypeR2CInterfacesDigitalOutConfig;
+}
+
+export interface IRosTypeR2CInterfacesConfigureDigitalOutResponse {
   success: boolean;
   message: string;
 }
@@ -396,6 +428,14 @@ export interface IRosTypeR2CInterfacesGetAxisStatusResponse {
   controller_error: IRosTypeR2CInterfacesControllerError;
 }
 
+export interface IRosTypeR2CInterfacesGpioConfigurationState {
+  stamp: { sec: number, nanosec: number };
+  digital_input_configs: IRosTypeR2CInterfacesDigitalInHardwareConfig[];
+  digital_output_configs: IRosTypeR2CInterfacesDigitalOutHardwareConfig[];
+  analog_input_configs: IRosTypeR2CInterfacesAnalogInHardwareConfig[];
+  analog_output_configs: IRosTypeR2CInterfacesAnalogOutHardwareConfig[];
+}
+
 export interface IRosTypeR2CInterfacesHeartbeat {
   stamp: { sec: number, nanosec: number };
   axis_index: number;
@@ -511,6 +551,19 @@ export enum IRosTypeR2CInterfacesRealtimeSysStateState {
   STATE_ERROR = 3,
 }
 
+export interface IRosTypeR2CInterfacesSetAnalogOutputStates {
+  request: IRosTypeR2CInterfacesSetAnalogOutputStatesRequest;
+  response: IRosTypeR2CInterfacesSetAnalogOutputStatesResponse;
+}
+
+export interface IRosTypeR2CInterfacesSetAnalogOutputStatesRequest {
+  states: IRosTypeR2CInterfacesAnalogOutData;
+}
+
+export interface IRosTypeR2CInterfacesSetAnalogOutputStatesResponse {
+  success: boolean;
+}
+
 export interface IRosTypeR2CInterfacesSetAxisControllerMode {
   request: IRosTypeR2CInterfacesSetAxisControllerModeRequest;
   response: IRosTypeR2CInterfacesSetAxisControllerModeResponse;
@@ -554,6 +607,19 @@ export interface IRosTypeR2CInterfacesSetAxisStateRequest {
 }
 
 export interface IRosTypeR2CInterfacesSetAxisStateResponse {
+  success: boolean;
+}
+
+export interface IRosTypeR2CInterfacesSetDigitalOutputStates {
+  request: IRosTypeR2CInterfacesSetDigitalOutputStatesRequest;
+  response: IRosTypeR2CInterfacesSetDigitalOutputStatesResponse;
+}
+
+export interface IRosTypeR2CInterfacesSetDigitalOutputStatesRequest {
+  states: IRosTypeR2CInterfacesDigitalOutData;
+}
+
+export interface IRosTypeR2CInterfacesSetDigitalOutputStatesResponse {
   success: boolean;
 }
 

@@ -13,7 +13,8 @@ import {
 
 import {
   ApplicationContext,
-  ConfigServices,
+  IOCommandServices,
+  IOConfigurationServices
 } from "@/lib/models/dashboard_context";
 import {
   HardwareConfiguration,
@@ -25,8 +26,11 @@ import { createAction, createReducer, UnknownAction } from "@reduxjs/toolkit";
 import ROSLIB from "roslib";
 import {
   IRosTypeR2CInterfacesAnalogInData,
+  IRosTypeR2CInterfacesAnalogOutData,
   IRosTypeR2CInterfacesDigitalInData,
+  IRosTypeR2CInterfacesDigitalOutData,
   IRosTypeR2CInterfacesEncoderEstimates,
+  IRosTypeR2CInterfacesGpioConfigurationState,
 } from "@/lib/models/ros_types";
 
 interface ModifyPlotInterface {
@@ -44,9 +48,6 @@ interface setDashboardContextDispatchInterface {
 
 interface DashboardContextInterface {
   dashboardContext: ApplicationContext;
-  // setDashboardContext: Dispatch<
-  //     SetStateAction<setDashboardContextDispatchInterface>
-  // >
   setDashboardContext: Dispatch<UnknownAction>;
 }
 
@@ -67,7 +68,8 @@ export default function DashboardContextProvider(props: {
     hardware_configuration: HardwareConfiguration;
   }>("hardware_config/set");
   const setROSAction = createAction<{
-    ros_config_services: ConfigServices;
+    ros_config_services: IOConfigurationServices;
+    ros_io_state_services: IOCommandServices;
     ra_ros_websocket: ROSLIB.Ros;
   }>("ros/set");
   const setAnalogInDataAction = createAction<{
@@ -76,6 +78,15 @@ export default function DashboardContextProvider(props: {
   const setDigitalInDataAction = createAction<{
     digital_in_data: IRosTypeR2CInterfacesDigitalInData;
   }>("data/digital_in");
+  const setAnalogOutDataAction = createAction<{
+    analog_out_data: IRosTypeR2CInterfacesAnalogOutData;
+  }>("data/analog_out");
+  const setDigitalOutDataAction = createAction<{
+    digital_out_data: IRosTypeR2CInterfacesDigitalOutData;
+  }>("data/digital_out");
+  const setGpioConfigurationStateAction = createAction<{
+    gpio_configuration_state: IRosTypeR2CInterfacesGpioConfigurationState;
+  }>("data/gpio_configuration_state");
   const setAxisDataAction = createAction<{
     axis_index: number;
     axis_data: IRosTypeR2CInterfacesEncoderEstimates;
@@ -150,7 +161,8 @@ export default function DashboardContextProvider(props: {
         })
         .addCase(setROSAction, (state, action) => {
           state.ra_ros_websocket = action.payload.ra_ros_websocket;
-          state.IO_config_services = action.payload.ros_config_services;
+          state.io_configuration_services = action.payload.ros_config_services;
+          state.io_command_services = action.payload.ros_io_state_services;
           return state;
         })
         .addCase(setAnalogInDataAction, (state, action) => {
@@ -159,6 +171,18 @@ export default function DashboardContextProvider(props: {
         })
         .addCase(setDigitalInDataAction, (state, action) => {
           state.digital_in_data = action.payload.digital_in_data;
+          return state;
+        })
+        .addCase(setAnalogOutDataAction, (state, action) => {
+          state.analog_out_data = action.payload.analog_out_data;
+          return state;
+        })
+        .addCase(setDigitalOutDataAction, (state, action) => {
+          state.digital_out_data = action.payload.digital_out_data;
+          return state;
+        })
+        .addCase(setGpioConfigurationStateAction, (state, action) => {
+          state.gpio_configuration_state = action.payload.gpio_configuration_state;
           return state;
         })
         .addCase(setAxisDataAction, (state, action) => {

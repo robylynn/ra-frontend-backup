@@ -167,7 +167,7 @@ const IOPlots = (props: {
   ]);
 
   useEffect(() => {
-    const latest_point = dashboardContext.getIOSState(props.point_type);
+    const latest_point = dashboardContext.getIOState(props.point_type);
     if (latest_point) {
       let data_point: PlotDataPoint = {
         time: latest_point.stamp.sec + latest_point.stamp.nanosec / 1e9,
@@ -195,7 +195,7 @@ const IOPlots = (props: {
         }
       });
     }
-  }, [dashboardContext.getIOSState(props.point_type)]);
+  }, [dashboardContext.getIOState(props.point_type)]);
 
   const configured_enabled_IO_points = IOPoints.getConfiguredAndEnabledIOPoints(props.point_type);
 

@@ -96,10 +96,9 @@ const IODisplay = () => {
   const IOPointDisplayElement = (props: {
     configuration: IOPointConfiguration;
   }) => {
-    const point_value = dashboardContext.getIOSState(props.configuration.type)
+    const point_value = dashboardContext.getIOState(props.configuration.type)
       ?.values[props.configuration.channel] as number;
     return (
-      // <div className="items-center justify-center border m-1 rounded grid grid-cols-3">
       <IODisplayElementContainer enabled={props.configuration.enabled}>
         <IODisplayElementCell
           header="Point Label"
@@ -135,8 +134,6 @@ const IODisplay = () => {
 
   return (
     <div className="w-full">
-      {/* <h2>Analog Inputs</h2> */}
-      {/* <h2>{dashboardContext.analog_in_data?.values?.[0]}</h2> */}
       {dashboardContext.ra_ros_websocket ? (
         <div className="flex flex-col w-full items-center">
           {[IOPointType.ANALOG_INPUT, IOPointType.DIGITAL_INPUT].map(

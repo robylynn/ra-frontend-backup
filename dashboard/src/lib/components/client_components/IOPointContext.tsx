@@ -8,6 +8,12 @@ import {
     IOPointConfiguration,
     IOPointType,
 } from '@/lib/models/api_models';
+import {
+    IRosTypeR2CInterfacesAnalogInHardwareConfig,
+    IRosTypeR2CInterfacesAnalogOutHardwareConfig,
+    IRosTypeR2CInterfacesDigitalInHardwareConfig,
+    IRosTypeR2CInterfacesDigitalOutHardwareConfig,
+} from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
 import { networkInterfaces } from 'os';
 import { createContext, Dispatch, useReducer } from 'react';
@@ -39,6 +45,15 @@ interface IOConfigurationContextReducerInterface {
     configuration: IOConfiguration;
 }
 
+interface IOPointContextReducerUpdateConfigurationInterface {
+    point_type: IOPointType;
+    point_configuration_states:
+        | IRosTypeR2CInterfacesDigitalInHardwareConfig[]
+        | IRosTypeR2CInterfacesDigitalOutHardwareConfig[]
+        | IRosTypeR2CInterfacesAnalogInHardwareConfig[]
+        | IRosTypeR2CInterfacesAnalogOutHardwareConfig[];
+}
+
 interface setIOPointsDispatchInterface {
     payload:
         | IOPointContextReducerInterface
@@ -51,8 +66,9 @@ interface setIOPointsDispatchInterface {
 export const IOPointContext = createContext<IOPointContextInterface>(null);
 
 export const IOPointContextProvider = ({ children }) => {
-    const updateIOPointAction =
-        createAction<IOPointContextReducerInterface>('config/update');
+    const updateIOPointAction = createAction<IOPointContextReducerInterface>(
+        'config/update_point'
+    );
     const addIOPointAction =
         createAction<IOPointContextReducerInterface>('config/add');
     const deleteIOPointAction =
@@ -61,6 +77,10 @@ export const IOPointContextProvider = ({ children }) => {
         createAction<IOConfigurationContextReducerInterface>('config/set');
     const reorderIOPointsAction =
         createAction<IOPointContextReducerReorderInterface>('config/reorder');
+    const updateGpioConfigurationAction =
+        createAction<IOPointContextReducerUpdateConfigurationInterface>(
+            'config/update'
+        );
 
     const initialIOPoints = new IOConfiguration();
 
@@ -72,10 +92,6 @@ export const IOPointContextProvider = ({ children }) => {
                     action.payload.point,
                     action.payload.point.channel
                 )
-                // state.insertPointByIndex(
-                //     action.payload.point,
-                //     action.payload.index
-                // );
                 return state;
             })
             .addCase(setIOPointsAction, (state, action) => {
@@ -84,7 +100,6 @@ export const IOPointContextProvider = ({ children }) => {
             })
             .addCase(addIOPointAction, (state, action) => {
                 let point = action.payload.point;
-                
 
                 if (point.channel > state.getMaximumChannels(point.type))
                     return;
@@ -124,6 +139,15 @@ export const IOPointContextProvider = ({ children }) => {
                     action.payload.source_channel,
                     action.payload.destination_channel
                 );
+                return state;
+            })
+            .addCase(updateGpioConfigurationAction, (state, action) => {
+                state.getIOPoints(action.payload.point_type).forEach((point, point_index) => {
+                    if (point.channel !== null) {
+                        point.enabled = action.payload.point_configuration_states[point.channel].enabled;
+                        point.configured = action.payload.point_configuration_states[point.channel].configured;
+                    }
+                });
                 return state;
             });
     });

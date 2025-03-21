@@ -32,9 +32,7 @@ export default function IOConfigurationContainer(props: {
       errorMessage={errorMessage}
       onClearError={() => setErrorMessage("")}
     >
-        <div className="flex flex-col gap-y-4">
-          {/* <AnalogInputGroup />
-          <DigitalInputGroup /> */}
+        <div className="flex flex-col gap-y-4 h-full overflow-y-auto">
             <IOPointGroup
             point_type={IOPointType.ANALOG_INPUT}
             group_name="Analog Input"
