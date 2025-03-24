@@ -1,13 +1,11 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-// "use client";
+"use client";
 
 import { Dispatch, SetStateAction, useState } from 'react';
 
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
-// import AnalogInputGroup from "@/lib/components/client_components/AnalogInputGroup";
-// import DigitalInputGroup from "@/lib/components/client_components/DigitalInputGroup";
 import IOPointGroup from '@/lib/components/client_components/IOPointGroup';
 import { IOPointType } from '@/lib/models/api_models';
 
