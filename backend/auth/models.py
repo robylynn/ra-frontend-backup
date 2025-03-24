@@ -5,7 +5,8 @@
 ### Developed by R2 Labs
 
 from pydantic import BaseModel, Field, EmailStr
-    
+
+
 class UserLoginSchema(BaseModel):
     email: EmailStr = Field(default=None)
     username: str = Field(default=None)

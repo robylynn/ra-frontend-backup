@@ -1,23 +1,9 @@
-from dataclasses import (
-    dataclass,
-    asdict,
-    fields
-)
+from dataclasses import dataclass, asdict, fields
 
-from typing import (
-    List,
-    Dict,
-    Generator,
-    Tuple,
-    Annotated,
-    ClassVar,
-    Callable
-)
+from typing import List, Dict, Generator, Tuple, Annotated, ClassVar, Callable
 
-from enum import (
-    Enum,
-    auto
-)
+from enum import Enum, auto
+
 
 class DocumentType(Enum):
     SENSOR_DATA = auto()
@@ -31,6 +17,7 @@ class DocumentType(Enum):
     SYSTEM_CONFIGURATION = auto()
     UI_CONFIGURATION = auto()
 
+
 def hardware_configuration_dict_factory(dataclass):
     d = {}
     for field in dataclass:
@@ -42,12 +29,14 @@ def hardware_configuration_dict_factory(dataclass):
             d[field[0]] = field[1]
     return d
 
+
 @dataclass
 class CollectionConfiguration:
     drop_on_start: bool
     document_type: DocumentType
     capped: bool = False
     collection_size_bytes: int = None
+
 
 @dataclass
 class DatabaseCollectionsConfiguration:
@@ -64,14 +53,17 @@ class DatabaseCollectionsConfiguration:
     @property
     def database_collections(self) -> Dict[str, CollectionConfiguration]:
         return {
-            f.name: getattr(self, f.name) for f in fields(self) if isinstance(getattr(self, f.name), CollectionConfiguration)
+            f.name: getattr(self, f.name)
+            for f in fields(self)
+            if isinstance(getattr(self, f.name), CollectionConfiguration)
         }
-    
+
     @property
     def database_collection_generator(self) -> Generator[Tuple[str, CollectionConfiguration], None, None]:
         for f in fields(self):
             if isinstance(getattr(self, f.name), CollectionConfiguration):
                 yield f.name, getattr(self, f.name)
+
 
 @dataclass
 class MongoInstanceConfiguration:
@@ -90,25 +82,29 @@ class MongoInstanceConfiguration:
     frontend_message_collection_size_bytes: int = 1000
     io_state_collection_size_bytes: int = 1000
 
+
 @dataclass
 class MongoConfiguration:
     database_synchronization_period_sec: int
     synchronization_batch_size: int
     queue_length_warning_threshold: int
     queue_get_timeout_secs: float
-    
+
     collections: DatabaseCollectionsConfiguration
-    
+
     local: MongoInstanceConfiguration
     cloud: MongoInstanceConfiguration
+
 
 @dataclass
 class SystemConfiguration:
     database: MongoConfiguration
 
+
 ##########################################################
 #################### IO CONFIGURATION ####################
 ##########################################################
+
 
 class IOPointType(Enum):
     DIGITAL_INPUT = auto()
@@ -120,13 +116,16 @@ class IOPointType(Enum):
     # ANALOG_CURRENT_INPUT = auto()
     # ANALOG_CURRENT_OUTPUT = auto()
 
+
 class AnalogIOPointType(Enum):
     VOLTAGE = 0
     CURRENT = 1
 
+
 class TransferFunctionType(Enum):
     LINEAR = auto()
     CUSTOM = auto()
+
 
 @dataclass
 class ROSIOPointConfiguration:
@@ -149,12 +148,14 @@ class ROSIOPointConfiguration:
     def default() -> "ROSIOPointConfiguration":
         return ROSIOPointConfiguration(channel=-1)
 
+
 @dataclass
 class IOSystemConfiguration:
     digital_inputs: Annotated[List[ROSIOPointConfiguration], 8]
     digital_outputs: Annotated[List[ROSIOPointConfiguration], 8]
     analog_inputs: Annotated[List[ROSIOPointConfiguration], 3]
     analog_outputs: Annotated[List[ROSIOPointConfiguration], 3]
+
 
 @dataclass
 class HardwareConfiguration:
@@ -167,19 +168,19 @@ class HardwareConfiguration:
 
     @staticmethod
     def parse(serialized_configuration: Dict) -> "HardwareConfiguration":
-        digital_inputs = serialized_configuration['io_system']['digital_inputs']
-        digital_outputs = serialized_configuration['io_system']['digital_outputs']
-        analog_inputs = serialized_configuration['io_system']['analog_inputs']
-        analog_outputs = serialized_configuration['io_system']['analog_outputs']
+        digital_inputs = serialized_configuration["io_system"]["digital_inputs"]
+        digital_outputs = serialized_configuration["io_system"]["digital_outputs"]
+        analog_inputs = serialized_configuration["io_system"]["analog_inputs"]
+        analog_outputs = serialized_configuration["io_system"]["analog_outputs"]
         return HardwareConfiguration(
             io_system=IOSystemConfiguration(
                 digital_inputs=[ROSIOPointConfiguration(**di) for di in digital_inputs],
                 digital_outputs=[ROSIOPointConfiguration(**do) for do in digital_outputs],
                 analog_inputs=[ROSIOPointConfiguration(**ai) for ai in analog_inputs],
-                analog_outputs=[ROSIOPointConfiguration(**ai) for ai in analog_outputs]
+                analog_outputs=[ROSIOPointConfiguration(**ai) for ai in analog_outputs],
             )
         )
-    
+
     @staticmethod
     def default_configuration() -> "HardwareConfiguration":
         digital_inputs = [
@@ -211,9 +212,9 @@ class HardwareConfiguration:
                 digital_inputs=digital_inputs,
                 digital_outputs=digital_outputs,
                 analog_inputs=analog_inputs,
-                analog_outputs=analog_outputs
+                analog_outputs=analog_outputs,
             )
         )
-    
+
     def serialize(self) -> Dict:
         return asdict(self, dict_factory=hardware_configuration_dict_factory)

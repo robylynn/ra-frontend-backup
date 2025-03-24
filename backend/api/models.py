@@ -1,33 +1,25 @@
-from pydantic import (
-    BaseModel, 
-    Field
-)
-from typing import (
-    List,
-    Dict,
-    Optional
-)
-from dataclasses import (
-    dataclass,
-    asdict
-)
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional
+from dataclasses import dataclass, asdict
 from enum import Enum, auto
 
 from backend.utils.utils import websocket_message_dict_factory
-from backend.config.models import (
-    IOPointType
-)
+from backend.config.models import IOPointType
+
 
 class APIException(Exception):
     pass
+
 
 class AuthenticationResponse(BaseModel):
     authenticated: bool
     signed_token: str
 
+
 class APIResponse(BaseModel):
     error: bool
     data: str | List | Dict
+
 
 class IOConfigurationRequestData(BaseModel):
     point_type: int
@@ -42,14 +34,17 @@ class IOConfigurationRequestData(BaseModel):
     measurement_unit: str
     # point_type: str
 
+
 class AnalogInputHardwareConfigurationRequestData(BaseModel):
     configured: bool
     enabled: bool
     channel_type: int
 
+
 class DigitalInputHardwareConfigurationRequestData(BaseModel):
     configured: bool
     enabled: bool
+
 
 class AnalogIOConfigurationRequestData(BaseModel):
     hardware_config: AnalogInputHardwareConfigurationRequestData
@@ -65,11 +60,13 @@ class AnalogIOConfigurationRequestData(BaseModel):
     # channel: int
     unit: str
 
+
 class DigitalIOConfigurationRequestData(BaseModel):
     hardware_config: DigitalInputHardwareConfigurationRequestData
     channel: int
     # point_type: int
     label: str
+
 
 class AnalogIOStatePostData(BaseModel):
     # read_channel: bool
@@ -78,6 +75,7 @@ class AnalogIOStatePostData(BaseModel):
     time_sec: int
     time_nsec: int
     values: Dict[int, float]
+
 
 # class IOPointType(Enum):
 #     NULL_POINT = auto()
@@ -89,12 +87,14 @@ class AnalogIOStatePostData(BaseModel):
 #     ANALOG_CURRENT_OUTPUT = auto()
 #     THERMOCOUPLE_INPUT = auto()
 
+
 @dataclass
 class FrontendConfiguration:
     client_id: int
 
     def serialize(self):
         return asdict(self)
+
 
 class PlotConfiguration(BaseModel):
     # enabled: Optional[bool] = False
@@ -114,4 +114,3 @@ class UIConfiguration(BaseModel):
     # plots: List[PlotConfiguration] = Field(default=[])
     io_plots: Dict[IOPointType | int, List[PlotConfiguration]] = Field(default={})
     motion_plots: List[PlotConfiguration] = Field(default=[])
-    

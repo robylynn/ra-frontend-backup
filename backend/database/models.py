@@ -6,52 +6,31 @@
 
 import hashlib, json
 
-from dataclasses import (
-    dataclass,
-    asdict,
-    InitVar,
-    fields,
-    is_dataclass
-)
+from dataclasses import dataclass, asdict, InitVar, fields, is_dataclass
 from datetime import datetime
-from functools import singledispatch
-from typing import (
-    ClassVar, 
-    Dict, 
-    Any, 
-    Union, 
-    List,
-    Optional,
-    TypeVar
-)
-from enum import (
-    Enum,
-    auto
-)
-from backend.ra_hardware_interface.models import (
-    IOSystem,
-    Sensors
-)
-from backend.frontend.models import (
-    FrontendMessage
-)
-from backend.utils.utils import (
-    timeseries_record_dict_factory
-)
+from typing import ClassVar, Dict, Any, Union, List, Optional, TypeVar
+from enum import Enum, auto
+from backend.ra_hardware_interface.models import IOSystem, Sensors
+from backend.frontend.models import FrontendMessage
+from backend.utils.utils import timeseries_record_dict_factory
 from backend.config.models import (
     DocumentType,
     HardwareConfiguration,
 )
 from backend.api.models import UIConfiguration
 
+
 class MongoInterfaceException(Exception):
     pass
+
 
 class MongoLocalInterfaceException(Exception):
     pass
 
+
 class MongoCloudInterfaceException(Exception):
     pass
+
 
 class DatabaseCommandType(Enum):
     GET_DOCUMENTS = auto()
@@ -60,26 +39,30 @@ class DatabaseCommandType(Enum):
     GET_IO_DATA_POINTS = auto()
     GET_MESSAGES = auto()
 
+
 @dataclass
 class DatabaseCommand:
     document_type: DocumentType
     number_of_documents: int
-    
+
     command_type: Optional[DatabaseCommandType] = None
     axis_index: Optional[int] = None
 
+
 RecordType = TypeVar("RecordType")
 
+
 def mongo_record_deserializer(record: Dict, record_class: RecordType) -> RecordType:
-    input = {'data': {}}
+    input = {"data": {}}
     for k, v in record.items():
-        if k == 'metadata':
+        if k == "metadata":
             input[k] = TimeseriesMetadata.deserialize_from_dict(v)
         elif k not in [f.name for f in fields(record_class)]:
-            input['data'][k] = v
+            input["data"][k] = v
         else:
             input[k] = v
     return record_class(**input)
+
 
 @dataclass
 class TimeseriesMetadata:
@@ -92,11 +75,12 @@ class TimeseriesMetadata:
     def deserialize_from_dict(metadata: Dict) -> "TimeseriesMetadata":
         input = {}
         for k, v in metadata.items():
-            if k == 'document_type':
+            if k == "document_type":
                 input[k] = getattr(DocumentType, v)
             else:
                 input[k] = v
         return TimeseriesMetadata(**input)
+
 
 @dataclass
 class MongoTimeseriesRecord:
@@ -111,7 +95,7 @@ class MongoTimeseriesRecord:
     def __post_init__(self, data: Dict[str, Any]):
         if is_dataclass(data):
             data = data.serialize()
-        
+
         self._data_dict = {k: v for k, v in data.items()}
         self.timestamp_seconds = self.timestamp.timestamp()
         self.record_hash = self.create_hash(self.attribute_dictionary)
@@ -125,10 +109,8 @@ class MongoTimeseriesRecord:
         return self._data_dict
 
     def create_hash(self, attrs: Dict) -> str:
-        hash = hashlib.md5(
-            json.dumps(attrs, default=str).encode()
-        ).hexdigest()
-        
+        hash = hashlib.md5(json.dumps(attrs, default=str).encode()).hexdigest()
+
         return hash
 
     @staticmethod
@@ -153,53 +135,65 @@ class MongoTimeseriesRecord:
 
     def serialize_to_dict(self) -> Dict[str, Any]:
         sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
-        serialized = {**asdict(self, dict_factory=timeseries_record_dict_factory), **self.formatted_data_dict, 'record_hash': self.record_hash}
-        serialized['metadata'] = sparse_metadata
+        serialized = {
+            **asdict(self, dict_factory=timeseries_record_dict_factory),
+            **self.formatted_data_dict,
+            "record_hash": self.record_hash,
+        }
+        serialized["metadata"] = sparse_metadata
         return serialized
+
 
 @dataclass
 class MongoAxisTimeseriesRecord(MongoTimeseriesRecord):
     axis_index: int = None
+
 
 @dataclass
 class TimeseriesRecordContainer:
     records: List[MongoTimeseriesRecord]
 
     def serialize(self):
-        return [
-            r.serialize_to_dict() for r in self.records
-        ]
+        return [r.serialize_to_dict() for r in self.records]
+
 
 @dataclass
 class DatabaseRecordDataContainer:
     def serialize(self) -> Dict[str, Any]:
         return asdict(self, dict_factory=timeseries_record_dict_factory)
 
+
 ##########################################################
 #################### DATA POINT TYPES ####################
 ##########################################################
 
+
 @dataclass
 class IOSystemDataContainer(DatabaseRecordDataContainer):
     io_system: IOSystem
-    
+
+
 DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataContainer)
 
 ##########################################################
 ###################### RECORD TYPES ######################
 ##########################################################
 
+
 @dataclass
 class IOStateRecord(MongoTimeseriesRecord):
     data: InitVar[IOSystem]
+
 
 @dataclass
 class AxisStateRecord(MongoAxisTimeseriesRecord):
     data: InitVar[Dict]
 
+
 @dataclass
 class FrontendMessageRecord(MongoTimeseriesRecord):
     data: InitVar[FrontendMessage]
+
 
 @dataclass
 class HardwareConfigurationRecord(MongoTimeseriesRecord):
@@ -214,6 +208,7 @@ class HardwareConfigurationRecord(MongoTimeseriesRecord):
     def hardware_configuration(self) -> HardwareConfiguration:
         return HardwareConfiguration.parse(self.data_dictionary)
 
+
 @dataclass
 class UIConfigurationRecord(MongoTimeseriesRecord):
     data: InitVar[UIConfiguration]
@@ -227,12 +222,12 @@ class UIConfigurationRecord(MongoTimeseriesRecord):
     def ui_configuration(self) -> UIConfiguration:
         return UIConfiguration(**self.data_dictionary)
 
+
 @dataclass
 class SensorDataRecord(MongoTimeseriesRecord):
     data: InitVar[Sensors]
 
+
 ##########################################################
 ######################## ROS TYPES #######################
 ##########################################################
-
-

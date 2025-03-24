@@ -5,16 +5,14 @@ import secrets, time, asyncio, random
 
 from fastapi import WebSocket, APIRouter, Body
 from datetime import datetime
-from typing import (
-    List,
-    Dict
-)
+from typing import List, Dict
 from loguru import logger
 
 import backend.system_initializer as initializer
 
 from backend.auth.models import UserLoginSchema
 from backend.auth.jwt_handler import signJWT
+
 # from auth.jwt_bearer import JWTBearer
 from backend.api.models import (
     AuthenticationResponse,
@@ -25,63 +23,31 @@ from backend.api.models import (
     APIException,
     UIConfiguration,
     AnalogIOConfigurationRequestData,
-    DigitalIOConfigurationRequestData
+    DigitalIOConfigurationRequestData,
 )
 
-from backend.api.helpers import (
-    create_database_document,
-    create_database_axis_document
-)
+from backend.api.helpers import create_database_document, create_database_axis_document
 
-from backend.config.models import (
-    TransferFunctionType,
-    IOPointType,
-    AnalogIOPointType
-)
+from backend.config.models import TransferFunctionType, IOPointType, AnalogIOPointType
 
-from backend.database.models import (
-    DocumentType
-)
+from backend.database.models import DocumentType
 
-auth_router=APIRouter(
-    tags=[
-        "User"
-    ]
-)
+auth_router = APIRouter(tags=["User"])
 
-state_router=APIRouter(
-    tags=[
-        "Status"
-    ]
-)
+state_router = APIRouter(tags=["Status"])
 
-ui_router = APIRouter(
-    tags=[
-        "User Interface"
-    ]
-)
+ui_router = APIRouter(tags=["User Interface"])
 
-historian_router = APIRouter(
-    tags=[
-        "Data Historian"
-    ]
-)
+historian_router = APIRouter(tags=["Data Historian"])
 
-streams_router = APIRouter(
-    tags=[
-        "Data Streams"
-    ]
-)
+streams_router = APIRouter(tags=["Data Streams"])
 
-config_router = APIRouter(
-    tags=[
-        "Configuration"
-    ]
-)
+config_router = APIRouter(tags=["Configuration"])
 
 ###############################################################################
 ############################### AUTHENTICATION ################################
 ###############################################################################
+
 
 def check_user(data: UserLoginSchema):
     # return True
@@ -89,10 +55,11 @@ def check_user(data: UserLoginSchema):
     #     if user.username == data.username and user.password == data.password:
     #         return True
     # return False
-    if data.username in ['r2', 'roby', 'lucas'] and data.password == 'password':
+    if data.username in ["r2", "roby", "lucas"] and data.password == "password":
         return True
-    
+
     return False
+
 
 @auth_router.post("/login", tags=["user"])
 def user_login(user: UserLoginSchema = Body(default=None)) -> AuthenticationResponse:
@@ -101,49 +68,44 @@ def user_login(user: UserLoginSchema = Body(default=None)) -> AuthenticationResp
         return AuthenticationResponse(
             authenticated=True,
             signed_token=signJWT(
-                user.username,
-                authenticated=True,
-                secret=secrets.token_urlsafe(32),
-                algorithm="HS256"
-            )
+                user.username, authenticated=True, secret=secrets.token_urlsafe(32), algorithm="HS256"
+            ),
         )
-        
+
     else:
         # logger.info(f"Login failed for user {user.username}")
-        return AuthenticationResponse(
-            authenticated=False,
-            signed_token=""
-        )
+        return AuthenticationResponse(authenticated=False, signed_token="")
+
 
 ###############################################################################
 ################################ SYSTEM STATE #################################
 ###############################################################################
 
+
 @state_router.get("/heartbeat")
 async def heartbeat() -> APIResponse:
     return APIResponse(error=False, data=f"ACK")
+
 
 ###############################################################################
 ########################### FRONTEND CONFIGURATION ############################
 ###############################################################################
 
+
 @ui_router.get("/configuration")
 async def get_ui_configuration(client_id: int = None) -> APIResponse:
-    
+
     if client_id == None or int(client_id) == -1:
         client_id = initializer.ra_frontend.add_client()
 
-    
     configuration = initializer.ra_database.get_latest_ui_configuration()
     if configuration is None:
         configuration = UIConfiguration(client_id=client_id)
     else:
         configuration.client_id = client_id
-    
-    return APIResponse(
-        error=False,
-        data=configuration.dict()
-    )
+
+    return APIResponse(error=False, data=configuration.dict())
+
 
 @ui_router.post("/configuration")
 async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse:
@@ -151,51 +113,42 @@ async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse
         data=create_database_document(
             timestamp=datetime.utcnow().timestamp(),
             document_type=DocumentType.UI_CONFIGURATION,
-            data=configuration.dict()
+            data=configuration.dict(),
         )
     )
 
-    return APIResponse(
-        error=False,
-        data="Successful save of UI configuration"
-    )
+    return APIResponse(error=False, data="Successful save of UI configuration")
+
 
 @ui_router.get("/io_configuration")
 def get_ui_io_configuration():
     config = initializer.ra_database.get_latest_system_configuration(timeout=1)
-    return APIResponse(
-        error=False,
-        data=config.serialize() if config is not None else None
-    )
+    return APIResponse(error=False, data=config.serialize() if config is not None else None)
+
 
 ###############################################################################
 ############################## DATABASE REQUESTS ##############################
 ###############################################################################
 
+
 # TODO make new endpoints that just return raw ROS JSON data
 @historian_router.get("/io_data")
 def get_io_data_points(number_of_points: int) -> APIResponse:
     points = initializer.ra_database.get_io_state(number_of_points=number_of_points, timeout=1)
-    return APIResponse(
-        error=False,
-        data=[p.serialize_to_dict() for p in points]
-    )
+    return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
+
 
 @historian_router.get("/analog_in")
 def get_io_data_points(number_of_points: int) -> APIResponse:
     points = initializer.ra_database.get_analog_in_state(number_of_points=number_of_points, timeout=1)
-    return APIResponse(
-        error=False,
-        data=[p.serialize_to_dict() for p in points]
-    )
+    return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
+
 
 @historian_router.get("/digital_in")
 def get_io_data_points(number_of_points: int) -> APIResponse:
     points = initializer.ra_database.get_digital_in_state(number_of_points=number_of_points, timeout=1)
-    return APIResponse(
-        error=False,
-        data=[p.serialize_to_dict() for p in points]
-    )
+    return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
+
 
 # @historian_router.get("/ros_io_data")
 # def get_io_data_points(number_of_points: int) -> APIResponse:
@@ -205,44 +158,36 @@ def get_io_data_points(number_of_points: int) -> APIResponse:
 #         data=[p.data_dictionary for p in points]
 #     )
 
+
 @historian_router.get("/messages")
 def get_messages(number_of_messages: int) -> APIResponse:
     messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages, timeout=1)
-    return APIResponse(
-        error=False,
-        data=[m.serialize_to_dict() for m in messages]
-    )
+    return APIResponse(error=False, data=[m.serialize_to_dict() for m in messages])
+
 
 @historian_router.get("/sensor_data")
 def get_sensor_data(number_of_data_points: int) -> APIResponse:
     data = initializer.ra_database.get_sensor_data(number_of_data_points=number_of_data_points, timeout=1)
-    return APIResponse(
-        error=False,
-        data=[d.serialize_to_dict() for d in data]
-    )
+    return APIResponse(error=False, data=[d.serialize_to_dict() for d in data])
+
 
 @historian_router.get("/axis/{axis_index}")
 def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_axis_state(axis_index=axis_index, number_of_points=number_of_points, timeout=30)
-    # points = initializer.ra_database.get_digital_in_state(number_of_points=number_of_points, timeout=1)
-    return APIResponse(
-        error=False,
-        data=[p.serialize_to_dict() for p in points]
+    points = initializer.ra_database.get_axis_state(
+        axis_index=axis_index, number_of_points=number_of_points, timeout=30
     )
+    # points = initializer.ra_database.get_digital_in_state(number_of_points=number_of_points, timeout=1)
+    return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
 
     for record in data:
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=datetime.timestamp(datetime.utcnow()),
-                document_type=document_type,
-                data=dict(record)
+                timestamp=datetime.timestamp(datetime.utcnow()), document_type=document_type, data=dict(record)
             )
         )
 
-    return APIResponse(
-        error=False,
-        data=f"Successful insertion of ROS axis {index} data"
-    )
+    return APIResponse(error=False, data=f"Successful insertion of ROS axis {index} data")
+
 
 ###############################################################################
 ############################### DATABASE INSERTS ##############################
@@ -286,92 +231,80 @@ def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
 #         data="Successful insertion of ROS analog input data"
 #     )
 
+
 @historian_router.post("/analog_in")
 def push_analog_input_state(data: List[Dict]) -> APIResponse:
     for record in data:
         try:
-            timestamp = datetime.fromtimestamp(record['stamp']['sec'] + record['stamp']['nanosec']/1e9).timestamp()
+            timestamp = datetime.fromtimestamp(record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9).timestamp()
         except Exception as e:
             timestamp = datetime.timestamp(datetime.utcnow())
 
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=timestamp,
-                document_type=DocumentType.ANALOG_INPUT_STATE,
-                data=dict(record)
+                timestamp=timestamp, document_type=DocumentType.ANALOG_INPUT_STATE, data=dict(record)
             )
         )
 
-    return APIResponse(
-        error=False,
-        data="Successful insertion of ROS analog input data"
-    )
+    return APIResponse(error=False, data="Successful insertion of ROS analog input data")
+
 
 @historian_router.post("/digital_in")
 def push_digital_input_state(data: List[Dict]) -> APIResponse:
     for record in data:
         try:
-            timestamp = datetime.fromtimestamp(record['stamp']['sec'] + record['stamp']['nanosec']/1e9).timestamp()
+            timestamp = datetime.fromtimestamp(record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9).timestamp()
         except Exception as e:
             timestamp = datetime.timestamp(datetime.utcnow())
 
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=timestamp,
-                document_type=DocumentType.DIGITAL_INPUT_STATE,
-                data=dict(record)
+                timestamp=timestamp, document_type=DocumentType.DIGITAL_INPUT_STATE, data=dict(record)
             )
         )
 
-    return APIResponse(
-        error=False,
-        data="Successful insertion of ROS digital input data"
-    )
+    return APIResponse(error=False, data="Successful insertion of ROS digital input data")
+
 
 @historian_router.post("/axis/{axis_index}")
 def push_axis_state(axis_index: int, data: List[Dict]) -> APIResponse:
     for record in data:
         try:
-            timestamp = datetime.fromtimestamp(record['stamp']['sec'] + record['stamp']['nanosec']/1e9).timestamp()
+            timestamp = datetime.fromtimestamp(record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9).timestamp()
         except Exception as e:
             timestamp = datetime.timestamp(datetime.utcnow())
-            
+
         initializer.ra_database.enqueue_record(
             data=create_database_axis_document(
                 timestamp=timestamp,
                 # document_type=DocumentType.AXIS_STATE,
                 axis_index=axis_index,
-                data=dict(record)
+                data=dict(record),
             )
         )
 
-    return APIResponse(
-        error=False,
-        data=f"Successful insertion of ROS axis {axis_index} data"
-    )
+    return APIResponse(error=False, data=f"Successful insertion of ROS axis {axis_index} data")
+
 
 @historian_router.post("/realtime_sys_state")
 def push_realtime_system_state(data: List[Dict]) -> APIResponse:
     initializer.ra_database.enqueue_record(
         data=create_database_document(
-            timestamp=datetime.timestamp(datetime.utcnow()),
-            document_type=DocumentType.IO_STATE,
-            data=dict(data)
+            timestamp=datetime.timestamp(datetime.utcnow()), document_type=DocumentType.IO_STATE, data=dict(data)
         )
     )
 
-    return APIResponse(
-        error=False,
-        data="Successful insertion of ROS realtime system state data"
-    )
+    return APIResponse(error=False, data="Successful insertion of ROS realtime system state data")
+
 
 ###############################################################################
 ################################ CONFIGURATION ################################
 ###############################################################################
 
+
 @config_router.post("/io/analog_in_config")
 def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) -> APIResponse:
-# def configure_analog_in(configurations: List[Dict]) -> APIResponse:
+    # def configure_analog_in(configurations: List[Dict]) -> APIResponse:
     logger.info(f"Got analog input configuration request: {configurations}")
 
     for config_entry in configurations:
@@ -389,14 +322,12 @@ def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) 
         point.configuration.transfer_function_type = TransferFunctionType.LINEAR
         initializer.ra_interface.save_system_configuration()
 
-    return APIResponse(
-        error=False,
-        data=f"Got analog input configuration request: {configurations}"
-    )
+    return APIResponse(error=False, data=f"Got analog input configuration request: {configurations}")
+
 
 @config_router.post("/io/digital_in_config")
 def configure_digital_in(configurations: List[DigitalIOConfigurationRequestData]) -> APIResponse:
-# def configure_analog_in(configurations: List[Dict]) -> APIResponse:
+    # def configure_analog_in(configurations: List[Dict]) -> APIResponse:
     logger.info(f"Got digital input configuration request: {configurations}")
 
     for config_entry in configurations:
@@ -414,10 +345,8 @@ def configure_digital_in(configurations: List[DigitalIOConfigurationRequestData]
         # point.configuration.transfer_function_type = TransferFunctionType.LINEAR
         initializer.ra_interface.save_system_configuration()
 
-    return APIResponse(
-        error=False,
-        data=f"Got analog input configuration request: {configurations}"
-    )
+    return APIResponse(error=False, data=f"Got analog input configuration request: {configurations}")
+
 
 # @config_router.post("/io/configure_point")
 # def configure_io_point(config: IOConfigurationRequestData) -> APIResponse:
@@ -434,11 +363,11 @@ def configure_digital_in(configurations: List[DigitalIOConfigurationRequestData]
 #         point.configuration.max_value = config.max_measurement_value
 #         point.configuration.min_value = config.min_measurement_value
 #         point.configuration.measurement_unit = config.measurement_unit
-        
+
 #         # FIXME to match transfer function types
 #         point.configuration.transfer_function_type = TransferFunctionType(config.transfer_function_type + 1)
 #         point.configuration.transfer_function_callback = config.custom_transfer_function if point.configuration.transfer_function_type == TransferFunctionType.CUSTOM else None
-        
+
 #         initializer.ra_interface.save_system_configuration()
 
 #     else:
@@ -453,27 +382,27 @@ def configure_digital_in(configurations: List[DigitalIOConfigurationRequestData]
 ################################## STREAMING ##################################
 ###############################################################################
 
+
 @streams_router.websocket("/socket")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     client_id = initializer.ra_frontend.add_websocket_client()
     logger.info(f"Websocket client {client_id} connected")
     while True:
-        
+
         try:
             logger.info(f"Websocket streaming to client {client_id}")
-            
+
             await asyncio.sleep(1)
-            await websocket.send_json({'id': client_id, 'message': 'test_message ' + str(random.randint(0, 100))})
+            await websocket.send_json({"id": client_id, "message": "test_message " + str(random.randint(0, 100))})
             # await websocket.receive()
             try:
                 msg = await asyncio.wait_for(websocket.receive_text(), timeout=0.5)
                 logger.info(f"Got websocket message: " + msg)
             except Exception as e:
-                a=5
+                a = 5
                 pass
-            
-            
+
         except Exception as e:
             logger.error(f"Websocket error: {e}")
             initializer.ra_frontend.remove_websocket_client(id=client_id)
