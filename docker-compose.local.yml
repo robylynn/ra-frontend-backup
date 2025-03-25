@@ -47,8 +47,12 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=80
+      - CONTROLLER_URI=172.23.0.50:8000
+      - ROS_HOST=host.docker.internal
       # - NEXTAUTH_URL=http://192.168.2.201:80
       - NEXTAUTH_URL=http://localhost:80
+      - ENABLE_AUTHENTICATION=true
+      - DEBUG=false
 
     volumes:
       - /etc/timezone:/etc/timezone:ro
@@ -60,7 +64,6 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - backend
-      # - frontend
     restart: unless-stopped
 
   ra_backend:
@@ -87,44 +90,18 @@ services:
     hostname: ra_backend
     environment:
       - APP_WORKDIR=$APP_WORKDIR
-      # - PROJECT_ROOT=$PROJECT_ROOT
-      # - BACKUP_LOG_DIRECTORY_ROOT=$BACKUP_LOG_DIRECTORY_ROOT
       - CONFIG_FILE=$CONFIG_FILE
-      # - CONTROL_LOOP_CONFIG_FILE=$CONTROL_LOOP_CONFIG_FILE_NAME
       - CONFIG_FILE_DIR=$CONFIG_FILE_DIR
-      # - CONTAINER_DEPLOYMENT_FILES_DIR=$CONTAINER_DEPLOYMENT_FILES_DIR
-      # - CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY=$CONTAINER_DEPLOYMENT_INTERMEDIATE_DIRECTORY
       - CONTAINERIZED=true
       - DATABASE_CONTAINER_NAME=ra_database
-      # - DOCKER_UID=$DOCKER_UID
-      # - DOCKER_GID=$DOCKER_GID
-      # - DATABASE_IP=172.23.0.51
-      # - DEPLOYMENT_USER_CODE_DIR=$DEPLOYMENT_USER_CODE_DIR
-      # - DATA_LOG_DIRECTORY_NAME=data_logs
-      # - EVENT_LOG_DIRECTORY_NAME=event_logs
-      # - LOG_DIRECTORY_ROOT=$LOG_DIRECTORY_ROOT
       - HOST_HOSTNAME=$HOST_HOSTNAME
-      # - HOST_SCRIPTS_DIR=$HOST_SCRIPTS_DIR
-      # - HOST_CONFIG_FILE_DIR=$HOST_CONFIG_FILE_DIR
-      # - HOST_LOG_FILE_DIR=$HOST_LOG_FILE_DIR
-      # - CONTAINER_BACKEND_NETWORK_NAME=backend
-      # - DATABASE_CONTAINER_NAME=$DATABASE_CONTAINER_NAME
-      # - MQTT_BROKER_CONTAINER_NAME=$MQTT_BROKER_CONTAINER_NAME
-      # - PYTHONPATH=$CONTAINER_PYTHONPATH
-      # - SIMULATE_HARDWARE=$SIMULATE_PLC
-      # - USER_CODE_DIR=$USER_CODE_DIR
     volumes:
-      # - $HOST_BACKUP_LOG_DIRECTORY_ROOT:$BACKUP_LOG_DIRECTORY_ROOT:rw
-      # - $HOST_DEPLOYMENT_FILES_DIR/$HOST_LOG_FILE_DIR:$APP_WORKDIR/$HOST_LOG_FILE_DIR:rw
-      # - $HOST_DEPLOYMENT_FILES_DIR/$HOST_CONFIG_FILE_DIR:$APP_WORKDIR/$HOST_CONFIG_FILE_DIR:rw
-      # - $HOST_DEPLOYMENT_FILES_DIR/$DEPLOYMENT_USER_CODE_DIR:$APP_WORKDIR/$DEPLOYMENT_USER_CODE_DIR:rw
       - $PROJECT_ROOT/$CONFIG_FILE_DIR:$APP_WORKDIR/config:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
       - 8000:8000
     networks:
-      # - backend
       backend:
         ipv4_address: 172.23.0.50
     user: "${DOCKER_UID}:${DOCKER_GID}"
