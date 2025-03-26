@@ -38,7 +38,8 @@ class IOConfigurationRequestData(BaseModel):
 class AnalogInputHardwareConfigurationRequestData(BaseModel):
     configured: bool
     enabled: bool
-    channel_type: int
+    channel_type: Optional[int] = None
+
 
 
 class DigitalInputHardwareConfigurationRequestData(BaseModel):

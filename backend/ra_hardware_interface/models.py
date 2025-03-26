@@ -5,7 +5,11 @@ from dataclasses import dataclass, asdict, fields, InitVar
 from enum import Enum, auto
 from typing import List, ClassVar, Callable, Dict, Tuple, Any
 
-from backend.config.models import IOPointType, ROSIOPointConfiguration, IOSystemConfiguration
+from backend.config.models import (
+    IOPointType,
+    ROSIOPointConfiguration,
+    IOSystemConfiguration,
+)
 
 
 class IOConfigurationException(Exception):
@@ -45,13 +49,21 @@ class IOPoint:
     def load_transfer_function(self):
         if self.configuration.transfer_function_callback is not None:
             try:
-                _ = eval(self.configuration.transfer_function_callback, {"val": self.configuration.max_signal_v})
-                _ = eval(self.configuration.transfer_function_callback, {"val": self.configuration.min_signal_v})
+                _ = eval(
+                    self.configuration.transfer_function_callback,
+                    {"val": self.configuration.max_signal_v},
+                )
+                _ = eval(
+                    self.configuration.transfer_function_callback,
+                    {"val": self.configuration.min_signal_v},
+                )
             except Exception as e:
                 logger.error(
                     f"Invalid transfer function callback {self.configuration.transfer_function_callback} for {self.configuration.type} point {self.configuration.channel}: {e}"
                 )
-            self.transfer_function = lambda x: eval(self.configuration.transfer_function_callback, {"val": x})
+            self.transfer_function = lambda x: eval(
+                self.configuration.transfer_function_callback, {"val": x}
+            )
         else:
             self.transfer_function = (
                 lambda x: x
@@ -91,13 +103,17 @@ class IOPort:
         try:
             self.points[point_configuration.channel] = point
         except IndexError:
-            logger.error(f"Cannot add point to {self.name} at index {point_configuration.channel}, index out of range.")
+            logger.error(
+                f"Cannot add point to {self.name} at index {point_configuration.channel}, index out of range."
+            )
 
     def remove_point(self, index: int):
         try:
             self.points[index] = None
         except IndexError:
-            logger.error(f"Cannot remove point from {self.name} at index {index}, index out of range.")
+            logger.error(
+                f"Cannot remove point from {self.name} at index {index}, index out of range."
+            )
 
     def serialize(self) -> Dict:
         d = {}
@@ -144,6 +160,22 @@ class IOSystem:
             points=[IOPoint(configuration=c) for c in configuration.analog_inputs],
         )
 
+        self.analog_outputs = IOPort(
+            name="analog_outputs",
+            number_of_points=len(configuration.analog_outputs),
+            points=[IOPoint(configuration=c) for c in configuration.analog_outputs],
+        )
+
+    def get_io_port(self, point_type: IOPointType) -> IOPort | None:
+        if point_type == IOPointType.ANALOG_INPUT:
+            return self.analog_inputs
+        elif point_type == IOPointType.ANALOG_OUTPUT:
+            return self.analog_outputs
+        elif point_type == IOPointType.DIGITAL_INPUT:
+            return self.digital_inputs
+        elif point_type == IOPointType.DIGITAL_OUTPUT:
+            return self.digital_outputs
+
     def serialize(self) -> Dict:
         d = {}
         for field in fields(self):
@@ -178,4 +210,7 @@ class Sensors:
         self._sensors[sensor_name] = Sensor(name=sensor_name)
 
     def serialize(self) -> Dict:
-        return {sensor_name: sensor.serialize() for sensor_name, sensor in self._sensors.items()}
+        return {
+            sensor_name: sensor.serialize()
+            for sensor_name, sensor in self._sensors.items()
+        }

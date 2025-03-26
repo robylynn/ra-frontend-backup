@@ -1,4 +1,7 @@
-import { R2SliderToggle } from '@/lib/components/client_components/ClickButton';
+import {
+    R2Button,
+    R2SliderToggle,
+} from '@/lib/components/client_components/ClickButton';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import {
     AnalogValueDisplayElement,
@@ -15,7 +18,13 @@ import {
     IRosTypeR2CInterfacesAnalogInConfigConst,
     IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType,
 } from '@/lib/models/ros_types';
-import { Dispatch, SetStateAction, useContext, useState } from 'react';
+import {
+    Dispatch,
+    ReactElement,
+    SetStateAction,
+    useContext,
+    useState,
+} from 'react';
 
 type IOPointContainerProps = {
     index: number;
@@ -38,6 +47,8 @@ const IOPointContainer = ({
     const { IOPoints } = useContext(IOPointContext);
     const [showConfig, setShowConfig] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // Add loading state
+    const [analogOutputCommandString, setAnalogOutputCommandString] =
+        useState<string>('');
 
     const handleConfigSave = (updatedIOPoint: IOPointConfiguration) => {
         // Validate the channel
@@ -156,7 +167,7 @@ const IOPointContainer = ({
             });
     };
 
-    const handleToggleChange = (e) => {
+    const handleEnableToggleClick = (e) => {
         const { checked } = e.target;
 
         // Validate enabling the input
@@ -196,11 +207,135 @@ const IOPointContainer = ({
             });
     };
 
+    const handleDigitalStateToggleClick = (e) => {
+        const { checked } = e.target;
+
+        dashboardContext.io_command_services.set_digital_output_point(
+            io_point.channel,
+            checked,
+            () =>
+                console.log(
+                    `Set ${IOPointType[io_point.type]} point ${io_point.channel} to ${checked}`
+                ),
+            () =>
+                console.log(
+                    `Failed to set ${IOPointType[io_point.type]} point ${io_point.channel} to ${checked}`
+                ),
+            (error: string) =>
+                console.log(
+                    `Error settingg ${IOPointType[io_point.type]} point ${io_point.channel} to ${checked}: ${error}`
+                )
+        );
+    };
+
+    const renderIOElement = (io_point: IOPointConfiguration): ReactElement => {
+        switch (io_point.type) {
+            case IOPointType.ANALOG_INPUT: {
+                const value =
+                    dashboardContext.analog_in_data?.values[io_point.channel];
+                return (
+                    <div className="w-full grid grid-cols-[50%_50%]">
+                        <div></div>
+                        <AnalogValueDisplayElement
+                            value={value}
+                            enabled={io_point.enabled}
+                            configured={io_point.mcu_configuration_valid}
+                        />
+                    </div>
+                );
+            }
+            case IOPointType.DIGITAL_INPUT: {
+                return (
+                    <div className="w-full grid grid-cols-[50%_50%]">
+                        <div></div>
+                        <DigitalValueDisplayElement
+                            value={
+                                dashboardContext.digital_in_data?.values[
+                                    io_point.channel
+                                ]
+                            }
+                            enabled={io_point.enabled}
+                            configured={io_point.mcu_configuration_valid}
+                        />
+                    </div>
+                );
+            }
+            case IOPointType.DIGITAL_OUTPUT: {
+                const value =
+                    dashboardContext.digital_out_data?.values[io_point.channel];
+                return (
+                    <div className="w-full grid grid-cols-[50%_50%]">
+                        <R2SliderToggle
+                            on_text={'ON'}
+                            off_text="OFF"
+                            state={value}
+                            enabled={io_point.enabled}
+                            onClick={handleDigitalStateToggleClick}
+                        />
+                        <DigitalValueDisplayElement
+                            value={value}
+                            enabled={io_point.enabled}
+                            configured={io_point.mcu_configuration_valid}
+                        />
+                    </div>
+                );
+            }
+            case IOPointType.ANALOG_OUTPUT: {
+                const value =
+                    dashboardContext.analog_out_data?.values[io_point.channel];
+                return (
+                    <div className="w-full h-[40px] grid grid-cols-[50%_50%]">
+                        <div className="flex flex-row px-2 justify-between">
+                            {io_point.enabled ? (
+                                <>
+                                    <input
+                                        type="text"
+                                        name="output_value"
+                                        value={analogOutputCommandString}
+                                        onChange={(e) =>
+                                            setAnalogOutputCommandString(
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-[50%] p-[5px] box-border"
+                                    />
+                                    <R2Button
+                                        text="Set"
+                                        onClick={() => {
+                                            const command_value = parseFloat(
+                                                analogOutputCommandString
+                                            );
+                                            dashboardContext.io_command_services.set_analog_output_point(
+                                                io_point.channel,
+                                                command_value
+                                            );
+                                            setAnalogOutputCommandString(
+                                                command_value.toString()
+                                            );
+                                        }}
+                                        className="px-1"
+                                    />
+                                </>
+                            ) : (
+                                <></>
+                            )}
+                        </div>
+                        <AnalogValueDisplayElement
+                            value={value}
+                            enabled={io_point.enabled}
+                            configured={io_point.mcu_configuration_valid}
+                        />
+                    </div>
+                );
+            }
+        }
+    };
+
     return (
         <div className="flex items-center justify-between h-[40px]">
-            <div className="grid grid-cols-[15%_35%_25%_18%_7%] w-full items-center">
+            <div className="grid grid-cols-[15%_30%_15%_33%_7%] place-items-center w-full items-center justify-center">
                 <div
-                    className="w-[60%] h-[40%] flex justify-center items-center rounded-[4px] border-2 border-slate-300 text-black"
+                    className="w-[60%] h-[40%] flex justify-center content-center items-center rounded-[4px] border-2 border-slate-300 text-black"
                     style={{
                         backgroundColor: io_point.mcu_configuration_valid
                             ? 'rgb(20, 200, 20, 1)' // TODO: Global vars for these colors
@@ -215,30 +350,12 @@ const IOPointContainer = ({
                 </div>
 
                 <R2SliderToggle
-                    text={''}
                     state={io_point.enabled}
-                    // onChange={() => {}}
                     enabled={io_point.mcu_configuration_valid}
-                    onClick={handleToggleChange}
+                    onClick={handleEnableToggleClick}
                 />
 
-                {io_point.type === IOPointType.ANALOG_INPUT ? (
-                    <AnalogValueDisplayElement
-                        value={io_point.value}
-                        enabled={io_point.enabled}
-                        configured={io_point.mcu_configuration_valid}
-                    />
-                ) : (
-                    <DigitalValueDisplayElement
-                        value={
-                            dashboardContext.digital_in_data?.values[
-                                io_point.channel
-                            ]
-                        }
-                        enabled={io_point.enabled}
-                        configured={io_point.mcu_configuration_valid}
-                    />
-                )}
+                {renderIOElement(io_point)}
 
                 <button
                     className="m-[8px] mr-4"

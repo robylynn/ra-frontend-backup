@@ -18,13 +18,19 @@ def safe_load_system_configuration() -> SystemConfiguration:
         config_file_name = os.environ.get("CONFIG_FILE")
         system_configuration: SystemConfiguration = load_system_configuration(config_file_name=config_file_name)
     except FileNotFoundError:
-        logger.error(f'Configuration file "{config_file_name}" not found. Exiting application...')
+        logger.error(
+            f'Configuration file "{config_file_name}" not found. Exiting application...'
+        )
         sys.exit()
     except TypeError as e:
-        logger.error(f"Configuration file format is incorrect: {e.args[0]}. Exiting application...")
+        logger.error(
+            f"Configuration file format is incorrect: {e.args[0]}. Exiting application..."
+        )
         sys.exit()
     except InvalidConfigurationException as e:
-        logger.error(f"Configuration file is invalid: {e.args[0]}. Exiting application...")
+        logger.error(
+            f"Configuration file is invalid: {e.args[0]}. Exiting application..."
+        )
         sys.exit()
     except MissingValueError as e:
         logger.error(f"Configuration file missing value: {e}")
@@ -47,7 +53,9 @@ def websocket_message_dict_factory(dataclass):
     for field in dataclass:
         if isinstance(field[1], Enum):
             d[field[0]] = field[1].name
-        elif isinstance(field[1], List) and all([isinstance(entry, Enum) for entry in field[1]]):
+        elif isinstance(field[1], List) and all(
+            [isinstance(entry, Enum) for entry in field[1]]
+        ):
             d[field[0]] = [entry.name for entry in field[1]]
         elif isinstance(field[1], np.float128):
             d[field[0]] = float(field[1])

@@ -68,7 +68,10 @@ def user_login(user: UserLoginSchema = Body(default=None)) -> AuthenticationResp
         return AuthenticationResponse(
             authenticated=True,
             signed_token=signJWT(
-                user.username, authenticated=True, secret=secrets.token_urlsafe(32), algorithm="HS256"
+                user.username,
+                authenticated=True,
+                secret=secrets.token_urlsafe(32),
+                algorithm="HS256",
             ),
         )
 
@@ -123,7 +126,9 @@ async def update_ui_configuration(configuration: UIConfiguration) -> APIResponse
 @ui_router.get("/io_configuration")
 def get_ui_io_configuration():
     config = initializer.ra_database.get_latest_system_configuration(timeout=1)
-    return APIResponse(error=False, data=config.serialize() if config is not None else None)
+    return APIResponse(
+        error=False, data=config.serialize() if config is not None else None
+    )
 
 
 ###############################################################################
@@ -134,19 +139,25 @@ def get_ui_io_configuration():
 # TODO make new endpoints that just return raw ROS JSON data
 @historian_router.get("/io_data")
 def get_io_data_points(number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_io_state(number_of_points=number_of_points, timeout=1)
+    points = initializer.ra_database.get_io_state(
+        number_of_points=number_of_points, timeout=1
+    )
     return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
 
 
 @historian_router.get("/analog_in")
 def get_io_data_points(number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_analog_in_state(number_of_points=number_of_points, timeout=1)
+    points = initializer.ra_database.get_analog_in_state(
+        number_of_points=number_of_points, timeout=1
+    )
     return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
 
 
 @historian_router.get("/digital_in")
 def get_io_data_points(number_of_points: int) -> APIResponse:
-    points = initializer.ra_database.get_digital_in_state(number_of_points=number_of_points, timeout=1)
+    points = initializer.ra_database.get_digital_in_state(
+        number_of_points=number_of_points, timeout=1
+    )
     return APIResponse(error=False, data=[p.serialize_to_dict() for p in points])
 
 
@@ -161,13 +172,17 @@ def get_io_data_points(number_of_points: int) -> APIResponse:
 
 @historian_router.get("/messages")
 def get_messages(number_of_messages: int) -> APIResponse:
-    messages = initializer.ra_database.get_messages(number_of_messages=number_of_messages, timeout=1)
+    messages = initializer.ra_database.get_messages(
+        number_of_messages=number_of_messages, timeout=1
+    )
     return APIResponse(error=False, data=[m.serialize_to_dict() for m in messages])
 
 
 @historian_router.get("/sensor_data")
 def get_sensor_data(number_of_data_points: int) -> APIResponse:
-    data = initializer.ra_database.get_sensor_data(number_of_data_points=number_of_data_points, timeout=1)
+    data = initializer.ra_database.get_sensor_data(
+        number_of_data_points=number_of_data_points, timeout=1
+    )
     return APIResponse(error=False, data=[d.serialize_to_dict() for d in data])
 
 
@@ -182,11 +197,15 @@ def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
     for record in data:
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=datetime.timestamp(datetime.utcnow()), document_type=document_type, data=dict(record)
+                timestamp=datetime.timestamp(datetime.utcnow()),
+                document_type=document_type,
+                data=dict(record),
             )
         )
 
-    return APIResponse(error=False, data=f"Successful insertion of ROS axis {index} data")
+    return APIResponse(
+        error=False, data=f"Successful insertion of ROS axis {index} data"
+    )
 
 
 ###############################################################################
@@ -236,41 +255,55 @@ def get_axis_state(axis_index: int, number_of_points: int) -> APIResponse:
 def push_analog_input_state(data: List[Dict]) -> APIResponse:
     for record in data:
         try:
-            timestamp = datetime.fromtimestamp(record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9).timestamp()
+            timestamp = datetime.fromtimestamp(
+                record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9
+            ).timestamp()
         except Exception as e:
             timestamp = datetime.timestamp(datetime.utcnow())
 
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=timestamp, document_type=DocumentType.ANALOG_INPUT_STATE, data=dict(record)
+                timestamp=timestamp,
+                document_type=DocumentType.ANALOG_INPUT_STATE,
+                data=dict(record),
             )
         )
 
-    return APIResponse(error=False, data="Successful insertion of ROS analog input data")
+    return APIResponse(
+        error=False, data="Successful insertion of ROS analog input data"
+    )
 
 
 @historian_router.post("/digital_in")
 def push_digital_input_state(data: List[Dict]) -> APIResponse:
     for record in data:
         try:
-            timestamp = datetime.fromtimestamp(record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9).timestamp()
+            timestamp = datetime.fromtimestamp(
+                record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9
+            ).timestamp()
         except Exception as e:
             timestamp = datetime.timestamp(datetime.utcnow())
 
         initializer.ra_database.enqueue_record(
             data=create_database_document(
-                timestamp=timestamp, document_type=DocumentType.DIGITAL_INPUT_STATE, data=dict(record)
+                timestamp=timestamp,
+                document_type=DocumentType.DIGITAL_INPUT_STATE,
+                data=dict(record),
             )
         )
 
-    return APIResponse(error=False, data="Successful insertion of ROS digital input data")
+    return APIResponse(
+        error=False, data="Successful insertion of ROS digital input data"
+    )
 
 
 @historian_router.post("/axis/{axis_index}")
 def push_axis_state(axis_index: int, data: List[Dict]) -> APIResponse:
     for record in data:
         try:
-            timestamp = datetime.fromtimestamp(record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9).timestamp()
+            timestamp = datetime.fromtimestamp(
+                record["stamp"]["sec"] + record["stamp"]["nanosec"] / 1e9
+            ).timestamp()
         except Exception as e:
             timestamp = datetime.timestamp(datetime.utcnow())
 
@@ -283,18 +316,24 @@ def push_axis_state(axis_index: int, data: List[Dict]) -> APIResponse:
             )
         )
 
-    return APIResponse(error=False, data=f"Successful insertion of ROS axis {axis_index} data")
+    return APIResponse(
+        error=False, data=f"Successful insertion of ROS axis {axis_index} data"
+    )
 
 
 @historian_router.post("/realtime_sys_state")
 def push_realtime_system_state(data: List[Dict]) -> APIResponse:
     initializer.ra_database.enqueue_record(
         data=create_database_document(
-            timestamp=datetime.timestamp(datetime.utcnow()), document_type=DocumentType.IO_STATE, data=dict(data)
+            timestamp=datetime.timestamp(datetime.utcnow()),
+            document_type=DocumentType.IO_STATE,
+            data=dict(data),
         )
     )
 
-    return APIResponse(error=False, data="Successful insertion of ROS realtime system state data")
+    return APIResponse(
+        error=False, data="Successful insertion of ROS realtime system state data"
+    )
 
 
 ###############################################################################
@@ -302,50 +341,109 @@ def push_realtime_system_state(data: List[Dict]) -> APIResponse:
 ###############################################################################
 
 
-@config_router.post("/io/analog_in_config")
-def configure_analog_in(configurations: List[AnalogIOConfigurationRequestData]) -> APIResponse:
-    # def configure_analog_in(configurations: List[Dict]) -> APIResponse:
-    logger.info(f"Got analog input configuration request: {configurations}")
-
+def assign_analog_io_points(
+    point_type: IOPointType, configurations: List[AnalogIOConfigurationRequestData]
+):
     for config_entry in configurations:
-        point = initializer.ra_interface.io_system.analog_inputs.points[config_entry.channel]
+        point = initializer.ra_interface.io_system.get_io_port(
+            point_type=point_type
+        ).points[config_entry.channel]
         point.configuration.channel = config_entry.channel
-        point.configuration.type = IOPointType.ANALOG_INPUT
+        point.configuration.type = point_type
         point.configuration.configured = config_entry.hardware_config.configured
-        point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
         point.configuration.label = config_entry.label
         point.configuration.max_signal_v = config_entry.max_electrical_value
         point.configuration.min_signal_v = config_entry.min_electrical_value
         point.configuration.max_value = config_entry.max_measurement_value
         point.configuration.min_value = config_entry.min_measurement_value
         point.configuration.measurement_unit = config_entry.unit
-        point.configuration.transfer_function_type = TransferFunctionType.LINEAR
+
+        try:
+            point.configuration.transfer_function_type = TransferFunctionType(
+                config_entry.transfer_function_type
+            )
+        except Exception as e:
+            logger.warning(
+                f"Unrecognized transfer function type {config_entry.transfer_function_type} for {point_type} point {config_entry.channel}, defaulting to LINEAR"
+            )
+            point.configuration.transfer_function_type = TransferFunctionType.LINEAR
+
+        if point_type == IOPointType.ANALOG_INPUT:
+            point.configuration.analog_type = AnalogIOPointType(
+                config_entry.hardware_config.channel_type
+            )
+
         initializer.ra_interface.save_system_configuration()
 
-    return APIResponse(error=False, data=f"Got analog input configuration request: {configurations}")
+
+@config_router.post("/io/analog_in_config")
+def configure_analog_in(
+    configurations: List[AnalogIOConfigurationRequestData],
+) -> APIResponse:
+    logger.info(f"Got analog input configuration request: {configurations}")
+    assign_analog_io_points(
+        point_type=IOPointType.ANALOG_INPUT, configurations=configurations
+    )
+
+    return APIResponse(
+        error=False, data=f"Got analog input configuration request: {configurations}"
+    )
+
+
+@config_router.post("/io/analog_out_config")
+def configure_analog_out(
+    configurations: List[AnalogIOConfigurationRequestData],
+) -> APIResponse:
+    logger.info(f"Got analog output configuration request: {configurations}")
+    assign_analog_io_points(
+        point_type=IOPointType.ANALOG_OUTPUT, configurations=configurations
+    )
+
+    return APIResponse(
+        error=False, data=f"Got analog output configuration request: {configurations}"
+    )
+
+
+def assign_digital_io_points(
+    point_type: IOPointType, configurations: List[DigitalIOConfigurationRequestData]
+):
+    for config_entry in configurations:
+        point = initializer.ra_interface.io_system.get_io_port(
+            point_type=point_type
+        ).points[config_entry.channel]
+        point.configuration.channel = config_entry.channel
+        point.configuration.type = point_type
+        point.configuration.configured = config_entry.hardware_config.configured
+        point.configuration.label = config_entry.label
+        initializer.ra_interface.save_system_configuration()
 
 
 @config_router.post("/io/digital_in_config")
-def configure_digital_in(configurations: List[DigitalIOConfigurationRequestData]) -> APIResponse:
-    # def configure_analog_in(configurations: List[Dict]) -> APIResponse:
+def configure_digital_in(
+    configurations: List[DigitalIOConfigurationRequestData],
+) -> APIResponse:
     logger.info(f"Got digital input configuration request: {configurations}")
+    assign_digital_io_points(
+        point_type=IOPointType.DIGITAL_INPUT, configurations=configurations
+    )
 
-    for config_entry in configurations:
-        point = initializer.ra_interface.io_system.digital_inputs.points[config_entry.channel]
-        point.configuration.channel = config_entry.channel
-        point.configuration.type = IOPointType.DIGITAL_INPUT
-        point.configuration.configured = config_entry.hardware_config.configured
-        # point.configuration.analog_type = AnalogIOPointType(config_entry.hardware_config.channel_type)
-        point.configuration.label = config_entry.label
-        # point.configuration.max_signal_v = config_entry.max_electrical_value
-        # point.configuration.min_signal_v = config_entry.min_electrical_value
-        # point.configuration.max_value = config_entry.max_measurement_value
-        # point.configuration.min_value = config_entry.min_measurement_value
-        # point.configuration.measurement_unit = config_entry.unit
-        # point.configuration.transfer_function_type = TransferFunctionType.LINEAR
-        initializer.ra_interface.save_system_configuration()
+    return APIResponse(
+        error=False, data=f"Got digital input configuration request: {configurations}"
+    )
 
-    return APIResponse(error=False, data=f"Got analog input configuration request: {configurations}")
+
+@config_router.post("/io/digital_out_config")
+def configure_digital_out(
+    configurations: List[DigitalIOConfigurationRequestData],
+) -> APIResponse:
+    logger.info(f"Got digital output configuration request: {configurations}")
+    assign_digital_io_points(
+        point_type=IOPointType.DIGITAL_OUTPUT, configurations=configurations
+    )
+
+    return APIResponse(
+        error=False, data=f"Got digital output configuration request: {configurations}"
+    )
 
 
 # @config_router.post("/io/configure_point")
@@ -394,7 +492,12 @@ async def websocket_endpoint(websocket: WebSocket):
             logger.info(f"Websocket streaming to client {client_id}")
 
             await asyncio.sleep(1)
-            await websocket.send_json({"id": client_id, "message": "test_message " + str(random.randint(0, 100))})
+            await websocket.send_json(
+                {
+                    "id": client_id,
+                    "message": "test_message " + str(random.randint(0, 100)),
+                }
+            )
             # await websocket.receive()
             try:
                 msg = await asyncio.wait_for(websocket.receive_text(), timeout=0.5)

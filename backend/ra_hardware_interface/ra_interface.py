@@ -35,7 +35,9 @@ class RAInterface(Thread):
     def __hash__(self) -> int:
         return hash((self.name))
 
-    def _create_database_document(self, document_type: DocumentType, data: Dict[str, Any]) -> MongoTimeseriesRecord:
+    def _create_database_document(
+        self, document_type: DocumentType, data: Dict[str, Any]
+    ) -> MongoTimeseriesRecord:
         return MongoTimeseriesRecord(
             metadata=TimeseriesMetadata(
                 machine_uid="ra_demo",
@@ -62,7 +64,8 @@ class RAInterface(Thread):
     def save_system_configuration(self):
         self.database.enqueue_record(
             data=self._create_database_document(
-                document_type=DocumentType.SYSTEM_CONFIGURATION, data=self.hardware_configuration.serialize()
+                document_type=DocumentType.SYSTEM_CONFIGURATION,
+                data=self.hardware_configuration.serialize(),
             )
         )
 
@@ -88,14 +91,17 @@ class RAInterface(Thread):
 
                 self.database.enqueue_record(
                     data=self._create_database_document(
-                        document_type=DocumentType.IO_STATE, data=self.io_system.serialize()
+                        document_type=DocumentType.IO_STATE,
+                        data=self.io_system.serialize(),
                     )
                 )
 
                 self.database.enqueue_record(
                     data=self._create_database_document(
                         document_type=DocumentType.FRONTEND_MESSAGE,
-                        data=FrontendMessage(message="test_message", severity=MessageSeverity.ERROR).serialize(),
+                        data=FrontendMessage(
+                            message="test_message", severity=MessageSeverity.ERROR
+                        ).serialize(),
                     )
                 )
 
@@ -103,7 +109,8 @@ class RAInterface(Thread):
 
                 self.database.enqueue_record(
                     data=self._create_database_document(
-                        document_type=DocumentType.SENSOR_DATA, data=self.sensors.serialize()
+                        document_type=DocumentType.SENSOR_DATA,
+                        data=self.sensors.serialize(),
                     )
                 )
 

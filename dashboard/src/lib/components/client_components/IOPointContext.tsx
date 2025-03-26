@@ -29,7 +29,6 @@ interface IOPointContextReducerInterface {
 }
 
 interface IOPointContextReducerDeleteInterface {
-    // point_type: IOPointType;
     point: IOPointConfiguration;
     index: number;
 }

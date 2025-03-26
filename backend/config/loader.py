@@ -6,7 +6,9 @@ from typing import Dict
 from backend.config.models import SystemConfiguration, DocumentType
 
 
-def load_system_configuration(config_file_name: str = "system_configuration.yaml") -> SystemConfiguration:
+def load_system_configuration(
+    config_file_name: str = "system_configuration.yaml",
+) -> SystemConfiguration:
     config_file_directory = os.environ.get("CONFIG_FILE_DIR")
     logger.info(f"Opening config file from {config_file_directory}")
 
@@ -17,7 +19,9 @@ def load_system_configuration(config_file_name: str = "system_configuration.yaml
         app_configuration = dacite.from_dict(
             data_class=SystemConfiguration,
             data=datafile,
-            config=dacite.Config(type_hooks={DocumentType: lambda d: getattr(DocumentType, d.upper())}),
+            config=dacite.Config(
+                type_hooks={DocumentType: lambda d: getattr(DocumentType, d.upper())}
+            ),
         )
 
         post_check_system_configuration(app_configuration)

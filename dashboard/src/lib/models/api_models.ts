@@ -327,6 +327,95 @@ export class IOPointConfiguration
         }
     }
 
+    public static DefaultAnalogInputConfiguration(point_index?: number) {
+        return new IOPointConfiguration({
+            id: '',
+            label: 'Analog Input',
+            type: IOPointType.ANALOG_INPUT,
+            analog_type:
+                IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_VOLTAGE,
+            channel: point_index ?? 0,
+            configured: true,
+            transfer_function_type:
+                IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR,
+            measurement_unit: '',
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: 0,
+            enabled: false,
+        });
+    }
+
+    public static DefaultAnalogOutputConfiguration(point_index?: number) {
+        return new IOPointConfiguration({
+            id: '',
+            label: 'Analog Output',
+            type: IOPointType.ANALOG_OUTPUT,
+            analog_type:
+                IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_VOLTAGE,
+            channel: point_index ?? 0,
+            configured: true,
+            transfer_function_type:
+                IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR,
+            measurement_unit: '',
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: 0,
+            enabled: false,
+        });
+    }
+
+    public static DefaultDigitalInputConfiguration(point_index?: number) {
+        return new IOPointConfiguration({
+            id: '',
+            label: 'Digital Input',
+            type: IOPointType.DIGITAL_INPUT,
+            channel: point_index ?? 0,
+            configured: true,
+            measurement_unit: '',
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: 0,
+            enabled: false,
+        });
+    }
+
+    public static DefaultDigitalOutputConfiguration(point_index?: number) {
+        return new IOPointConfiguration({
+            id: '',
+            label: 'Digital Output',
+            type: IOPointType.DIGITAL_OUTPUT,
+            channel: point_index ?? 0,
+            configured: true,
+            measurement_unit: '',
+            min_value: 0,
+            min_signal_v: 0,
+            max_value: 0,
+            max_signal_v: 0,
+            value: 0,
+            enabled: false,
+        });
+    }
+
+    public static DefaultIOPointConfiguration(point_type: IOPointType, point_index?: number) {
+      switch (point_type) {
+          case IOPointType.DIGITAL_INPUT:
+              return this.DefaultDigitalInputConfiguration(point_index);
+          case IOPointType.DIGITAL_OUTPUT:
+              return this.DefaultDigitalOutputConfiguration(point_index);
+          case IOPointType.ANALOG_INPUT:
+              return this.DefaultAnalogInputConfiguration(point_index);
+          case IOPointType.ANALOG_OUTPUT:
+              return this.DefaultAnalogOutputConfiguration(point_index);
+      }
+    }
+
     public get identifier(): number {
         return this.channel;
     }

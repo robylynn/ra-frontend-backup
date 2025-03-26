@@ -96,7 +96,8 @@ export function R2AlarmSliderToggle(props: {
 }
 
 export function R2SliderToggle(props: {
-    text: string;
+    on_text?: string;
+    off_text?: string;
     state: boolean;
     enabled?: boolean;
     onClick?: MouseEventHandler;
@@ -111,7 +112,9 @@ export function R2SliderToggle(props: {
                 checked={props.state}
             />
             <span
-                id={props.text}
+                id={
+                    props.state ? (props.on_text ?? '') : (props.off_text ?? '')
+                }
                 className={`
         w-20 
                     h-10
@@ -120,6 +123,7 @@ export function R2SliderToggle(props: {
                     flex-shrink-0 
                     ml-4 
                     text-black
+                    text-sm
                     text-center
                     after:leading-9
                     border-2

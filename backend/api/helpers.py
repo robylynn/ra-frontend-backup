@@ -2,7 +2,12 @@ from datetime import datetime
 
 from typing import Dict, Any
 
-from backend.database.models import DocumentType, MongoTimeseriesRecord, MongoAxisTimeseriesRecord, TimeseriesMetadata
+from backend.database.models import (
+    DocumentType,
+    MongoTimeseriesRecord,
+    MongoAxisTimeseriesRecord,
+    TimeseriesMetadata,
+)
 
 
 def create_database_document(
@@ -21,7 +26,9 @@ def create_database_document(
     )
 
 
-def create_database_axis_document(timestamp: float, axis_index: int, data: Dict[str, Any]) -> MongoAxisTimeseriesRecord:
+def create_database_axis_document(
+    timestamp: float, axis_index: int, data: Dict[str, Any]
+) -> MongoAxisTimeseriesRecord:
     return MongoAxisTimeseriesRecord(
         metadata=TimeseriesMetadata(
             machine_uid="ra_demo",

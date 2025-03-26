@@ -164,10 +164,22 @@ function initializeIOConfigurationServices(
         serviceType: 'r2c_interfaces/ConfigureDigitalIn',
     });
 
+    const digital_out_config_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/configure_digital_out',
+        serviceType: 'r2c_interfaces/ConfigureDigitalOut',
+    });
+
     const analog_in_config_service = new ROSLIB.Service({
         ros: ros_websocket,
         name: '/configure_analog_in',
         serviceType: 'r2c_interfaces/ConfigureAnalogIn',
+    });
+
+    const analog_out_config_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/configure_analog_out',
+        serviceType: 'r2c_interfaces/ConfigureAnalogOut',
     });
 
     let config_services: IOConfigurationServices =
@@ -177,8 +189,16 @@ function initializeIOConfigurationServices(
         analog_in_config_service
     );
     config_services.set_service(
+        IOPointType.ANALOG_OUTPUT,
+        analog_out_config_service
+    );
+    config_services.set_service(
         IOPointType.DIGITAL_INPUT,
         digital_in_config_service
+    );
+    config_services.set_service(
+        IOPointType.DIGITAL_OUTPUT,
+        digital_out_config_service
     );
 
     return config_services;

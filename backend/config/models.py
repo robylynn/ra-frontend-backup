@@ -59,7 +59,9 @@ class DatabaseCollectionsConfiguration:
         }
 
     @property
-    def database_collection_generator(self) -> Generator[Tuple[str, CollectionConfiguration], None, None]:
+    def database_collection_generator(
+        self,
+    ) -> Generator[Tuple[str, CollectionConfiguration], None, None]:
         for f in fields(self):
             if isinstance(getattr(self, f.name), CollectionConfiguration):
                 yield f.name, getattr(self, f.name)
@@ -175,7 +177,9 @@ class HardwareConfiguration:
         return HardwareConfiguration(
             io_system=IOSystemConfiguration(
                 digital_inputs=[ROSIOPointConfiguration(**di) for di in digital_inputs],
-                digital_outputs=[ROSIOPointConfiguration(**do) for do in digital_outputs],
+                digital_outputs=[
+                    ROSIOPointConfiguration(**do) for do in digital_outputs
+                ],
                 analog_inputs=[ROSIOPointConfiguration(**ai) for ai in analog_inputs],
                 analog_outputs=[ROSIOPointConfiguration(**ai) for ai in analog_outputs],
             )

@@ -37,8 +37,20 @@ export default function IOConfigurationContainer(props: {
                     setErrorMessage={setErrorMessage}
                 />
                 <IOPointGroup
+                    point_type={IOPointType.ANALOG_OUTPUT}
+                    group_name="Analog Output"
+                    setLoading={(loading: boolean) => setLoading(loading)}
+                    setErrorMessage={setErrorMessage}
+                />
+                <IOPointGroup
                     point_type={IOPointType.DIGITAL_INPUT}
                     group_name="Digital Input"
+                    setLoading={(loading: boolean) => setLoading(loading)}
+                    setErrorMessage={setErrorMessage}
+                />
+                <IOPointGroup
+                    point_type={IOPointType.DIGITAL_OUTPUT}
+                    group_name="Digital Output"
                     setLoading={(loading: boolean) => setLoading(loading)}
                     setErrorMessage={setErrorMessage}
                 />

@@ -241,7 +241,33 @@ export class IOConfigurationServices extends IOServices {
                 };
                 break;
             }
-            case IOPointType.DIGITAL_INPUT: {
+            case IOPointType.ANALOG_OUTPUT: {
+                request_data = {
+                    is_enable_disable_request: is_enable_disable_request,
+                    is_config_request: is_config_request,
+                    config: {
+                        channel: io_point_configuration.channel,
+                        hardware_config: {
+                            configured: io_point_configuration.configured,
+                            enabled: io_point_configuration.enabled,
+                            // channel_type: io_point_configuration.analog_type,
+                        },
+                        label: io_point_configuration.label,
+                        unit: io_point_configuration.measurement_unit,
+                        max_electrical_value:
+                            io_point_configuration.max_signal_v,
+                        min_electrical_value:
+                            io_point_configuration.min_signal_v,
+                        max_measurement_value: io_point_configuration.max_value,
+                        min_measurement_value: io_point_configuration.min_value,
+                        transfer_function_type:
+                            io_point_configuration.transfer_function_type,
+                    },
+                };
+                break;
+            }
+            case IOPointType.DIGITAL_INPUT:
+            case IOPointType.DIGITAL_OUTPUT: {
                 request_data = {
                     is_enable_disable_request: is_enable_disable_request,
                     is_config_request: is_config_request,

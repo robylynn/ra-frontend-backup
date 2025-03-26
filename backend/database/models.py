@@ -8,6 +8,7 @@ import hashlib, json
 
 from dataclasses import dataclass, asdict, InitVar, fields, is_dataclass
 from datetime import datetime
+from functools import singledispatch
 from typing import ClassVar, Dict, Any, Union, List, Optional, TypeVar
 from enum import Enum, auto
 from backend.ra_hardware_interface.models import IOSystem, Sensors
@@ -115,7 +116,9 @@ class MongoTimeseriesRecord:
 
     @staticmethod
     def deserialize_from_dict(record: Dict) -> "MongoTimeseriesRecord":
-        return mongo_record_deserializer(record=record, record_class=MongoTimeseriesRecord)
+        return mongo_record_deserializer(
+            record=record, record_class=MongoTimeseriesRecord
+        )
 
     # @singledispatch
     # def keys_to_strings(self, ob):
@@ -134,7 +137,9 @@ class MongoTimeseriesRecord:
         return json.loads(json.dumps(self._data_dict))
 
     def serialize_to_dict(self) -> Dict[str, Any]:
-        sparse_metadata = asdict(self.metadata, dict_factory=timeseries_record_dict_factory)
+        sparse_metadata = asdict(
+            self.metadata, dict_factory=timeseries_record_dict_factory
+        )
         serialized = {
             **asdict(self, dict_factory=timeseries_record_dict_factory),
             **self.formatted_data_dict,
@@ -173,7 +178,9 @@ class IOSystemDataContainer(DatabaseRecordDataContainer):
     io_system: IOSystem
 
 
-DataRecordContainerType = TypeVar("DataRecordContainerType", bound=IOSystemDataContainer)
+DataRecordContainerType = TypeVar(
+    "DataRecordContainerType", bound=IOSystemDataContainer
+)
 
 ##########################################################
 ###################### RECORD TYPES ######################
@@ -201,7 +208,9 @@ class HardwareConfigurationRecord(MongoTimeseriesRecord):
 
     @staticmethod
     def deserialize_from_dict(record: Dict) -> "HardwareConfigurationRecord":
-        return mongo_record_deserializer(record=record, record_class=HardwareConfigurationRecord)
+        return mongo_record_deserializer(
+            record=record, record_class=HardwareConfigurationRecord
+        )
         # return MongoTimeseriesRecord.deserialize_from_dict(record)
 
     @property
@@ -215,7 +224,9 @@ class UIConfigurationRecord(MongoTimeseriesRecord):
 
     @staticmethod
     def deserialize_from_dict(record: Dict) -> "UIConfigurationRecord":
-        return mongo_record_deserializer(record=record, record_class=UIConfigurationRecord)
+        return mongo_record_deserializer(
+            record=record, record_class=UIConfigurationRecord
+        )
         # return MongoTimeseriesRecord.deserialize_from_dict(record)
 
     @property

@@ -28,7 +28,7 @@ function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
     const axisToggle = (axis: string) => {
         return (
             <R2SliderToggle
-                text={''}
+                on_text={''}
                 state={axisState[axis].enabled}
                 // onChange={() => {}}
                 onClick={() => handleToggleChange(axis)}

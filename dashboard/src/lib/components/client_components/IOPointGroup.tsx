@@ -7,10 +7,6 @@ import { DashboardContext } from '@/lib/components/client_components/DashboardCo
 import IOPointContainer from '@/lib/components/client_components/IOPointContainer';
 import { IOPointContext } from '@/lib/components/client_components/IOPointContext';
 import { IOPointConfiguration, IOPointType } from '@/lib/models/api_models';
-import {
-    IRosTypeR2CInterfacesAnalogInConfigConst,
-    IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType,
-} from '@/lib/models/ros_types';
 import React, { useContext, useEffect, useState } from 'react';
 import {
     DragDropContext,
@@ -63,28 +59,16 @@ const IOPointGroup = ({
         }
     }, [dashboardContext.getGpioConfigurationState(point_type)]);
 
-    const addDigitalInput = () => {
-        let point_index = IOPoints.getNextAvailablePointIndex(
-            IOPointType.DIGITAL_INPUT
-        );
+    const addIOPoint = (point_type: IOPointType) => {
+        let point_index = IOPoints.getNextAvailablePointIndex(point_type);
 
         setLoading(true);
 
         if (point_index >= 0) {
-            const newIOPoint = new IOPointConfiguration({
-                id: '',
-                label: 'Digital Input',
-                type: IOPointType.DIGITAL_INPUT,
-                channel: point_index,
-                configured: true,
-                measurement_unit: '',
-                min_value: 0,
-                min_signal_v: 0,
-                max_value: 0,
-                max_signal_v: 0,
-                value: 0,
-                enabled: false,
-            });
+            const newIOPoint = IOPointConfiguration.DefaultIOPointConfiguration(
+                point_type,
+                point_index
+            );
 
             dashboardContext.io_configuration_services
                 .configure_io_point(
@@ -94,90 +78,22 @@ const IOPointGroup = ({
                             payload: { point: newIOPoint },
                             type: 'config/add',
                         });
-                        console.log('Digital Input sent to ROS');
+                        console.log(`Add ${IOPointType[point_type]} sent to ROS`);
                     },
                     undefined,
                     undefined,
                     () => {
                         setLoading(false);
-                        console.log('Digital Input add completed');
+                        console.log(`${IOPointType[point_type]} add completed`);
                     }
                 )
                 .catch((error) => {
-                    console.error('Error adding Digital Input');
+                    console.error(`Error adding ${IOPointType[point_type]}`);
                     setLoading(false);
                     setErrorMessage(
                         error.toString() || 'Unknown error occurred'
                     );
                 });
-        }
-    };
-
-    const addAnalogInput = () => {
-        let point_index = IOPoints.getNextAvailablePointIndex(
-            IOPointType.ANALOG_INPUT
-        );
-
-        setLoading(true);
-
-        if (point_index >= 0) {
-            const newIOPoint = new IOPointConfiguration({
-                id: '',
-                label: 'Analog Input',
-                type: IOPointType.ANALOG_INPUT,
-                analog_type:
-                    IRosTypeR2CInterfacesAnalogInHardwareConfigChannelType.CHANNEL_TYPE_VOLTAGE,
-                channel: point_index,
-                configured: true,
-                transfer_function_type:
-                    IRosTypeR2CInterfacesAnalogInConfigConst.TRANSFER_FUNCTION_LINEAR,
-                measurement_unit: '',
-                min_value: 0,
-                min_signal_v: 0,
-                max_value: 0,
-                max_signal_v: 0,
-                value: 0,
-                enabled: false,
-            });
-
-            dashboardContext.io_configuration_services
-                .configure_io_point(
-                    newIOPoint,
-                    () => {
-                        setIOPoints({
-                            payload: { point: newIOPoint },
-                            type: 'config/add',
-                        });
-                        console.log('Analog Input sent to ROS');
-                    },
-                    () => {},
-                    () => {},
-                    () => {
-                        setLoading(false);
-                        console.log('Analog Input add completed');
-                    }
-                )
-                .catch((error) => {
-                    console.error('Error adding Analog Input');
-                    setLoading(false);
-                    setErrorMessage(
-                        error.toString() || 'Unknown error occurred'
-                    );
-                });
-        }
-    };
-
-    const addButtonCallback = (point_type: IOPointType): (() => void) => {
-        switch (point_type) {
-            case IOPointType.DIGITAL_INPUT: {
-                return addDigitalInput;
-            }
-            case IOPointType.ANALOG_INPUT: {
-                return addAnalogInput;
-            }
-            default: {
-                return () => {};
-            }
         }
     };
 
@@ -266,10 +182,10 @@ const IOPointGroup = ({
                 <div className="w-full">
                     <div className="flex flex-row grid grid-cols-[92%_8%]">
                         <p className="text-white font-bold px-2 py-2">{`${group_name}s`}</p>
-                        <div className="relative group p-2">
+                        <div className="relative group p-2 justify-center">
                             <button
                                 className="w-6 h-6 flex items-center justify-center bg-gray-200 border border-black shadow-md text-white rounded-full shadow-md hover:bg-green-400 transition"
-                                onClick={() => addButtonCallback(point_type)()}
+                                onClick={() => addIOPoint(point_type)}
                             >
                                 ➕
                             </button>
