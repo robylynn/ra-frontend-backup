@@ -6,12 +6,14 @@
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { IOPointType } from '@/lib/models/api_models';
 import {
+    ApplicationServices,
     IOCommandServices,
     IOConfigurationServices,
 } from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInData,
     IRosTypeR2CInterfacesAnalogOutData,
+    IRosTypeR2CInterfacesApplicationString,
     IRosTypeR2CInterfacesDigitalInData,
     IRosTypeR2CInterfacesDigitalOutData,
     IRosTypeR2CInterfacesEncoderEstimates,
@@ -233,6 +235,21 @@ function initializeIOCommandServices(
     return io_state_services;
 }
 
+function initializeApplicationServices(
+    ros_websocket: ROSLIB.Ros
+): ApplicationServices {
+    const endpoint_string_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/app/set_endpoint',
+        serviceType: 'r2c_interfaces/SetApplicationString',
+    });
+
+    const application_services: ApplicationServices = new ApplicationServices();
+    application_services.set_service('set_endpoint', endpoint_string_service);
+
+    return application_services;
+}
+
 export default function RAWebSocket(props: {
     websocket_path: string;
     reconnect_period_seconds: number;
@@ -250,12 +267,14 @@ export default function RAWebSocket(props: {
 
     const set_ROS_context = (
         config_services: IOConfigurationServices,
-        io_state_services: IOCommandServices
+        io_state_services: IOCommandServices,
+        application_services: ApplicationServices
     ) => {
         setDashboardContext({
             payload: {
                 ros_config_services: config_services,
                 ros_io_state_services: io_state_services,
+                ros_application_services: application_services,
                 ra_ros_websocket: ra_ros_websocket.current,
             },
             type: 'ros/set',
@@ -267,6 +286,7 @@ export default function RAWebSocket(props: {
             payload: {
                 ros_config_services: null,
                 ros_io_state_services: null,
+                ros_application_services: null,
                 ra_ros_websocket: ra_ros_websocket.current,
             },
             type: 'ros/set',
@@ -328,7 +348,8 @@ export default function RAWebSocket(props: {
 
                             set_ROS_context(
                                 initializeIOConfigurationServices(socket),
-                                initializeIOCommandServices(socket)
+                                initializeIOCommandServices(socket),
+                                initializeApplicationServices(socket)
                             );
                         })
                         .catch((err) => {
@@ -460,6 +481,21 @@ export default function RAWebSocket(props: {
                     },
                 })
             );
+
+            subscriptions.current.add_subscription({
+                ros_socket: dashboardContext.ra_ros_websocket,
+                name: '/app/callback_payload',
+                messageType: 'r2c_interfaces/ApplicationString',
+                callback: (message: IRosTypeR2CInterfacesApplicationString) => {
+                    setDashboardContext({
+                        payload: {
+                            state_name: 'callback_payload',
+                            state_value: message.payload,
+                        },
+                        type: 'app/application_state',
+                    });
+                },
+            });
 
             subscriptions.current.subscribeToTopics();
         }

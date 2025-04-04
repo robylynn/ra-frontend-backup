@@ -29,8 +29,6 @@ export default function RootLayout({
         <html lang="en" className="dark">
             <NextAuthProvider>
                 <DashboardContextProvider>
-                    {/* <AnalogInputProvider> */}
-                    {/* <RAStateContextProvider> */}
                     <DataUpdater
                         update_period_seconds={1}
                         configuration_update_period_seconds={5}
@@ -53,9 +51,6 @@ export default function RootLayout({
                             <ConnectionStateIndicator />
                         </div>
                     </body>
-                    {/* </IOPointContextProvider> */}
-                    {/* </RAStateContextProvider> */}
-                    {/* </AnalogInputProvider> */}
                 </DashboardContextProvider>
             </NextAuthProvider>
         </html>

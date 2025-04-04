@@ -13,6 +13,7 @@ import {
 } from '@/lib/models/api_models';
 import {
     ApplicationContext,
+    ApplicationServices,
     IOCommandServices,
     IOConfigurationServices,
 } from '@/lib/models/dashboard_context';
@@ -64,6 +65,7 @@ export default function DashboardContextProvider(props: {
     const setROSAction = createAction<{
         ros_config_services: IOConfigurationServices;
         ros_io_state_services: IOCommandServices;
+        ros_application_services: ApplicationServices;
         ra_ros_websocket: ROSLIB.Ros;
     }>('ros/set');
     const setAnalogInDataAction = createAction<{
@@ -106,6 +108,10 @@ export default function DashboardContextProvider(props: {
     );
     const saveMotionPlotsAction = createAction<{}>('motion_plots/save');
     const saveIOPlotsAction = createAction<{}>('io_plots/save');
+    const setApplicationStateAction = createAction<{
+        state_name: string;
+        state_value: string;
+    }>('app/application_state');
 
     function updatePlot(
         plot_configurations: PlotConfiguration[],
@@ -161,6 +167,8 @@ export default function DashboardContextProvider(props: {
                         action.payload.ros_config_services;
                     state.io_command_services =
                         action.payload.ros_io_state_services;
+                    state.application_services =
+                        action.payload.ros_application_services;
                     return state;
                 })
                 .addCase(setAnalogInDataAction, (state, action) => {
@@ -236,6 +244,12 @@ export default function DashboardContextProvider(props: {
                 .addCase(saveIOPlotsAction, (state, action) => {
                     state.configuration.save_motion_plot_configuration();
                     return state;
+                })
+                .addCase(setApplicationStateAction, (state, action) => {
+                    state.application_state.set_state(
+                        action.payload.state_name,
+                        action.payload.state_value
+                    );
                 });
         }
     );

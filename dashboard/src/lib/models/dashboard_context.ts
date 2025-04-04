@@ -28,6 +28,7 @@ import {
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
     IRosTypeR2CInterfacesSetAnalogOutputStatesRequest,
+    IRosTypeR2CInterfacesSetApplicationStringRequest,
     IRosTypeR2CInterfacesSetDigitalOutputStatesRequest,
 } from '@/lib/models/ros_types';
 
@@ -43,6 +44,103 @@ type IOConfigurationRequest =
 type IOCommandRequestData =
     | IRosTypeR2CInterfacesSetDigitalOutputStatesRequest
     | IRosTypeR2CInterfacesSetAnalogOutputStatesRequest;
+
+export class ApplicationServices {
+    protected _services: Record<string, ROSLIB.Service> = {};
+
+    public set_service(name: string, service: ROSLIB.Service) {
+        this._services[name] = service;
+    }
+
+    public get_service(name: string): ROSLIB.Service | null {
+        if (Object.keys(this._services).includes(name)) {
+            return this._services[name];
+        }
+        return null;
+    }
+
+    private _call_service(
+        service_name: string,
+        request_data: any,
+        onSuccess: () => void,
+        onFailure: () => void,
+        onError: (error: any) => void,
+        onComplete: () => void
+    ) {
+        let success = false;
+
+        const service = this.get_service(service_name);
+        if (!service) {
+            console.error(`Service ${service_name} is not available`);
+            onFailure();
+            return success;
+        }
+
+        timeoutServiceCall(service, request_data, 3000)
+            .then((result) => {
+                if ((result as any).success) {
+                    onSuccess();
+                    success = true;
+                } else {
+                    onFailure();
+                }
+            })
+            .catch((error) => {
+                onError(error);
+            })
+            .finally(() => {
+                onComplete();
+            });
+        return success;
+    }
+
+    public set_endpoint(
+        path: string,
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (e: any) => void,
+        onComplete?: () => void
+    ): boolean {
+        const request_data: IRosTypeR2CInterfacesSetApplicationStringRequest = {
+            payload: path,
+        };
+
+        return this._call_service(
+            'set_endpoint',
+            request_data,
+            () => {
+                console.log(`Successfully set endpoint path to ${path}`);
+                if (onSuccess) onSuccess();
+            },
+            () => {
+                console.log(`Failed to set endpoint path to ${path}`);
+                if (onFailure) onFailure();
+            },
+            (error) => {
+                console.log(`Error setting endpoint path to ${path}: ${error}`);
+                if (onError) onError(error);
+            },
+            () => {
+                if (onComplete) onComplete();
+            }
+        );
+    }
+}
+
+export class ApplicationState {
+    _states: Record<string, string> = {};
+
+    public get_state(state_name: string): string | null {
+        if (Object.keys(this._states).includes(state_name)) {
+            return this._states[state_name];
+        }
+        return null;
+    }
+
+    public set_state(state_name: string, state_value: string) {
+        this._states[state_name] = state_value;
+    }
+}
 
 class IOServices {
     [immerable] = true;
@@ -444,6 +542,8 @@ export class ApplicationContext {
     ra_ros_websocket: ROSLIB.Ros | null = null;
     io_configuration_services: IOConfigurationServices;
     io_command_services: IOCommandServices;
+    application_services: ApplicationServices;
+    application_state: ApplicationState;
 
     // Machine State
     analog_in_data: IRosTypeR2CInterfacesAnalogInData = null;
@@ -462,6 +562,7 @@ export class ApplicationContext {
         // this.io_state = new DatabaseIOStateDocumentArray();
         this.io_configuration_services = new IOConfigurationServices();
         this.io_command_services = new IOCommandServices();
+        this.application_state = new ApplicationState();
     }
 
     public getIOState(point_type: IOPointType) {

@@ -93,6 +93,10 @@ export enum IRosTypeR2CInterfacesAnalogOutHardwareConfigPwmPeriodMs {
     PWM_PERIOD_MAX_MS = 255,
 }
 
+export interface IRosTypeR2CInterfacesApplicationString {
+    payload: string;
+}
+
 export interface IRosTypeR2CInterfacesAxesEstimates {
     stamp: { sec: number; nanosec: number };
     axis_0_encoder_estimates: IRosTypeR2CInterfacesEncoderEstimates;
@@ -561,6 +565,19 @@ export interface IRosTypeR2CInterfacesSetAnalogOutputStatesRequest {
 }
 
 export interface IRosTypeR2CInterfacesSetAnalogOutputStatesResponse {
+    success: boolean;
+}
+
+export interface IRosTypeR2CInterfacesSetApplicationString {
+    request: IRosTypeR2CInterfacesSetApplicationStringRequest;
+    response: IRosTypeR2CInterfacesSetApplicationStringResponse;
+}
+
+export interface IRosTypeR2CInterfacesSetApplicationStringRequest {
+    payload: string;
+}
+
+export interface IRosTypeR2CInterfacesSetApplicationStringResponse {
     success: boolean;
 }
 

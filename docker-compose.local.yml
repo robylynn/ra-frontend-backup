@@ -50,7 +50,7 @@ services:
       - CONTROLLER_URI=172.23.0.50:8000
       - ROS_HOST=host.docker.internal
       # - NEXTAUTH_URL=http://192.168.2.201:80
-      - NEXTAUTH_URL=http://localhost:80
+      - NEXTAUTH_URL=http://192.168.10.10:80
       - ENABLE_AUTHENTICATION=true
       - DEBUG=false
 
@@ -105,6 +105,40 @@ services:
       backend:
         ipv4_address: 172.23.0.50
     user: "${DOCKER_UID}:${DOCKER_GID}"
+    restart: unless-stopped
+
+  rosbridge_websocket:
+    container_name: rosbridge_websocket
+    build:
+      dockerfile: Dockerfile
+      context: ./rosbridge-server
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    # <<: *common-config
+    volumes:
+      - /home/r2/ros2_ws:/home/r2/ros2_ws
+    network_mode: host
+    ipc: host
+    ports:
+      - 9090:9090
+    # command: ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+    # command: bash -c "source /home/r2/ros2_ws/install/setup.bash && ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
+    command: bash -c "echo $RMW_IMPLEMENTATION && ros2 topic list && source /home/r2/ros2_ws/install/setup.bash && ros2 run rosbridge_server rosbridge_websocket"
+  
+  microros-agent:
+    container_name: microros-agent
+    image: microros/micro-ros-agent:humble
+    command: udp4 -p 8888 -v4
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    privileged: true
+    volumes:
+      - /dev:/dev
+      - /dev/shm:/dev/shm
+    network_mode: host
+    ports:
+      # - 8888:8888
+      - 9999:9999
     restart: unless-stopped
 
 networks:

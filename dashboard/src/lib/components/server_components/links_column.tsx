@@ -102,6 +102,11 @@ export default async function LinksColumn(props: { className?: string }) {
                             href={'/dashboard'}
                         />
                         <PageTab
+                            tab_text={'Application'}
+                            icon_path={'/icons/application.svg'}
+                            href={'/application_sandbox'}
+                        />
+                        <PageTab
                             tab_text={'Data Charts'}
                             icon_path={'/icons/Diagnose.svg'}
                             href={'/charts'}
