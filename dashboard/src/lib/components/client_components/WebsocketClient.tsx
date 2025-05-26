@@ -4,20 +4,23 @@
 'use client';
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
-import { IOPointType } from '@/lib/models/api_models';
+import { AxisServiceType, IOPointType } from '@/lib/models/api_models';
 import {
     ApplicationServices,
+    AxisCommandServices,
     IOCommandServices,
     IOConfigurationServices,
 } from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInData,
     IRosTypeR2CInterfacesAnalogOutData,
-    IRosTypeR2CInterfacesApplicationString,
     IRosTypeR2CInterfacesDigitalInData,
     IRosTypeR2CInterfacesDigitalOutData,
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
+    IRosTypeR2CInterfacesHeartbeat,
+    IRosTypeR2CInterfacesTorques,
+    IRosTypeStdMsgsString,
 } from '@/lib/models/ros_types';
 import { getSession } from 'next-auth/react';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -250,6 +253,41 @@ function initializeApplicationServices(
     return application_services;
 }
 
+function initializeAxisServices(
+    ros_websocket: ROSLIB.Ros
+): AxisCommandServices {
+    const clear_axis_errors_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/axis/clear_errors',
+        serviceType: 'r2c_interfaces/ClearErrors',
+    });
+
+    const set_axis_state_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/axis/set_state',
+        serviceType: 'r2c_interfaces/SetAxisState',
+    });
+
+    const jog_axis_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/motion/jog',
+        serviceType: 'r2c_interfaces/JogAxis',
+    });
+
+    const axis_command_services = new AxisCommandServices();
+    axis_command_services.set_service(
+        AxisServiceType.CLEAR_ERRORS,
+        clear_axis_errors_service
+    );
+    axis_command_services.set_service(
+        AxisServiceType.SET_STATE,
+        set_axis_state_service
+    );
+    axis_command_services.set_service(AxisServiceType.JOG, jog_axis_service);
+
+    return axis_command_services;
+}
+
 export default function RAWebSocket(props: {
     websocket_path: string;
     reconnect_period_seconds: number;
@@ -268,13 +306,15 @@ export default function RAWebSocket(props: {
     const set_ROS_context = (
         config_services: IOConfigurationServices,
         io_state_services: IOCommandServices,
-        application_services: ApplicationServices
+        application_services: ApplicationServices,
+        axis_command_services: AxisCommandServices
     ) => {
         setDashboardContext({
             payload: {
                 ros_config_services: config_services,
                 ros_io_state_services: io_state_services,
                 ros_application_services: application_services,
+                ros_axis_command_services: axis_command_services,
                 ra_ros_websocket: ra_ros_websocket.current,
             },
             type: 'ros/set',
@@ -349,7 +389,8 @@ export default function RAWebSocket(props: {
                             set_ROS_context(
                                 initializeIOConfigurationServices(socket),
                                 initializeIOCommandServices(socket),
-                                initializeApplicationServices(socket)
+                                initializeApplicationServices(socket),
+                                initializeAxisServices(socket)
                             );
                         })
                         .catch((err) => {
@@ -455,7 +496,7 @@ export default function RAWebSocket(props: {
                 },
             });
 
-            [0, 1, 2, 4].forEach((axis_index) =>
+            [0, 1, 2, 4].forEach((axis_index) => {
                 subscriptions.current.add_subscription({
                     ros_socket: dashboardContext.ra_ros_websocket,
                     name: `/axis_${axis_index}/pos_vel`,
@@ -479,18 +520,49 @@ export default function RAWebSocket(props: {
                             type: 'data/axis',
                         });
                     },
-                })
-            );
+                });
+
+                subscriptions.current.add_subscription({
+                    ros_socket: dashboardContext.ra_ros_websocket,
+                    name: `/axis_${axis_index}/heartbeat`,
+                    messageType: 'r2c_interfaces/Heartbeat',
+                    callback: (message: IRosTypeR2CInterfacesHeartbeat) => {
+                        setDashboardContext({
+                            payload: {
+                                axis_index: axis_index,
+                                heartbeat: message,
+                            },
+                            type: 'data/axis_heartbeat',
+                        });
+                    },
+                });
+
+                subscriptions.current.add_subscription({
+                    ros_socket: dashboardContext.ra_ros_websocket,
+                    name: `/axis_${axis_index}/torque`,
+                    messageType: 'r2c_interfaces/Torques',
+                    callback: (message: IRosTypeR2CInterfacesTorques) => {
+                        console.log('got torque');
+                        setDashboardContext({
+                            payload: {
+                                axis_index: axis_index,
+                                torque: message,
+                            },
+                            type: 'data/axis_torque',
+                        });
+                    },
+                });
+            });
 
             subscriptions.current.add_subscription({
                 ros_socket: dashboardContext.ra_ros_websocket,
                 name: '/app/callback_payload',
-                messageType: 'r2c_interfaces/ApplicationString',
-                callback: (message: IRosTypeR2CInterfacesApplicationString) => {
+                messageType: 'std_msgs/String',
+                callback: (message: IRosTypeStdMsgsString) => {
                     setDashboardContext({
                         payload: {
                             state_name: 'callback_payload',
-                            state_value: message.payload,
+                            state_value: message.data,
                         },
                         type: 'app/application_state',
                     });

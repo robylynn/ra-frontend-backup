@@ -14,6 +14,7 @@ import {
 import {
     ApplicationContext,
     ApplicationServices,
+    AxisCommandServices,
     IOCommandServices,
     IOConfigurationServices,
 } from '@/lib/models/dashboard_context';
@@ -24,6 +25,8 @@ import {
     IRosTypeR2CInterfacesDigitalOutData,
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
+    IRosTypeR2CInterfacesHeartbeat,
+    IRosTypeR2CInterfacesTorques,
 } from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
 import ROSLIB from 'roslib';
@@ -66,6 +69,7 @@ export default function DashboardContextProvider(props: {
         ros_config_services: IOConfigurationServices;
         ros_io_state_services: IOCommandServices;
         ros_application_services: ApplicationServices;
+        ros_axis_command_services: AxisCommandServices;
         ra_ros_websocket: ROSLIB.Ros;
     }>('ros/set');
     const setAnalogInDataAction = createAction<{
@@ -87,6 +91,14 @@ export default function DashboardContextProvider(props: {
         axis_index: number;
         axis_data: IRosTypeR2CInterfacesEncoderEstimates;
     }>('data/axis');
+    const setAxisHeartbeatAction = createAction<{
+        axis_index: number;
+        heartbeat: IRosTypeR2CInterfacesHeartbeat;
+    }>('data/axis_heartbeat');
+    const setAxisTorqueAction = createAction<{
+        axis_index: number;
+        torque: IRosTypeR2CInterfacesTorques;
+    }>('data/axis_torque');
     const addPlotAction = createAction<{
         plot_type: IOPointType;
         configuration: PlotConfiguration;
@@ -169,6 +181,8 @@ export default function DashboardContextProvider(props: {
                         action.payload.ros_io_state_services;
                     state.application_services =
                         action.payload.ros_application_services;
+                    state.axis_command_services =
+                        action.payload.ros_axis_command_services;
                     return state;
                 })
                 .addCase(setAnalogInDataAction, (state, action) => {
@@ -195,6 +209,16 @@ export default function DashboardContextProvider(props: {
                 .addCase(setAxisDataAction, (state, action) => {
                     state.axis_data[action.payload.axis_index] =
                         action.payload.axis_data;
+                    return state;
+                })
+                .addCase(setAxisTorqueAction, (state, action) => {
+                    state.axis_torque[action.payload.axis_index] =
+                        action.payload.torque;
+                    return state;
+                })
+                .addCase(setAxisHeartbeatAction, (state, action) => {
+                    state.axis_heartbeat[action.payload.axis_index] =
+                        action.payload.heartbeat;
                     return state;
                 })
                 .addCase(addPlotAction, (state, action) => {

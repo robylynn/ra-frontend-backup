@@ -192,6 +192,12 @@ export enum AnalogIOPointType {
     CURRENT,
 }
 
+export enum AxisServiceType {
+    SET_STATE,
+    CLEAR_ERRORS,
+    JOG
+}
+
 // export enum TransferFunctionType {
 //   LINEAR,
 //   CUSTOM,

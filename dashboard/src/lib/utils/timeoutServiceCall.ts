@@ -10,7 +10,6 @@ const timeoutServiceCall = (
 
         const timeoutPromise = new Promise((_, reject) => {
             timeoutId = setTimeout(() => {
-                // reject(new Error('Service call timed out'));
                 reject('Service call timed out.');
             }, timeoutDuration);
         });
@@ -23,7 +22,6 @@ const timeoutServiceCall = (
                     if ((result as any).success) {
                         resolve(result);
                     } else {
-                        // reject(new Error(`Service call failure: ${(result as any).message ?? "Unkown error"}`));
                         reject(
                             `Service call failure: ${(result as any).message ?? 'Unkown error.'}`
                         );

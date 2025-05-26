@@ -1,11 +1,11 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-'use client';
+// 'use client';
 
 import { Dispatch, SetStateAction, useContext } from 'react';
 
-import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
+// import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
 import JogContainer from '@/lib/components/client_components/JogContainer';
 
@@ -15,9 +15,6 @@ export default function JogPanel(props: {
     fill_tile_callback?: Dispatch<SetStateAction<string>>;
     force_expanded?: boolean;
 }) {
-    const { dashboardContext, setDashboardContext } =
-        useContext(DashboardContext);
-
     return (
         <DashboardHeaderContainer
             header_text={'Jog'}

@@ -12,6 +12,10 @@
       {
         "namespace": "r2c_interfaces",
         "path": "../r2-controller-interfaces/r2c_interfaces/srv"
+      },
+      {
+        "namespace": "std_msgs",
+        "path": "/opt/ros/humble/share/std_msgs"
       }
     ]
   }

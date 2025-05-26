@@ -7,6 +7,7 @@ import ROSLIB from 'roslib';
 import { DatabaseMessageArray } from '@/lib/models/database_models';
 
 import {
+    AxisServiceType,
     HardwareConfiguration,
     IOPointConfiguration,
     IOPointType,
@@ -17,6 +18,9 @@ import {
     IRosTypeR2CInterfacesAnalogInHardwareConfig,
     IRosTypeR2CInterfacesAnalogOutData,
     IRosTypeR2CInterfacesAnalogOutHardwareConfig,
+    IRosTypeR2CInterfacesAxisState,
+    IRosTypeR2CInterfacesAxisStateAxisIndex,
+    IRosTypeR2CInterfacesClearErrorsRequest,
     IRosTypeR2CInterfacesConfigureAnalogInRequest,
     IRosTypeR2CInterfacesConfigureAnalogOutRequest,
     IRosTypeR2CInterfacesConfigureDigitalInRequest,
@@ -27,9 +31,14 @@ import {
     IRosTypeR2CInterfacesDigitalOutHardwareConfig,
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
+    IRosTypeR2CInterfacesHeartbeat,
+    IRosTypeR2CInterfacesJogAxisRequest,
+    IRosTypeR2CInterfacesJogAxisRequestConst,
     IRosTypeR2CInterfacesSetAnalogOutputStatesRequest,
     IRosTypeR2CInterfacesSetApplicationStringRequest,
+    IRosTypeR2CInterfacesSetAxisStateRequest,
     IRosTypeR2CInterfacesSetDigitalOutputStatesRequest,
+    IRosTypeR2CInterfacesTorques,
 } from '@/lib/models/ros_types';
 
 import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
@@ -139,6 +148,252 @@ export class ApplicationState {
 
     public set_state(state_name: string, state_value: string) {
         this._states[state_name] = state_value;
+    }
+}
+
+class AxisService {
+    [immerable] = true;
+
+    protected _services: Record<AxisServiceType, ROSLIB.Service | null> = {
+        [AxisServiceType.SET_STATE]: undefined,
+        [AxisServiceType.CLEAR_ERRORS]: undefined,
+        [AxisServiceType.JOG]: undefined,
+    };
+
+    public constructor() {}
+
+    public get_service(service_type: AxisServiceType) {
+        return this._services[service_type];
+    }
+
+    public set_service(service_type: AxisServiceType, service: ROSLIB.Service) {
+        this._services[service_type] = service;
+    }
+}
+
+export class AxisCommandServices extends AxisService {
+    [immerable] = true;
+
+    private _call_axis_service(
+        request_data: any,
+        service_type: AxisServiceType,
+        onSuccess: () => void,
+        onFailure: () => void,
+        onError: (error: any) => void,
+        onComplete?: () => void
+    ) {
+        let success = false;
+
+        const service = this.get_service(service_type);
+        if (!service) {
+            console.error(
+                `Service for ${AxisServiceType[service_type]} is not available`
+            );
+            onFailure();
+            return success;
+        }
+
+        timeoutServiceCall(service, request_data, 3000)
+            .then((result) => {
+                if ((result as any).success) {
+                    if (onSuccess) onSuccess();
+                    // onSuccess(
+                    //     result as IRosTypeR2CInterfacesClearErrorsResponse
+                    // );
+                    success = true;
+                } else {
+                    onFailure();
+                }
+            })
+            .catch((error) => {
+                console.error(`Service call unsuccessful.`);
+                onError(error);
+            })
+            .finally(() => {
+                onComplete();
+            });
+        return success;
+    }
+
+    public clear_axis_errors(
+        axis_index: number,
+        // target_state: IRosTypeR2CInterfacesAxisState,
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
+        onComplete?: () => void
+    ) {
+        let success = false;
+
+        const service = this.get_service(AxisServiceType.CLEAR_ERRORS);
+        if (!service) {
+            console.error(
+                `Service for ${AxisServiceType[AxisServiceType.CLEAR_ERRORS]} is not available`
+            );
+            onFailure();
+            return success;
+        }
+
+        const request_data: IRosTypeR2CInterfacesClearErrorsRequest = {
+            axis_index: axis_index,
+            // state: target_state, // TODO CHECK THIS STATE FOR STATE CHANGE
+            timeout_ms: 3000,
+        };
+
+        this._call_axis_service(
+            request_data,
+            AxisServiceType.CLEAR_ERRORS,
+            () => {
+                console.log(`Successfully cleared axis ${axis_index} errors.`);
+                if (onSuccess) onSuccess();
+            },
+            () => {
+                console.log(`Failed to clear axis ${axis_index} errors.`);
+                if (onFailure) onFailure();
+            },
+            (e) => {
+                console.log(`Error clearing axis ${axis_index} errors: ${e}`);
+                if (onError) onError(e);
+            },
+            () => {
+                if (onComplete) onComplete();
+            }
+        );
+
+        return success;
+    }
+
+    public jog_axis(
+        axis_index: number,
+        jog_type: IRosTypeR2CInterfacesJogAxisRequestConst,
+        jog_amount: number,
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
+        onComplete?: () => void
+    ) {
+        const request_data: IRosTypeR2CInterfacesJogAxisRequest = {
+            axis_index: axis_index,
+            mode: jog_type,
+            amount: jog_amount,
+        };
+
+        return this._call_axis_service(
+            request_data,
+            AxisServiceType.JOG,
+            () => {
+                console.log(
+                    `Successfully jogged axis ${axis_index} in ${IRosTypeR2CInterfacesJogAxisRequestConst[jog_type]} mode by ${jog_amount}`
+                );
+                if (onSuccess) onSuccess;
+            },
+            () => {
+                console.log(
+                    `Failed to jog axis ${axis_index} in ${IRosTypeR2CInterfacesJogAxisRequestConst[jog_type]} mode by ${jog_amount}`
+                );
+                if (onFailure) onFailure;
+            },
+            (e) => {
+                console.log(
+                    `Error jogging axis ${axis_index} in ${IRosTypeR2CInterfacesJogAxisRequestConst[jog_type]} mode by ${jog_amount}: ${e}`
+                );
+                if (onError) onError(e);
+            },
+            () => {
+                if (onComplete) onComplete;
+            }
+        );
+    }
+
+    public set_axis_state(
+        axis_index: number,
+        target_state: IRosTypeR2CInterfacesAxisStateAxisIndex,
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
+        onComplete?: () => void
+    ): boolean {
+        const request_data: IRosTypeR2CInterfacesSetAxisStateRequest = {
+            axis_index: axis_index,
+            state: {
+                axis_index: axis_index,
+                state: target_state, // TODO CHECK THIS STATE FOR STATE CHANGE
+                stamp: {
+                    sec: 0,
+                    nanosec: 0,
+                },
+            },
+            timeout_ms: 3000,
+        };
+
+        return this._call_axis_service(
+            request_data,
+            AxisServiceType.SET_STATE,
+            () => {
+                console.log(
+                    `Successfully set axis ${axis_index} to state ${IRosTypeR2CInterfacesAxisStateAxisIndex[target_state]}`
+                );
+                if (onSuccess) onSuccess;
+            },
+            () => {
+                console.log(
+                    `Failed to set axis ${axis_index} to state ${IRosTypeR2CInterfacesAxisStateAxisIndex[target_state]}`
+                );
+                if (onFailure) onFailure;
+            },
+            (e) => {
+                console.log(
+                    `Error setting axis ${axis_index} to state ${IRosTypeR2CInterfacesAxisStateAxisIndex[target_state]}:`
+                );
+                if (onError) onError(e);
+            },
+            () => {
+                if (onComplete) onComplete;
+            }
+        );
+    }
+
+    public set_axis_enable(axis_index: number, enable: boolean) {
+        const target_state = enable
+            ? IRosTypeR2CInterfacesAxisStateAxisIndex.STATE_CLOSED_LOOP_CONTROL
+            : IRosTypeR2CInterfacesAxisStateAxisIndex.STATE_IDLE;
+        this.set_axis_state(axis_index, target_state);
+    }
+}
+
+export class AxisConfigurationServices {
+    private axis_states: Record<number, IRosTypeR2CInterfacesAxisState> = {};
+
+    constructor() {
+        this.initializeAxes();
+    }
+
+    private initializeAxes(): void {
+        this.axis_states = Object.fromEntries(
+            Array.from({ length: 4 }, (_, index) => [
+                index,
+                {
+                    stamp: { sec: 0, nanosec: 0 },
+                    axis_index: index,
+                    state: IRosTypeR2CInterfacesAxisStateAxisIndex.STATE_IDLE,
+                },
+            ])
+        );
+    }
+
+    public getAxisState(index: number): IRosTypeR2CInterfacesAxisState | null {
+        return this.axis_states[index] || null;
+    }
+
+    public setAxisState(
+        index: number,
+        state: IRosTypeR2CInterfacesAxisState
+    ): void {
+        this.axis_states[index] = state;
+    }
+
+    public get allAxisStates(): Record<number, IRosTypeR2CInterfacesAxisState> {
+        return this.axis_states;
     }
 }
 
@@ -543,6 +798,7 @@ export class ApplicationContext {
     io_configuration_services: IOConfigurationServices;
     io_command_services: IOCommandServices;
     application_services: ApplicationServices;
+    axis_command_services: AxisCommandServices;
     application_state: ApplicationState;
 
     // Machine State
@@ -554,6 +810,8 @@ export class ApplicationContext {
         null;
 
     axis_data: Record<number, IRosTypeR2CInterfacesEncoderEstimates> = {};
+    axis_torque: Record<number, IRosTypeR2CInterfacesTorques> = {};
+    axis_heartbeat: Record<number, IRosTypeR2CInterfacesHeartbeat> = {};
 
     constructor() {
         // this.latest_document = new DatabaseDocument();

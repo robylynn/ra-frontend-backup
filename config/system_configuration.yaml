@@ -29,7 +29,7 @@ database:
     digital_input_state:
       document_type: DIGITAL_INPUT_STATE
       drop_on_start: False
-      capped: False
+      capped: True
       collection_size_bytes: 10000
     axis_state:
       document_type: AXIS_STATE
