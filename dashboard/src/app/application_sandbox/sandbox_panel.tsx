@@ -18,7 +18,7 @@ const LabeledInput = (props: {
 
     return (
         <div className={`flex flex-col ${props.className ?? ''}`}>
-            <p className="w-full text-center h-[50px] items-center justify-center align-middle">
+            <p className="w-full text-center h-[50px] items-center justify-center align-middle text-r2-white">
                 {props.name}
             </p>
             <div className="flex flex-col items-center justify-center py-2 space-y-2">
@@ -50,20 +50,15 @@ export default function SandboxPanel(props: {
     const green_light_color = 'rgb(0,255,0,1)';
     const blue_light_color = 'rgb(0,0,255,1)';
     const orange_light_color = 'rgb(255,150,0,1)';
+    const external_light_color = 'rgb(255,0,255,1)';
 
-    const [endpointValues, setEndpointValues] = useState<Array<string>>([
-        null,
-        null,
-    ]);
-
-    const setEndpoint = (endpoint_index: number, endpoint_value: string) => {
-        const endpoint_payload = `${endpoint_index}|${endpoint_value}`;
-        dashboardContext.application_services.set_endpoint(endpoint_payload, () =>
-            setEndpointValues((v) => {
-                let values = [...v];
-                values[endpoint_index] = endpoint_value;
-                return values;
-            })
+    const setApplicationState = (
+        state_name: string,
+        state_value: string | number
+    ) => {
+        dashboardContext.application_services.set_state_variable(
+            state_name,
+            state_value
         );
     };
 
@@ -76,8 +71,7 @@ export default function SandboxPanel(props: {
             fill_tile_callback={props.fill_tile_callback}
         >
             <div className="flex flex-col space-y-5">
-                <div className="grid grid-cols-[25%_25%_25%_25%] place-items-center">
-                    {/* <IndicatorLight/> */}
+                <div className="grid grid-cols-5 place-items-center">
                     <IndicatorLight
                         active={dashboardContext.digital_out_data?.values?.[3]}
                         on_color={green_light_color}
@@ -94,31 +88,91 @@ export default function SandboxPanel(props: {
                         active={dashboardContext.digital_out_data?.values?.[4]}
                         on_color={orange_light_color}
                     />
+                    <IndicatorLight
+                        active={dashboardContext.digital_out_data?.values?.[7]}
+                        on_color={external_light_color}
+                    />
                 </div>
-                <div className="grid grid-cols-2 place-items-center">
+                <div className="grid grid-cols-6 place-items-center">
                     <LabeledInput
-                        name={`Button 1 Endpoint: ${endpointValues[0] ?? 'Blank'}`}
+                        name={`Selected Robot ID: ${dashboardContext.application_state.get_state('robot_id') ?? 'Blank'}`}
                         callback={(value: string) =>
-                            setEndpoint(0, `${value}`)
+                            setApplicationState('robot_id', `${value}`)
                         }
                         className="w-[75%]"
                     />
                     <LabeledInput
-                        name={`Button 2 Endpoint: ${endpointValues[1] ?? 'Blank'}`}
+                        name={`Selected Destination Cell: ${dashboardContext.application_state.get_state('destination_cell') ?? 'Blank'}`}
                         callback={(value: string) =>
-                            setEndpoint(1, `${value}`)
+                            setApplicationState('destination_cell', `${value}`)
                         }
                         className="w-[75%]"
                     />
+                    <R2Button
+                        className="w-[40%] h-[80%]"
+                        text={'Send Robot to Position'}
+                        onClick={() => {
+                            dashboardContext.application_services.send_robot_command(
+                                'GO_SOMEWHERE_TO_STAY'
+                            );
+                        }}
+                    />
+                    <R2Button
+                        className="w-[40%] h-[80%]"
+                        text={'Start Cycle'}
+                        onClick={() => {
+                            dashboardContext.application_services.send_robot_command(
+                                'OPEN'
+                            );
+                        }}
+                    />
+                    <R2Button
+                        className="w-[40%] h-[80%]"
+                        text={'Go Drop'}
+                        onClick={() => {
+                            dashboardContext.application_services.send_robot_command(
+                                'GO_DROP'
+                            );
+                        }}
+                    />
+                    <R2Button
+                        className="w-[40%] h-[80%]"
+                        text={'Cancel Cycle'}
+                        onClick={() => {
+                            dashboardContext.application_services.send_robot_command(
+                                'CANCEL'
+                            );
+                        }}
+                    />
                 </div>
-                <div className="p-5">
-                    <p>Callback Message</p>
-                    <div className="bg-white rounded-sm border h-[100px] content-center">
-                        <p className="text-center">
-                            {dashboardContext.application_state.get_state(
-                                'callback_payload'
-                            )}
-                        </p>
+                <div className="p-5 flex flex-col space-y-4">
+                    <div className="space-y-2">
+                        <p className="text-r2-white">Callback Message</p>
+                        <div className="bg-white rounded-sm border h-[170px] content-center">
+                            <p className="text-center">
+                                {JSON.stringify(
+                                    dashboardContext.application_state.get_state(
+                                        'callback_payload'
+                                    ),
+                                    null,
+                                    2
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-r2-white">RMS Response</p>
+                        <div className="bg-white rounded-sm border h-[100px] content-center">
+                            <p className="text-center">
+                                {JSON.stringify(
+                                    dashboardContext.application_state.get_state(
+                                        'rms_response'
+                                    ),
+                                    null,
+                                    2
+                                )}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

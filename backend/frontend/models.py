@@ -45,7 +45,9 @@ class RAFrontend:
 
     def add_client(self) -> int:
         self._last_client_id += 1
-        self._clients[self._last_client_id] = FrontendClient(client_id=self._last_client_id)
+        self._clients[self._last_client_id] = FrontendClient(
+            client_id=self._last_client_id
+        )
         return self._last_client_id
 
     def add_websocket_client(self) -> int:

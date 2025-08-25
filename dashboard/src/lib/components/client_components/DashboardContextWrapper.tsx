@@ -122,8 +122,11 @@ export default function DashboardContextProvider(props: {
     const saveIOPlotsAction = createAction<{}>('io_plots/save');
     const setApplicationStateAction = createAction<{
         state_name: string;
-        state_value: string;
+        state_value: string | number;
     }>('app/application_state');
+    const setApplicationStatesAction = createAction<{
+        state_values: Record<string, number | string>;
+    }>('app/application_states');
 
     function updatePlot(
         plot_configurations: PlotConfiguration[],
@@ -273,6 +276,11 @@ export default function DashboardContextProvider(props: {
                     state.application_state.set_state(
                         action.payload.state_name,
                         action.payload.state_value
+                    );
+                })
+                .addCase(setApplicationStatesAction, (state, action) => {
+                    state.application_state.set_states(
+                        action.payload.state_values
                     );
                 });
         }

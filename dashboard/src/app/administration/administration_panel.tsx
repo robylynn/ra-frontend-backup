@@ -1,0 +1,427 @@
+// Frontend Web Application for RA Products
+// Developed by R2 Labs
+
+'use client';
+
+import React, {
+    Dispatch,
+    ReactNode,
+    SetStateAction,
+    useContext,
+    useEffect,
+    useState,
+} from 'react';
+
+import { R2Button } from '@/lib/components/client_components/ClickButton';
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
+import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
+import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import timeoutFetch, { timeoutFetchWithErrors } from '@/lib/utils/timeoutFetch';
+
+enum CONNECTION_STATE {
+    INITIALIZING,
+    DISCONNECTED,
+    CONNECTING,
+    CONNECTED,
+}
+
+enum WIFI_NEW_CONNECTION_STATE {
+    IDLE,
+    SCANNING,
+    SCAN_COMPLETE,
+    AWAITING_PASSWORD,
+    CONNECTING,
+    CONNECTION_SUCCESSFUL,
+    CONNECTION_FAILED,
+}
+
+interface NetworkStats {
+    current_ssid: string | null;
+    ethernet_ip: string | null;
+    wifi_ip: string | null;
+    error_message: string | null;
+}
+
+const TextBlock = (props: { children: ReactNode; className?: string }) => {
+    return (
+        <p className={`text-center text-r2-white font-bold ${props.className}`}>
+            {props.children}
+        </p>
+    );
+};
+
+const ErrorDialog = (props: {
+    error_message: string;
+    set_network_stats: Dispatch<SetStateAction<NetworkStats>>;
+}) => {
+    return (
+        <div className="grid grid-rows-3 grid-cols-1 bg-r2-red-300 border">
+            <TextBlock>ERROR</TextBlock>
+            <TextBlock>{`${props.error_message}`}</TextBlock>
+            <R2Button
+                text="Close"
+                onClick={() => {
+                    props.set_network_stats((stats) => ({
+                        ...stats,
+                        error_message: null,
+                    }));
+                }}
+            />
+        </div>
+    );
+};
+
+const NetworkSelectionContainer = (props: {
+    ssids: string[];
+    set_ssids: React.Dispatch<React.SetStateAction<string[]>>;
+    current_connection_state: CONNECTION_STATE;
+    set_current_connection_state: React.Dispatch<
+        React.SetStateAction<CONNECTION_STATE>
+    >;
+    new_connection_state: WIFI_NEW_CONNECTION_STATE;
+    set_new_connection_state: React.Dispatch<
+        React.SetStateAction<WIFI_NEW_CONNECTION_STATE>
+    >;
+    network_stats: NetworkStats;
+    set_network_stats: Dispatch<SetStateAction<NetworkStats>>;
+}) => {
+    const [selectedWifiNetwork, setSelectedWifiNetwork] = useState<string>();
+    const [wifiPassword, setWifiPassword] = useState<string>();
+
+    const scanSSIDs = async () => {
+        props.set_new_connection_state(WIFI_NEW_CONNECTION_STATE.SCANNING);
+        timeoutFetchWithErrors('/api/backend/system/ssids', 5000)
+            .then((response) => {
+                if (response.backend_response?.error) {
+                    props.set_network_stats((stats) => ({
+                        ...stats,
+                        error_message: `Error scanning Wi-Fi networks: ${response.backend_response.error_details?.description}`,
+                    }));
+                    props.set_new_connection_state(
+                        WIFI_NEW_CONNECTION_STATE.SCAN_COMPLETE
+                    );
+                } else {
+                    const ssids = response.backend_response.data;
+                    console.log(`Got SSIDs: ${ssids}`);
+                    props.set_ssids(ssids);
+                    props.set_new_connection_state(
+                        WIFI_NEW_CONNECTION_STATE.SCAN_COMPLETE
+                    );
+                    setSelectedWifiNetwork(ssids[0]);
+                }
+            })
+            .catch((e) => {
+                props.set_new_connection_state(
+                    WIFI_NEW_CONNECTION_STATE.SCAN_COMPLETE
+                );
+                console.error(`Error scanning SSIDs: ${e}`);
+            });
+    };
+
+    const connect_wifi_network = async () => {
+        props.set_network_stats((stats) => ({ ...stats, wifi_ip: null }));
+        props.set_new_connection_state(WIFI_NEW_CONNECTION_STATE.CONNECTING);
+        await timeoutFetchWithErrors(
+            `/api/backend/system/connect_wifi?ssid=${selectedWifiNetwork}&password=${wifiPassword}`,
+            15000,
+            'POST'
+        )
+            .then((result) => {
+                if (result.backend_response?.error) {
+                    props.set_network_stats((stats) => ({
+                        ...stats,
+                        error_message: `Error connecting to Wi-Fi network: ${result.backend_response.error_details?.description}`,
+                    }));
+                    props.set_new_connection_state(
+                        WIFI_NEW_CONNECTION_STATE.CONNECTION_FAILED
+                    );
+                } else {
+                    console.log(
+                        `Connected to Wi-Fi network ${selectedWifiNetwork}`
+                    );
+                    props.set_new_connection_state(
+                        WIFI_NEW_CONNECTION_STATE.CONNECTION_SUCCESSFUL
+                    );
+                    props.set_current_connection_state(
+                        CONNECTION_STATE.INITIALIZING
+                    );
+                }
+            })
+            .catch((e) => {
+                console.error(
+                    `Error connecting to Wi-Fi network ${selectedWifiNetwork}: ${e}`
+                );
+                props.set_network_stats((stats) => ({
+                    ...stats,
+                    error_message: `Error connecting to Wi-Fi network: ${e}`,
+                }));
+                props.set_new_connection_state(
+                    WIFI_NEW_CONNECTION_STATE.CONNECTION_FAILED
+                );
+            });
+    };
+
+    const connection_state_handler = () => {
+        switch (props.new_connection_state) {
+            case WIFI_NEW_CONNECTION_STATE.SCANNING: {
+                return <LoadingIndicator text={'Scanning Wi-Fi'} />;
+            }
+            case WIFI_NEW_CONNECTION_STATE.AWAITING_PASSWORD: {
+                return (
+                    <div className="grid grid-cols-2 gap-x-5">
+                        <div className="flex flex-col">
+                            <TextBlock>Password</TextBlock>
+                            <input
+                                className='text-center'
+                                onChange={(e) =>
+                                    setWifiPassword(e.target.value)
+                                }
+                                type='password'
+                            />
+                        </div>
+                        <R2Button
+                            text="Connect"
+                            onClick={() => connect_wifi_network()}
+                        />
+                    </div>
+                );
+            }
+            case WIFI_NEW_CONNECTION_STATE.CONNECTING: {
+                return <LoadingIndicator text={'Connecting Wi-Fi'} />;
+            }
+            case WIFI_NEW_CONNECTION_STATE.CONNECTION_FAILED: {
+                return (
+                    <div className="flex flex-row">
+                        <TextBlock>{`Connection to ${selectedWifiNetwork} Failed`}</TextBlock>
+                        <R2Button
+                            text="Reset"
+                            onClick={() =>
+                                props.set_new_connection_state(
+                                    WIFI_NEW_CONNECTION_STATE.IDLE
+                                )
+                            }
+                        />
+                    </div>
+                );
+            }
+            case WIFI_NEW_CONNECTION_STATE.SCAN_COMPLETE:
+            case WIFI_NEW_CONNECTION_STATE.CONNECTION_SUCCESSFUL:
+            case WIFI_NEW_CONNECTION_STATE.IDLE: {
+                if (props.ssids.length > 0) {
+                    return (
+                        <div className="grid grid-cols-2 gap-x-5">
+                            <div className="flex flex-col">
+                                <TextBlock>Available Networks</TextBlock>
+                                <select
+                                    className="text-center"
+                                    onChange={(e) =>
+                                        setSelectedWifiNetwork(e.target.value)
+                                    }
+                                >
+                                    {props.ssids.map((ssid) => (
+                                        <option key={ssid}>{ssid}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex flex-col">
+                                <R2Button
+                                    text="Connect"
+                                    onClick={() =>
+                                        props.set_new_connection_state(
+                                            WIFI_NEW_CONNECTION_STATE.AWAITING_PASSWORD
+                                        )
+                                    }
+                                />
+                                <R2Button
+                                    text="Rescan"
+                                    onClick={() => {
+                                        props.set_ssids([]);
+                                        props.set_new_connection_state(
+                                            WIFI_NEW_CONNECTION_STATE.SCANNING
+                                        );
+                                        scanSSIDs();
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    );
+                } else {
+                    return (
+                        <div className="flex flex-row w-full justify-around">
+                            <TextBlock>No Known Networks</TextBlock>
+                            <R2Button
+                                text="Scan SSIDs"
+                                onClick={() => {
+                                    props.set_ssids([]);
+                                    scanSSIDs();
+                                }}
+                            />
+                        </div>
+                    );
+                }
+            }
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-[20%] w-full justify-center">
+            {/* <ErrorDialog error_message={'test message\ntest'} /> */}
+            {props.network_stats?.error_message ? (
+                <ErrorDialog
+                    error_message={props.network_stats.error_message}
+                    set_network_stats={props.set_network_stats}
+                />
+            ) : (
+                connection_state_handler()
+            )}
+        </div>
+    );
+};
+
+export const SubTile = (props: {
+    header: string;
+    children: ReactNode;
+    className?: string;
+}) => [
+    <div className="border h-[40%] w-[50%] flex flex-col rounded-xl px-2 pb-2 bg-r2-dark-background-400">
+        <TextBlock className="py-2">{props.header}</TextBlock>
+        <div className="bg-r2-dark-background-300 rounded-xl grow">
+            {props.children}
+        </div>
+    </div>,
+];
+
+export default function AdministrationPanel(props: {
+    id: string;
+    className?: string;
+    fill_tile_callback?: Dispatch<SetStateAction<string>>;
+    force_expanded?: boolean;
+}) {
+    const { dashboardContext, setDashboardContext } =
+        useContext(DashboardContext);
+
+    const [SSIDs, setSSIDs] = useState<Array<string>>([]);
+    // const [currentSSID, setCurrentSSID] = useState<string>();
+    // const [ethernetIP, setEthernetIP] = useState<string>();
+    // const [wifiIP, setWifiIP] = useState<string>();
+    const [networkStats, setNetworkStats] = useState<NetworkStats>({
+        current_ssid: null,
+        wifi_ip: null,
+        ethernet_ip: null,
+        error_message: null,
+    });
+
+    const [wifiConnectionState, setWifiConnectionState] =
+        useState<CONNECTION_STATE>(CONNECTION_STATE.INITIALIZING);
+
+    const [newWifiConnectionState, setNewWifiConnectionState] =
+        useState<WIFI_NEW_CONNECTION_STATE>(WIFI_NEW_CONNECTION_STATE.IDLE);
+
+    useEffect(() => {
+        const get_network_stat = async (
+            stat_endpoint: string,
+            onSuccess: (stat: string) => void,
+            onFailure: (e: any) => void
+        ) => {
+            timeoutFetch<string>(`/api/backend/system/${stat_endpoint}`, 5000)
+                .then((stat) => {
+                    onSuccess(stat);
+                })
+                .catch((error) => {
+                    onFailure(error);
+                });
+        };
+
+        get_network_stat(
+            'current_ssid',
+            (ssid) => {
+                console.log(`Got SSID: ${ssid}`);
+                // setCurrentSSID(() => ssid);
+                setNetworkStats((stats) => ({ ...stats, current_ssid: ssid }));
+                if (ssid !== undefined) {
+                    setWifiConnectionState(CONNECTION_STATE.CONNECTED);
+                } else {
+                    setWifiConnectionState(CONNECTION_STATE.DISCONNECTED);
+                }
+            },
+            (error) => {
+                console.error(`Error getting current SSID: ${error}`);
+                setWifiConnectionState(CONNECTION_STATE.DISCONNECTED);
+            }
+        );
+
+        get_network_stat(
+            'ethernet_ip',
+            (ethernet_ip) => {
+                console.log(`Got ethernet IP: ${ethernet_ip}`);
+                // setEthernetIP(ethernet_ip);
+                setNetworkStats((stats) => ({
+                    ...stats,
+                    ethernet_ip: ethernet_ip,
+                }));
+            },
+            (error) => console.log(`Error getting ethernet IP: ${error}`)
+        );
+
+        get_network_stat(
+            'wifi_ip',
+            (wifi_ip) => {
+                console.log(`Got Wi-Fi IP: ${wifi_ip}`);
+                // setWifiIP(ethernet_ip);
+                setNetworkStats((stats) => ({ ...stats, wifi_ip: wifi_ip }));
+            },
+            (error) => console.log(`Error getting Wi-Fi IP: ${error}`)
+        );
+    }, [JSON.stringify(wifiConnectionState === CONNECTION_STATE.INITIALIZING)]);
+
+    return (
+        <DashboardHeaderContainer
+            header_text={'Administration'}
+            icon_path={'/icons/user.svg'}
+            className={`${props.className ?? ''}`}
+            fill_tile_id={props.id}
+            fill_tile_callback={props.fill_tile_callback}
+        >
+            <SubTile header="Select Wireless Network">
+                {!(wifiConnectionState === CONNECTION_STATE.INITIALIZING) ? (
+                    <div className="flex flex-col h-full relative px-2 py-2">
+                        <div className="grid grid-cols-2 grid-rows-3 gap-x-2 border rounded-xl">
+                            <TextBlock>Current SSID</TextBlock>
+                            <TextBlock>
+                                {networkStats.current_ssid ??
+                                    'No Wi-Fi Connection'}
+                            </TextBlock>
+                            <TextBlock>Wi-Fi IP</TextBlock>
+                            <TextBlock>
+                                {networkStats.wifi_ip ?? 'No Wi-Fi IP Assigned'}
+                            </TextBlock>
+                            <TextBlock>Ethernet IP</TextBlock>
+                            <TextBlock>
+                                {networkStats.ethernet_ip ??
+                                    'No Ethernet IP Assigned'}
+                            </TextBlock>
+                        </div>
+                        <div className="flex flex-col grow items-center justify-center">
+                            <NetworkSelectionContainer
+                                ssids={SSIDs}
+                                set_ssids={setSSIDs}
+                                current_connection_state={wifiConnectionState}
+                                set_current_connection_state={
+                                    setWifiConnectionState
+                                }
+                                new_connection_state={newWifiConnectionState}
+                                set_new_connection_state={
+                                    setNewWifiConnectionState
+                                }
+                                network_stats={networkStats}
+                                set_network_stats={setNetworkStats}
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <LoadingIndicator />
+                )}
+            </SubTile>
+        </DashboardHeaderContainer>
+    );
+}

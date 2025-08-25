@@ -31,7 +31,7 @@ export default function DiagnosticsContainer(props: {
                 mode: 'cors',
             }
         ).then((res) => res.json());
-        console.log('GET response: ' + JSON.stringify(res.data));
+        console.log('GET response: ' + JSON.stringify(res.backend_response));
 
         // const docs = new DatabaseIOStateDocumentArray(res.data.data);
         const i = 5;
@@ -45,9 +45,9 @@ export default function DiagnosticsContainer(props: {
                 mode: 'cors',
             }
         ).then((res) => res.json());
-        console.log('GET response: ' + JSON.stringify(res.data));
+        console.log('GET response: ' + JSON.stringify(res.backend_response));
 
-        const config = new HardwareConfiguration(res.data.data);
+        const config = new HardwareConfiguration(res.backend_response.data);
         const i = 5;
     };
 
@@ -68,7 +68,7 @@ export default function DiagnosticsContainer(props: {
                 body: JSON.stringify(body),
             }
         ).then((res) => res.json());
-        console.log('POST response: ' + JSON.stringify(res.data));
+        console.log('POST response: ' + JSON.stringify(res.backend_response));
     };
 
     const send_websocket_message = () => {

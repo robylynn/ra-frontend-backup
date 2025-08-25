@@ -45,7 +45,7 @@ export default function IOPlotPanel(props: {
         //     body: JSON.stringify(dashboardContext.configuration),
         //   }
         // ).then((res) => res.json());
-        console.log('POST response: ' + JSON.stringify(res.data));
+        console.log('POST response: ' + JSON.stringify(res.backend_response));
     };
 
     return (

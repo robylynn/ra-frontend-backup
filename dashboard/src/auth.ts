@@ -1,13 +1,35 @@
-// Frontend Web Application for RA Products
-// Developed by R2 Labs
+import NextAuth from 'next-auth';
+import credentials from 'next-auth/providers/credentials';
+import { encode } from "@auth/core/jwt"; // Import encode from @auth/core/jwt
 
-import { User } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-
-const authOptions = {
-    secret: process.env.NEXTAUTH_SECRET,
+export const { auth, handlers, signIn, signOut } = NextAuth({
+    // secret: process.env.AUTH_SECRET,
+    callbacks: {
+        async session({ session, token }) {
+            // Example: Add user ID to session
+            if (token.sub) {
+                session.user.id = token.sub;
+            }
+            // Ensure accessToken is available in the session for client-side use
+            // This will be the raw JWT string we encoded in the jwt callback
+            // if (token.rawJwt) {
+            //     session.sessionToken = token.rawJwt as string;
+            // }
+            return session;
+        },
+        async jwt({ token, user, account }) {
+            // For CredentialsProvider, `account` might not have `access_token` in the same way as OAuth.
+            // We will rely on the `user` object returned by `authorize`.
+            if (user) {
+                token.sub = user.id; // Store user ID
+                token.name = user.name; // Store user name
+                token.email = user.email; // Store user email
+            }
+            return token;
+        },
+    },
     providers: [
-        CredentialsProvider({
+        credentials({
             // The name to display on the sign in form (e.g. 'Sign in with...')
             name: 'Credentials',
             // The credentials is used to generate a suitable form on the sign in page.
@@ -51,7 +73,7 @@ const authOptions = {
                         id: '1',
                         name: credentials?.username,
                         email: null,
-                    } as User;
+                    }; // as User;
                 }
 
                 // Return null if user data could not be retrieved
@@ -59,6 +81,4 @@ const authOptions = {
             },
         }),
     ],
-};
-
-export default authOptions;
+});

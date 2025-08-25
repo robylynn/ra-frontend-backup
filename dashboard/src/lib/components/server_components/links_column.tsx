@@ -1,11 +1,12 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-import { getServerSession } from 'next-auth/next';
+// import { getServerSession } from 'next-auth/next';
+import { auth } from '@/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import authOptions from '@/lib/auth/auth_options';
+// import authOptions from '@/lib/auth/auth_options';
 import StateReadout from '@/lib/components/client_components/StateReadout';
 
 function PageTab(props: {
@@ -57,9 +58,10 @@ function PageTab(props: {
 
 export default async function LinksColumn(props: { className?: string }) {
     let username: string;
-    const session = await getServerSession(authOptions).then(
+    // const session = await getServerSession(authOptions).then(
+    const session = await auth().then(
         (session) => session
-    ); //.then(res => res)
+    );
     if (session == null) {
         username = 'NONE';
     } else {

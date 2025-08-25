@@ -15,6 +15,22 @@
                 "CONTAINERIZED": "false",
                 "CONFIG_FILE": "system_configuration.yaml",
                 "PYTHONPATH": "${workspaceFolder}/backend",
+                "HOST_SERVICES_API_PORT": "8001",
+                "SIMULATE_WIFI_CONNECTIONS": "false"
+            }
+        },
+        {
+            "name": "Host Services API",
+            "type": "python",
+            "request": "launch",
+            "module": "host_services",
+            "justMyCode": false,
+            "env": {
+                // "CONFIG_FILE_DIR": "${workspaceFolder}/config",
+                "HOST_SERVICES_PORT": "8001",
+                "CONTAINERIZED": "false",
+                // "CONFIG_FILE": "system_configuration.yaml",
+                // "PYTHONPATH": "${workspaceFolder}/backend",
             }
         },
         {
@@ -25,7 +41,8 @@
             "cwd": "${workspaceFolder}/dashboard",
             "env": {
                 // "NEXTAUTH_URL": "http://192.168.2.125:3000"
-                "NEXTAUTH_URL": "http://localhost:3000"
+                "NODE_OPTIONS": "--inspect"
+                // "NEXTAUTH_URL": "http://localhost:3000"
             },
             "serverReadyAction": {
                 "pattern": "started server on .+, url: (https?://.+)",
@@ -36,6 +53,25 @@
                 "${workspaceFolder}/.next/server/**/*.js"
             ],
         },
+        {
+            "name": "Next.js: New debug server-side frontend app",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/dashboard",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "dev"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {
+                "NODE_OPTIONS": "--inspect=9230" // Changed port here
+            }
+        },
+    
         {
             "name": "Next.js: start server-side frontend app",
             "type": "node-terminal",

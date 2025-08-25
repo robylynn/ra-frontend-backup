@@ -241,14 +241,35 @@ function initializeIOCommandServices(
 function initializeApplicationServices(
     ros_websocket: ROSLIB.Ros
 ): ApplicationServices {
-    const endpoint_string_service = new ROSLIB.Service({
+    // const endpoint_string_service = new ROSLIB.Service({
+    //     ros: ros_websocket,
+    //     name: '/app/set_endpoint',
+    //     serviceType: 'r2c_interfaces/SetApplicationString',
+    // });
+
+    const application_state_service = new ROSLIB.Service({
         ros: ros_websocket,
-        name: '/app/set_endpoint',
+        name: '/app/set_state',
+        serviceType: 'r2c_interfaces/SetApplicationString',
+    });
+
+    const robot_command_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/app/send_robot_command',
         serviceType: 'r2c_interfaces/SetApplicationString',
     });
 
     const application_services: ApplicationServices = new ApplicationServices();
-    application_services.set_service('set_endpoint', endpoint_string_service);
+    
+    // application_services.set_service('set_endpoint', endpoint_string_service);
+    application_services.set_service(
+        'set_state',
+        application_state_service
+    );
+    application_services.set_service(
+        'send_robot_command',
+        robot_command_service
+    );
 
     return application_services;
 }
@@ -301,7 +322,7 @@ export default function RAWebSocket(props: {
         useRef(null);
     const websocket_connecting: React.MutableRefObject<boolean> = useRef(false);
 
-    const subscriptions = useRef<Subscriptions | null>();
+    const subscriptions = useRef<Subscriptions | null>(null);
 
     const set_ROS_context = (
         config_services: IOConfigurationServices,
@@ -554,17 +575,34 @@ export default function RAWebSocket(props: {
                 });
             });
 
+            // subscriptions.current.add_subscription({
+            //     ros_socket: dashboardContext.ra_ros_websocket,
+            //     name: '/app/application_state',
+            //     messageType: 'std_msgs/String',
+            //     callback: (message: IRosTypeStdMsgsString) => {
+            //         setDashboardContext({
+            //             // payload: {
+            //             //     state_name: 'callback_payload',
+            //             //     state_value: message.data,
+            //             // },
+            //             payload: {
+            //                 state_value: JSON.parse(message.data)
+            //             },
+            //             type: 'app/application_state',
+            //         });
+            //     },
+            // });
+
             subscriptions.current.add_subscription({
                 ros_socket: dashboardContext.ra_ros_websocket,
-                name: '/app/callback_payload',
+                name: '/app/application_state',
                 messageType: 'std_msgs/String',
                 callback: (message: IRosTypeStdMsgsString) => {
                     setDashboardContext({
                         payload: {
-                            state_name: 'callback_payload',
-                            state_value: message.data,
+                            state_values: JSON.parse(message.data),
                         },
-                        type: 'app/application_state',
+                        type: 'app/application_states',
                     });
                 },
             });

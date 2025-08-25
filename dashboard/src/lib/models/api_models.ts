@@ -12,13 +12,20 @@ import { v4 as uuidv4 } from 'uuid';
 export interface BackendAPIResponseInterface {
     error: boolean;
     data: string | Array<any> | any;
+    error_details?: BackendAPIErrorDetailsInterface;
+}
+
+export interface BackendAPIErrorDetailsInterface {
+    description: string;
+    details?: string;
+    stderr?: string;
 }
 
 export interface NextAPIResponseInterface {
     authenticated: boolean;
-    data?: BackendAPIResponseInterface;
-    error?: boolean;
-    error_string?: string;
+    backend_response?: BackendAPIResponseInterface;
+    proxy_error?: boolean;
+    proxy_error_string?: string;
 }
 
 export function createAPIResponse(res: NextAPIResponseInterface) {
@@ -195,7 +202,7 @@ export enum AnalogIOPointType {
 export enum AxisServiceType {
     SET_STATE,
     CLEAR_ERRORS,
-    JOG
+    JOG,
 }
 
 // export enum TransferFunctionType {
@@ -409,17 +416,20 @@ export class IOPointConfiguration
         });
     }
 
-    public static DefaultIOPointConfiguration(point_type: IOPointType, point_index?: number) {
-      switch (point_type) {
-          case IOPointType.DIGITAL_INPUT:
-              return this.DefaultDigitalInputConfiguration(point_index);
-          case IOPointType.DIGITAL_OUTPUT:
-              return this.DefaultDigitalOutputConfiguration(point_index);
-          case IOPointType.ANALOG_INPUT:
-              return this.DefaultAnalogInputConfiguration(point_index);
-          case IOPointType.ANALOG_OUTPUT:
-              return this.DefaultAnalogOutputConfiguration(point_index);
-      }
+    public static DefaultIOPointConfiguration(
+        point_type: IOPointType,
+        point_index?: number
+    ) {
+        switch (point_type) {
+            case IOPointType.DIGITAL_INPUT:
+                return this.DefaultDigitalInputConfiguration(point_index);
+            case IOPointType.DIGITAL_OUTPUT:
+                return this.DefaultDigitalOutputConfiguration(point_index);
+            case IOPointType.ANALOG_INPUT:
+                return this.DefaultAnalogInputConfiguration(point_index);
+            case IOPointType.ANALOG_OUTPUT:
+                return this.DefaultAnalogOutputConfiguration(point_index);
+        }
     }
 
     public get identifier(): number {

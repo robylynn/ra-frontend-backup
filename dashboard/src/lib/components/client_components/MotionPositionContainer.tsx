@@ -67,7 +67,7 @@ function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
                     className={`${props.className ? props.className : 'text-green-400'} font-medium mr-5`}
                 >
                     {/* {data.toFixed(2)} */}
-                    {props.available ? props.data.toFixed(2) : (0).toFixed(2)}
+                    {props.available ? props.data?.toFixed(2) : (0).toFixed(2)}
                 </span>
             </p>
         );

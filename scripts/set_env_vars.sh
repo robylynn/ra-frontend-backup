@@ -11,6 +11,8 @@ export APP_WORKDIR=/app
 export CONFIG_FILE_DIR=config
 export CONFIG_FILE=system_configuration.yaml
 export HOST_HOSTNAME=$(hostname)
+export HOST_SERVICES_PORT=8001
+export SIMULATE_WIFI_CONNECTIONS=false
 
 export DOCKER_UID="$(id $USER | sed -nr 's/.*uid=(....)\(.*\).*/\1/p')"
 export DOCKER_GID="$(id $USER | sed -nr 's/.*gid=(....)\(.*\).*/\1/p')"

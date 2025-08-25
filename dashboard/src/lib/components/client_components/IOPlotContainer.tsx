@@ -36,7 +36,7 @@ const IOPlots = (props: {
         Record<number, Array<PlotDataPoint>>
     >({});
 
-    const initialDataAcquired = useRef<Record<number, boolean>>();
+    const initialDataAcquired = useRef<Record<number, boolean>>({});
 
     useEffect(() => {
         setCompleteIOData(() =>
@@ -452,7 +452,7 @@ const IOPlotContainer = (props: { point_type: IOPointType }) => {
                     ...dashboardContext.configuration.io_plots[
                         props.point_type
                     ],
-                ] ?? undefined
+                ]// ?? undefined
             }
         />
     );

@@ -16,9 +16,9 @@ class AuthenticationResponse(BaseModel):
     signed_token: str
 
 
-class APIResponse(BaseModel):
-    error: bool
-    data: str | List | Dict
+# class APIResponse(BaseModel):
+#     error: bool
+#     data: str | List | Dict
 
 
 class IOConfigurationRequestData(BaseModel):
@@ -39,7 +39,6 @@ class AnalogInputHardwareConfigurationRequestData(BaseModel):
     configured: bool
     enabled: bool
     channel_type: Optional[int] = None
-
 
 
 class DigitalInputHardwareConfigurationRequestData(BaseModel):

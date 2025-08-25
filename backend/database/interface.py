@@ -231,7 +231,6 @@ class DatabaseInstance:
                 )
 
 
-
 @dataclass
 class MongoInterfaceState:
     collections_configuration: InitVar[DatabaseCollectionsConfiguration]
@@ -713,7 +712,9 @@ class MongoInterface(Process):
             configuration=self.configuration
         )
 
-        self._database_queues_container = RADatabaseQueues(configuration=self.configuration)
+        self._database_queues_container = RADatabaseQueues(
+            configuration=self.configuration
+        )
 
         self.pipe_output, self._pipe_input = Pipe()
         self._pipe_lock = Lock()

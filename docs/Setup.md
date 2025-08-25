@@ -112,3 +112,6 @@ and invoke with
 quicktype --src ../ra-frontend-interfaces/models.json --src-lang schema --lang python --python
 -version 3.7  --out ../ra-frontend-interfaces/models.py --just-types
 ```
+
+## System Setup
+Depending on the platform used, we need different packages for running the system services application. We need `wireless-tools` and `network-manager` in ubuntu. Raspbian requirements TBD. Use the provided networkmanager_netplan.yaml file for `/etc/netplan/50-cloud-init.yaml` and then `sudo nmcli con modify netplan-wlan0-RplusR connection.autoconnect yes` for the preferred wifi network.

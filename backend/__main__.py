@@ -9,6 +9,7 @@ from backend.api.routers import (
     historian_router,
     config_router,
     streams_router,
+    system_router,
 )
 
 from backend.system_initializer import initialize
@@ -37,6 +38,8 @@ if __name__ == "__main__":
     ra_backend_server.include_router(config_router, prefix="/configuration")
 
     ra_backend_server.include_router(streams_router, prefix="/streams")
+
+    ra_backend_server.include_router(system_router, prefix="/system")
 
     uvicorn.run(
         ra_backend_server,

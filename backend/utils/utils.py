@@ -16,7 +16,9 @@ from backend.config.exceptions import InvalidConfigurationException
 def safe_load_system_configuration() -> SystemConfiguration:
     try:
         config_file_name = os.environ.get("CONFIG_FILE")
-        system_configuration: SystemConfiguration = load_system_configuration(config_file_name=config_file_name)
+        system_configuration: SystemConfiguration = load_system_configuration(
+            config_file_name=config_file_name
+        )
     except FileNotFoundError:
         logger.error(
             f'Configuration file "{config_file_name}" not found. Exiting application...'

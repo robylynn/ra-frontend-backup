@@ -134,21 +134,108 @@ export class ApplicationServices {
             }
         );
     }
+
+    public set_state_variable(
+        state_name: string,
+        state_value: string | number,
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (e: any) => void,
+        onComplete?: () => void
+    ): boolean {
+        const request_data: IRosTypeR2CInterfacesSetApplicationStringRequest = {
+            payload: JSON.stringify({ [state_name]: state_value }),
+        };
+
+        return this._call_service(
+            'set_state',
+            request_data,
+            () => {
+                console.log(
+                    `Successfully set state ${state_name} to ${state_value}`
+                );
+                if (onSuccess) onSuccess();
+            },
+            () => {
+                console.log(
+                    `Failed to set state ${state_name} to ${state_value}`
+                );
+                if (onFailure) onFailure();
+            },
+            (error) => {
+                console.log(`Error setting state ${state_name}: ${error}`);
+                if (onError) onError(error);
+            },
+            () => {
+                if (onComplete) onComplete();
+            }
+        );
+    }
+
+    public send_robot_command(
+        command: string,
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (e: any) => void,
+        onComplete?: () => void
+    ): boolean {
+        const request_data: IRosTypeR2CInterfacesSetApplicationStringRequest = {
+            payload: command,
+        };
+
+        return this._call_service(
+            'send_robot_command',
+            request_data,
+            () => {
+                console.log(
+                    `Successfully sent robot command ${command}`
+                );
+                if (onSuccess) onSuccess();
+            },
+            () => {
+                console.log(
+                    `Failed to send command ${command}`
+                );
+                if (onFailure) onFailure();
+            },
+            (error) => {
+                console.log(`Error sending command ${command}: ${error}`);
+                if (onError) onError(error);
+            },
+            () => {
+                if (onComplete) onComplete();
+            }
+        );
+    }
 }
 
 export class ApplicationState {
-    _states: Record<string, string> = {};
+    _states: Record<string, string | number> = {};
 
-    public get_state(state_name: string): string | null {
+    public get_state(state_name: string): string | number | null {
         if (Object.keys(this._states).includes(state_name)) {
             return this._states[state_name];
         }
         return null;
     }
 
-    public set_state(state_name: string, state_value: string) {
+    public set_state(
+        state_name: string,
+        state_value: string | number
+    ) {
         this._states[state_name] = state_value;
     }
+
+    public set_states(
+        state_values: Record<string, string | number>
+    ) {
+        // this._states[state_name] = state_value;
+        this._states = { ...this._states, ...state_values };
+    }
+
+    // public set_full_state(state_name: string, state_value: string) {
+    //     this._states[state_name] = state_value;
+    // }
 }
 
 class AxisService {
@@ -197,9 +284,6 @@ export class AxisCommandServices extends AxisService {
             .then((result) => {
                 if ((result as any).success) {
                     if (onSuccess) onSuccess();
-                    // onSuccess(
-                    //     result as IRosTypeR2CInterfacesClearErrorsResponse
-                    // );
                     success = true;
                 } else {
                     onFailure();
@@ -217,7 +301,6 @@ export class AxisCommandServices extends AxisService {
 
     public clear_axis_errors(
         axis_index: number,
-        // target_state: IRosTypeR2CInterfacesAxisState,
         onSuccess?: () => void,
         onFailure?: () => void,
         onError?: (error: any) => void,

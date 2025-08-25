@@ -45,7 +45,7 @@ export default function MotionPlotPanel(props: {
         //     body: dashboardContext.configuration.serialize_saved_confiuration(),
         //   }
         // ).then((res) => res.json());
-        console.log('POST response: ' + JSON.stringify(res.data));
+        console.log('POST response: ' + JSON.stringify(res.backend_response));
     };
 
     return (
