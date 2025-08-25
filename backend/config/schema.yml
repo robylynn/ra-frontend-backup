@@ -1,0 +1,40 @@
+# ./config/schema.yml
+tables:
+  sensor_data:
+    columns:
+      time: TIMESTAMPTZ NOT NULL
+      device_id: TEXT NOT NULL
+      temperature: DOUBLE PRECISION
+      humidity: DOUBLE PRECISION
+    hypertable_column: time
+
+  project_metrics:
+    columns:
+      timestamp: TIMESTAMPTZ NOT NULL
+      project_name: TEXT NOT NULL
+      value: NUMERIC
+      status: TEXT
+    hypertable_column: timestamp
+
+  user_activity:
+    columns:
+      activity_time: TIMESTAMPTZ NOT NULL
+      user_id: TEXT NOT NULL
+      action: TEXT
+      duration_ms: INTEGER
+    hypertable_column: activity_time
+
+  frontend_configs: # For UI configurations
+    columns:
+      client_id: TEXT NOT NULL UNIQUE
+      config_data: JSONB
+      last_updated: TIMESTAMPTZ NOT NULL
+    hypertable_column: null # Not used for hypertable creation for this table
+
+  users: # NEW: Table for storing user credentials
+    columns:
+      user_id: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+      username: TEXT NOT NULL UNIQUE
+      hashed_password: TEXT NOT NULL
+      created_at: TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    hypertable_column: null # Not a hypertable

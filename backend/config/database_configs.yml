@@ -1,0 +1,25 @@
+# ./config/database_configs.yml
+# This file defines database connection configurations for different deployment environments.
+
+development:
+  enable_cloud_db: false # Set to true to enable cloud sync for development
+  local_db_url: postgresql://user:password@localhost:5432/metrics_db_dev
+  cloud_dbs:
+    - name: dev_cloud_primary
+      url: postgresql://dev_user:dev_password@dev-cloud-host-1:5432/dev_db_1
+    - name: dev_cloud_backup
+      url: postgresql://dev_user:dev_password@dev-cloud-host-2:5432/dev_db_2
+
+production:
+  enable_cloud_db: true
+  local_db_url: postgresql://prod_user:prod_password@timescaledb:5432/metrics_db_prod
+  cloud_dbs:
+    - name: prod_cloud_main
+      url: postgresql://prod_user:prod_password@prod-cloud-host-main:5432/prod_db_main
+    - name: prod_cloud_secondary
+      url: postgresql://prod_user:prod_password@prod-cloud-host-secondary:5432/prod_db_backup
+
+testing: # NEW: Testing environment configuration
+  enable_cloud_db: false
+  local_db_url: postgresql://user:password@localhost:5432/metrics_db_test # Dedicated test database
+  cloud_dbs: [] # No cloud dbs for testing environment

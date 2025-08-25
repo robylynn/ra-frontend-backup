@@ -1,0 +1,102 @@
+# ./api/status_router.py
+import os # NEW: Added os import for getenv
+import asyncpg
+from typing import List
+from urllib.parse import urlparse
+
+from fastapi import APIRouter, HTTPException, Request, status, Depends
+from asyncpg.pool import Pool as AsyncpgPool
+from loguru import logger
+
+from api.models import ApiResponse
+from api.schema_models import LOADED_RAW_SCHEMA
+
+# Create an API Router for status and meta-information endpoints
+status_router = APIRouter(
+    prefix="/status", # Keep prefix for consistent routing
+    tags=["Status & Meta-Information"], # CHANGED: Tag name
+    responses={404: {"description": "Not found"}}
+)
+
+# --- Helper Function: Get Database Connection Pool ---
+async def get_db_connection_pool(request: Request) -> AsyncpgPool:
+    """Dependency to get the local database connection pool."""
+    if not hasattr(request.app.state, 'local_db_pool') or request.app.state.local_db_pool is None:
+        logger.error("Database pool not initialized in app.state.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ApiResponse(success=False, message="Database pool not initialized.").model_dump()
+        )
+    return request.app.state.local_db_pool
+
+# --- Endpoint to get available tables ---
+@status_router.get("/tables", summary="Get Available Tables", response_model=ApiResponse)
+async def get_available_tables():
+    """
+    Returns a list of all table names defined in the loaded schema.
+    """
+    logger.info("Endpoint /tables called to retrieve available table names.")
+    if LOADED_RAW_SCHEMA and LOADED_RAW_SCHEMA.tables:
+        all_tables = list(LOADED_RAW_SCHEMA.tables.keys())
+        # Ensure 'frontend_configs' is always an option if it's not a hypertable with time column
+        if "frontend_configs" not in all_tables:
+            all_tables.append("frontend_configs")
+        if "users" not in all_tables: # NEW: Also ensure 'users' table is an option
+            all_tables.append("users")
+        return ApiResponse(success=True, message="Available tables retrieved.", data=all_tables)
+    else:
+        logger.warning("No schema loaded or no tables defined in schema.yml.")
+        return ApiResponse(success=True, message="No tables available.", data=[])
+
+
+# --- Health Check Endpoint ---
+@status_router.get("/", summary="Health Check", response_model=ApiResponse)
+async def health_check(request: Request):
+    """
+    Basic health check endpoint to confirm the API is running.
+    """
+    logger.info("Health check endpoint called.")
+    
+    # Access DEPLOYMENT_ENVIRONMENT directly from environment as it's loaded by main.py
+    # and then passed to app.state. We can safely get it from app.state now.
+    deployment_environment = request.app.state.deployment_environment if hasattr(request.app.state, 'deployment_environment') else os.getenv('DEPLOYMENT_ENV', 'unknown')
+
+
+    return ApiResponse(
+        success=True,
+        message="API is running!",
+        data={
+            "schema_loaded_tables": list(LOADED_RAW_SCHEMA.tables.keys()) if LOADED_RAW_SCHEMA else [],
+            "cloud_db_sync_enabled": request.app.state.enable_cloud_db if hasattr(request.app.state, 'enable_cloud_db') else False,
+            "active_cloud_db_pools": len(request.app.state.cloud_db_pools) if hasattr(request.app.state, 'cloud_db_pools') and request.app.state.enable_cloud_db else 0,
+            "deployment_environment": deployment_environment,
+            "websocket_broadcast_queues_active": len([k for k in request.app.state.websocket_broadcast_queues if not k.endswith('_consumer_task')]) if hasattr(request.app.state, 'websocket_broadcast_queues') else 0,
+            "db_pool_initialized": hasattr(request.app.state, 'local_db_pool') and request.app.state.local_db_pool is not None
+        }
+    )
+
+# --- Database Query Endpoint ---
+@status_router.get("/database/test-query", summary="Test Database Connection and Query", response_model=ApiResponse)
+async def test_db_query(db_pool: AsyncpgPool = Depends(get_db_connection_pool)):
+    """
+    Tests the database connection pool by acquiring a connection and performing a simple query.
+    """
+    logger.info("Endpoint /status/database/test-query called to verify DB pool functionality.")
+    try:
+        async with db_pool.acquire() as conn:
+            result = await conn.fetchval("SELECT 1;")
+            if result == 1:
+                logger.info("DB pool functional: SELECT 1 returned 1.")
+                return ApiResponse(success=True, message="Database pool functional.")
+            else:
+                logger.error(f"DB pool functional test failed: SELECT 1 returned {result}.")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={"success": False, "message": f"Database query failed: SELECT 1 returned {result}."}
+                )
+    except Exception as e:
+        logger.error(f"Error during DB pool functional test in endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success": False, "message": f"Error during database query: {e}"}
+        )

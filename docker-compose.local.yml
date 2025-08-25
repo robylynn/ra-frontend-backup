@@ -1,36 +1,36 @@
 version: "3.8"
 services:
-  mongo:
-    image: mongo:4.2.0
-    container_name: ra_database
-    hostname: ra_database
-    environment:
-      - PUID=$DOCKER_UID
-      - PGID=$DOCKER_GID
-      - MONGO_INITDB_ROOT_USERNAME=r2
-      - MONGO_INITDB_ROOT_PASSWORD=password
-      - MONGO_INITDB_DATABASE=ra_data
-    volumes:
-      - $HOST_DB_STORAGE_PATH:/data/db
-    ports:
-      - 27017:27017
-    networks:
-      backend:
-        ipv4_address: 172.23.0.51
-    restart: unless-stopped
+  # mongo:
+  #   image: mongo:4.2.0
+  #   container_name: ra_database
+  #   hostname: ra_database
+  #   environment:
+  #     - PUID=$DOCKER_UID
+  #     - PGID=$DOCKER_GID
+  #     - MONGO_INITDB_ROOT_USERNAME=r2
+  #     - MONGO_INITDB_ROOT_PASSWORD=password
+  #     - MONGO_INITDB_DATABASE=ra_data
+  #   volumes:
+  #     - $HOST_DB_STORAGE_PATH:/data/db
+  #   ports:
+  #     - 27017:27017
+  #   networks:
+  #     backend:
+  #       ipv4_address: 172.23.0.51
+  #   restart: unless-stopped
   
-  mongo_ui:
-    image: samueltallet/mongodb-php-gui
-    container_name: ra_database_ui
-    hostname: ra_database_ui
-    ports:
-      - 5001:5000
-    extra_hosts:
-      - "localhost:172.17.0.1"
-    networks:
-      backend:
-        ipv4_address: 172.23.0.52
-    restart: unless-stopped
+  # mongo_ui:
+  #   image: samueltallet/mongodb-php-gui
+  #   container_name: ra_database_ui
+  #   hostname: ra_database_ui
+  #   ports:
+  #     - 5001:5000
+  #   extra_hosts:
+  #     - "localhost:172.17.0.1"
+  #   networks:
+  #     backend:
+  #       ipv4_address: 172.23.0.52
+  #   restart: unless-stopped
 
   ra_frontend:
     build:
@@ -66,7 +66,7 @@ services:
       - backend
     restart: unless-stopped
 
-  ra_backend:
+  ra_backend_old:
     build: 
       # context: ./backend
       context: ./
@@ -167,21 +167,93 @@ services:
     user: "0:0"
     restart: unless-stopped
   
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   restart: unless-stopped
+  #   networks:
+  #     - default
+  #   ports:
+  #     - "3001:3000"
+  #   user: $PUID
+  #   volumes:
+  #     - $DOCKERDIR/appdata/grafana:/home/roby/r2/r2-frontend/grafana
+  #   environment:
+  #     GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
+  
+  # TimescaleDB service (Local)
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16 # CHANGED: Corrected image name
+    container_name: timescaledb
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Python FastAPI API service
+  backend:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    container_name: backend_api_service
+    environment:
+      # These are now primarily for internal Docker networking/Grafana
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      
+      API_PORT: ${API_PORT}
+      # NEW: Pass YAML config file path and deployment environment
+      DB_CONFIG_FILE: ${DB_CONFIG_FILE}
+      DEPLOYMENT_ENV: ${DEPLOYMENT_ENV}
+      
+      # ENABLE_CLOUD_DB, CLOUD_DB_COUNT, CLOUD_DATABASE_URL_X are no longer needed here
+      # as they are read directly from the YAML config within the app.
+    ports:
+      - "${API_PORT:-8000}:${API_PORT:-8000}"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+    command: ["uvicorn", "api.__main__:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
+    volumes: # NEW: Ensure config directory is mounted
+      - ./config:/app/config
+
+  # Grafana service
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    networks:
-      - default
-    ports:
-      - "3001:3000"
-    user: $PUID
-    volumes:
-      - $DOCKERDIR/appdata/grafana:/home/roby/r2/r2-frontend/grafana
     environment:
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    ports:
+      - "3000:3000"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  timescaledb_data:
+  grafana_data:
+
 
 
 networks:

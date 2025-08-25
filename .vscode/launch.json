@@ -4,20 +4,34 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        // {
+        //     "name": "Python Backend",
+        //     "type": "python",
+        //     "request": "launch",
+        //     "module": "backend",
+        //     "justMyCode": false,
+        //     "env": {
+        //         "CONFIG_FILE_DIR": "${workspaceFolder}/config",
+        //         "CONTAINERIZED": "false",
+        //         "CONFIG_FILE": "system_configuration.yaml",
+        //         "PYTHONPATH": "${workspaceFolder}/backend",
+        //         "HOST_SERVICES_API_PORT": "8001",
+        //         "SIMULATE_WIFI_CONNECTIONS": "false"
+        //     }
+        // },
         {
-            "name": "Python Backend",
-            "type": "python",
+            "name": "Python: FastAPI (Run outside Docker)",
+            "type": "debugpy",
             "request": "launch",
-            "module": "backend",
-            "justMyCode": false,
-            "env": {
-                "CONFIG_FILE_DIR": "${workspaceFolder}/config",
-                "CONTAINERIZED": "false",
-                "CONFIG_FILE": "system_configuration.yaml",
-                "PYTHONPATH": "${workspaceFolder}/backend",
-                "HOST_SERVICES_API_PORT": "8001",
-                "SIMULATE_WIFI_CONNECTIONS": "false"
-            }
+            "module": "api.main", // Runs the __main__.py in the 'api' package
+            "cwd": "${workspaceFolder}/backend", // Sets the current working directory for the launch process to 'backend/'
+            "envFile": "${workspaceFolder}/.env", // Loads environment variables from the root .env file
+            "justMyCode": true, // Focuses debugging on your code, ignoring library code
+            "console": "integratedTerminal" // Displays output in VS Code's integrated terminal
+            // You can add "--reload" to the "args" array if you want live reloading for development.
+            // "args": [
+            //     "--reload" 
+            // ]
         },
         {
             "name": "Host Services API",
