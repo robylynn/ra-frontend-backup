@@ -23,39 +23,317 @@ import {
     IRosTypeStdMsgsString,
 } from '@/lib/models/ros_types';
 import { getSession } from 'next-auth/react';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import ROSLIB, { Topic } from 'roslib';
 
-function connectWebSocket(url: string, timeout: number): Promise<WebSocket> {
-    timeout = timeout || 2000;
-    return new Promise(function (resolve, reject) {
-        const socket = new WebSocket(url);
-
-        const timer = setTimeout(function () {
-            reject(new Error('webSocket timeout'));
-            done();
-            socket.close();
-        }, timeout);
-
-        function done() {
-            // cleanup all state here
-            clearTimeout(timer);
-            socket.removeEventListener('error', error);
-        }
-
-        function error(e: Event) {
-            reject(e);
-            socket.close();
-            done();
-        }
-
-        socket.addEventListener('open', function () {
-            resolve(socket);
-            done();
-        });
-        socket.addEventListener('error', error);
-    });
+// Define the properties for the Rosbridge component
+interface RosbridgeWebSocketProps {
+  rosbridgeUrl: string; // e.g., 'ws://localhost:9090'
+  reconnectInterval?: number; // Time in milliseconds before attempting to reconnect (default: 3000ms)
+//   children?: ReactNode; // Allow children components to interact with the ROS connection
 }
+
+// Interface for a simple Rosbridge Subscription
+interface RosSubscription {
+  topic: string;
+  messageType: string;
+  callback: (message: any) => void;
+}
+
+// Interface for a simple Rosbridge Service Client
+interface RosServiceClient {
+  name: string;
+  serviceType: string;
+}
+
+const App: React.FC<RosbridgeWebSocketProps> = ({
+  rosbridgeUrl,
+  reconnectInterval = 3000,
+//   children,
+}) => {
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]); // To log connection events
+  const { dashboardContext, setDashboardContext } =
+      useContext(DashboardContext);
+
+  const ros = useRef<ROSLIB.Ros | null>(null); // ROSLIB.Ros instance
+  const isMounted = useRef<boolean>(true);
+  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // --- Utility for logging events ---
+  const logDebugMessage = useCallback((message: string) => {
+    setDebugLog((prevLogs) => {
+      const newLogs = [...prevLogs, `[${new Date().toLocaleTimeString()}] ${message}`];
+      return newLogs.slice(-10); // Keep last 10 log entries
+    });
+    console.log(`Rosbridge: ${message}`);
+  }, []);
+
+const set_ROS_context = (
+    config_services: IOConfigurationServices,
+    io_state_services: IOCommandServices,
+    application_services: ApplicationServices,
+    axis_command_services: AxisCommandServices
+) => {
+    setDashboardContext({
+        payload: {
+            ros_config_services: config_services,
+            ros_io_state_services: io_state_services,
+            ros_application_services: application_services,
+            ros_axis_command_services: axis_command_services,
+            ra_ros_websocket: ros.current,
+        },
+        type: 'ros/set',
+    });
+};
+
+const clear_ROS_context = () => {
+    setDashboardContext({
+        payload: {
+            ros_config_services: null,
+            ros_io_state_services: null,
+            ros_application_services: null,
+            ra_ros_websocket: ros.current,
+        },
+        type: 'ros/set',
+    });
+};
+
+  // --- ROSLIB.js Connection Logic ---
+  const connectRosbridge = useCallback(() => {
+    // If a ROSLIB.Ros instance already exists, do nothing.
+    // It's either connected, in the process of connecting, or handling a recent disconnection.
+    // The reconnection timer will take care of creating a new instance if needed.
+    if (ros.current) {
+      logDebugMessage('ROSLIB instance already exists; connection state managed internally.');
+      return;
+    }
+
+    setError(null); // Clear previous errors
+    logDebugMessage(`Attempting to connect to Rosbridge: ${rosbridgeUrl}`);
+
+    // Create a new ROSLIB.Ros instance
+    const newRos = new ROSLIB.Ros({
+      url: rosbridgeUrl
+    });
+    ros.current = newRos;
+
+    newRos.on('connections', () => { // Event when connected
+      if (isMounted.current) {
+        setIsConnected(true);
+        logDebugMessage('Connected to Rosbridge successfully.');
+        // Clear any pending reconnection timer on successful connection
+        if (reconnectTimer.current) {
+          clearTimeout(reconnectTimer.current);
+          reconnectTimer.current = null;
+        }
+
+        subscriptions.current = new Subscriptions(socket);
+
+        set_ROS_context(
+            initializeIOConfigurationServices(socket),
+            initializeIOCommandServices(socket),
+            initializeApplicationServices(socket),
+            initializeAxisServices(socket)
+        );
+
+      }
+    });
+
+    newRos.on('error', (rosError) => { // Event on error
+      if (isMounted.current) {
+        console.error('ROSLIB.Ros error:', rosError);
+        // ROSLIB.js errors often lead to a 'close' event, so we rely on 'close' for reconnection.
+        // Just log the error here.
+        setError('ROSLIB connection error. Check console for details.');
+        logDebugMessage(`ROSLIB error: ${JSON.stringify(rosError)}`);
+      }
+    });
+
+    newRos.on('close', () => { // Event when disconnected
+      if (isMounted.current) {
+        setIsConnected(false);
+        logDebugMessage(`Disconnected from Rosbridge. Reconnecting in ${reconnectInterval / 1000}s...`);
+        setError(`Disconnected from ROSbridge.`);
+
+        // Clear the current ROSLIB instance so a new one can be created for reconnection
+        if (ros.current) {
+            ros.current.removeAllListeners(); // Clean up listeners associated with this instance
+            ros.current = null; // Allow a new ROSLIB.Ros instance to be created on next attempt
+        }
+
+        // Attempt to reconnect after a delay
+        if (reconnectTimer.current) {
+          clearTimeout(reconnectTimer.current);
+        }
+        reconnectTimer.current = setTimeout(() => {
+          connectRosbridge(); // Reattempt connection by calling this function again
+        }, reconnectInterval);
+      }
+    });
+  }, [rosbridgeUrl, reconnectInterval, logDebugMessage]);
+
+  // --- Effect for mounting and unmounting ---
+  useEffect(() => {
+    isMounted.current = true; // Component is mounted
+    connectRosbridge(); // Initiate connection
+
+    // Cleanup function when component unmounts
+    return () => {
+      isMounted.current = false; // Mark as unmounted
+      logDebugMessage('Component unmounted. Cleaning up ROSLIB.Ros connection.');
+      if (ros.current) {
+        ros.current.close(); // Close the ROSLIB.Ros connection
+        ros.current.removeAllListeners(); // Ensure all listeners are cleaned up
+      }
+      ros.current = null;
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = null;
+      }
+    };
+  }, [connectRosbridge, logDebugMessage]);
+
+  // --- Functions to manage Subscriptions and Service Clients ---
+  const addSubscription = useCallback((sub: RosSubscription) => {
+    if (ros.current && ros.current.isConnected) {
+      logDebugMessage(`Adding subscription to topic: ${sub.topic}`);
+      const listener = new ROSLIB.Topic({
+        ros: ros.current,
+        name: sub.topic,
+        messageType: sub.messageType
+      });
+      listener.subscribe(sub.callback);
+      return listener; // Return the listener to allow for unsubscribing
+    } else {
+      logDebugMessage(`Cannot add subscription for ${sub.topic}: Not connected.`);
+      return null;
+    }
+  }, [logDebugMessage]);
+
+  const removeSubscription = useCallback((listener: ROSLIB.Topic) => {
+    if (listener) {
+      logDebugMessage(`Removing subscription from topic: ${listener.name}`);
+      listener.unsubscribe();
+    }
+  }, [logDebugMessage]);
+
+
+  const callServiceClient = useCallback((client: RosServiceClient, request: any, onResponse: (result: any) => void, onError: (errorMsg: string) => void) => {
+    if (ros.current && ros.current.isConnected) {
+      logDebugMessage(`Calling service: ${client.name}`);
+      const serviceClient = new ROSLIB.Service({
+        ros: ros.current,
+        name: client.name,
+        serviceType: client.serviceType
+      });
+      const rosRequest = new ROSLIB.ServiceRequest(request);
+      serviceClient.callService(rosRequest, onResponse, onError);
+    } else {
+      logDebugMessage(`Cannot call service ${client.name}: Not connected.`);
+      onError('Not connected to Rosbridge.');
+    }
+  }, [logDebugMessage]);
+
+    // --- Render UI ---
+    return <></>;
+    //   return (
+    //     <div className="p-6 max-w-2xl mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl shadow-lg font-inter text-gray-800">
+    //       <h2 className="text-3xl font-extrabold text-indigo-700 mb-4 text-center">
+    //         ROSbridge Connection Status
+    //       </h2>
+
+    //       <div className="flex items-center justify-center mb-6">
+    //         <div className={`w-4 h-4 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+    //         <p className={`text-lg font-semibold ${isConnected ? 'text-green-700' : 'text-red-700'}`}>
+    //           {isConnected ? 'Connected to ROSbridge' : 'Disconnected from ROSbridge'}
+    //         </p>
+    //       </div>
+
+    //       <div className="mb-4 text-sm text-gray-600">
+    //         <p className="font-medium">URL: <span className="text-blue-800 break-words">{rosbridgeUrl}</span></p>
+    //         <p className="font-medium">Reconnect Interval: <span className="text-blue-800">{reconnectInterval / 1000} seconds</span></p>
+    //       </div>
+
+    //       {error && (
+    //         <div className="bg-red-200 border border-red-400 text-red-800 px-4 py-3 rounded-md mb-4 flex items-center shadow-sm">
+    //           <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+    //             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 00-2 0v2a1 1 0 102 0V9zm-1 5a1 1 0 102 0 1 1 0 00-2 0z" clipRule="evenodd" />
+    //           </svg>
+    //           <span className="font-medium">Error:</span> {error}
+    //         </div>
+    //       )}
+
+    //       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner max-h-48 overflow-y-auto mb-6">
+    //         <h3 className="text-lg font-semibold text-gray-700 mb-2">Connection Log</h3>
+    //         {debugLog.length === 0 ? (
+    //           <p className="text-gray-500 text-sm">Waiting for connection events...</p>
+    //         ) : (
+    //           <ul className="space-y-1 text-sm text-gray-700">
+    //             {debugLog.map((log, index) => (
+    //               <li key={index} className="break-words bg-white px-2 py-1 rounded-sm shadow-xs border border-gray-100">
+    //                 {log}
+    //               </li>
+    //             ))}
+    //           </ul>
+    //         )}
+    //       </div>
+
+    //       {/* This is the area where you would integrate child components
+    //           that utilize the addSubscription or callServiceClient functions. */}
+    //       <div className="mt-6 border-t-2 border-indigo-200 pt-6">
+    //         <h3 className="text-xl font-bold text-indigo-700 mb-4">ROS Interaction Area</h3>
+    //         <p className="text-gray-700 mb-4">
+    //           Once connected, you can use the provided `addSubscription`, `removeSubscription`, and `callServiceClient` functions
+    //           to interact with your ROS system. These functions are exposed to child components via context.
+    //         </p>
+
+    //         {isConnected && (
+    //           <RosConnectionContext.Provider value={{ addSubscription, removeSubscription, callServiceClient }}>
+    //             {children}
+    //           </RosConnectionContext.Provider>
+    //         )}
+    //         {!isConnected && (
+    //             <p className="text-center text-gray-500 italic mt-4">
+    //                 (Waiting for ROSbridge connection to enable ROS interactions)
+    //             </p>
+    //         )}
+    //       </div>
+    //     </div>
+    //   );
+};
+
+// function connectWebSocket(url: string, timeout: number): Promise<WebSocket> {
+//     timeout = timeout || 2000;
+//     return new Promise(function (resolve, reject) {
+//         const socket = new WebSocket(url);
+
+//         const timer = setTimeout(function () {
+//             reject(new Error('webSocket timeout'));
+//             done();
+//             socket.close();
+//         }, timeout);
+
+//         function done() {
+//             // cleanup all state here
+//             clearTimeout(timer);
+//             socket.removeEventListener('error', error);
+//         }
+
+//         function error(e: Event) {
+//             reject(e);
+//             socket.close();
+//             done();
+//         }
+
+//         socket.addEventListener('open', function () {
+//             resolve(socket);
+//             done();
+//         });
+//         socket.addEventListener('error', error);
+//     });
+// }
 
 function connectROSWebSocket(
     url: string,
@@ -260,12 +538,9 @@ function initializeApplicationServices(
     });
 
     const application_services: ApplicationServices = new ApplicationServices();
-    
+
     // application_services.set_service('set_endpoint', endpoint_string_service);
-    application_services.set_service(
-        'set_state',
-        application_state_service
-    );
+    application_services.set_service('set_state', application_state_service);
     application_services.set_service(
         'send_robot_command',
         robot_command_service
@@ -631,10 +906,121 @@ export default function RAWebSocket(props: {
     return <></>;
 }
 
-export function RAServerWebSocket(props: {
-    websocket_path: string;
-    reconnect_period_seconds: number;
-}) {
-    // TODO Implement this
+interface SimpleWebSocketProps {
+    websocketUrl: string;
+    reconnectInterval?: number; // Time in ms before attempting to reconnect
+}
+
+export function RAServerWebSocket(props: SimpleWebSocketProps) {
+    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const [lastMessage, setLastMessage] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    // useRef to hold the WebSocket instance
+    const ws = useRef<WebSocket | null>(null);
+    // useRef to track if the component is mounted
+    const isMounted = useRef<boolean>(true);
+    // useRef for the reconnection timer
+    const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+
+    // Function to establish WebSocket connection, memoized with useCallback
+    const connectWebSocket = useCallback(() => {
+        // Prevent multiple connection attempts if already open or connecting
+        if (
+            ws.current &&
+            (ws.current.readyState === WebSocket.OPEN ||
+                ws.current.readyState === WebSocket.CONNECTING)
+        ) {
+            console.log('WebSocket is already open or connecting.');
+            return;
+        }
+
+        setError(null); // Clear any previous errors
+        console.log(
+            `Attempting to connect to WebSocket: ${props.websocketUrl}`
+        );
+
+        const newWs = new WebSocket(props.websocketUrl);
+        ws.current = newWs; // Store the new WebSocket instance
+
+        newWs.onopen = () => {
+            if (isMounted.current) {
+                setIsConnected(true);
+                console.log('WebSocket connected successfully.');
+                // Clear any pending reconnection timer on successful connection
+                if (reconnectTimer.current) {
+                    clearTimeout(reconnectTimer.current);
+                    reconnectTimer.current = null;
+                }
+            }
+        };
+
+        newWs.onmessage = (event) => {
+            if (isMounted.current) {
+                setLastMessage(event.data);
+                console.log('Received message:', event.data);
+            }
+        };
+
+        newWs.onclose = (event) => {
+            if (isMounted.current) {
+                setIsConnected(false);
+                console.warn(
+                    'WebSocket disconnected:',
+                    event.code,
+                    event.reason
+                );
+                setError(
+                    `Disconnected: ${event.reason || 'Unknown reason'}. Reconnecting in ${props.reconnectInterval / 1000}s...`
+                );
+
+                // Clear any existing timer to avoid duplicate reconnect attempts
+                if (reconnectTimer.current) {
+                    clearTimeout(reconnectTimer.current);
+                }
+                // Set a new timer to attempt reconnection after the specified interval
+                reconnectTimer.current = setTimeout(() => {
+                    connectWebSocket();
+                }, props.reconnectInterval);
+            }
+        };
+
+        newWs.onerror = (event) => {
+            if (isMounted.current) {
+                console.error('WebSocket error:', event);
+                setError('WebSocket error occurred. See console for details.');
+                // Force close to trigger onclose, which then handles reconnection
+                newWs.close();
+            }
+        };
+    }, [props.websocketUrl, props.reconnectInterval]); // Dependencies for useCallback
+
+    useEffect(() => {
+        isMounted.current = true; // Mark component as mounted
+
+        // Initiate the WebSocket connection when the component mounts
+        connectWebSocket();
+
+        // Cleanup function when the component unmounts
+        return () => {
+            isMounted.current = false; // Mark component as unmounted
+            console.log('Cleaning up WebSocket and timers...');
+            // Close the WebSocket connection if it's open or connecting
+            if (
+                ws.current &&
+                (ws.current.readyState === WebSocket.OPEN ||
+                    ws.current.readyState === WebSocket.CONNECTING)
+            ) {
+                ws.current.close();
+            }
+            ws.current = null; // Clear the WebSocket instance
+            // Clear any pending reconnection timer
+            if (reconnectTimer.current) {
+                clearTimeout(reconnectTimer.current);
+                reconnectTimer.current = null;
+            }
+        };
+    }, [connectWebSocket]); // Dependency array for useEffect
+
     return <></>;
 }

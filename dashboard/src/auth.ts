@@ -47,37 +47,99 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             async authorize(
                 credentials: Record<'username' | 'password', string>
             ) {
-                // async authorize(credentials: Record<"username" | "pasword", string>) {
-                // You need to provide your own logic here that takes the credentials
-                // submitted and returns either a object representing a user or value
-                // that is false/null if the credentials are invalid.
-                // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
-                // You can also use the `req` object to obtain additional parameters
-                // (i.e., the request IP address)
-                console.log('LOGGING IN');
+                try {
+          // Use process.env.NEXT_PUBLIC_API_BASE_URL for the backend API call
+          const backendApiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+          const res = await fetch(
+            `${backendApiUrl}/auth/token`, // Assuming your backend login endpoint is /auth/token
+            {
+              method: 'POST',
+              body: new URLSearchParams(credentials).toString(), // OAuth2 token endpoint expects x-www-form-urlencoded
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            }
+          );
 
-                const res = await fetch(
-                    'http://' + process.env.CONTROLLER_URI + `/user/login`,
-                    {
-                        method: 'POST',
-                        body: JSON.stringify(credentials),
-                        headers: { 'Content-Type': 'application/json' },
-                    }
-                );
+          // Handle cases where the response itself is not OK or JSON parsing fails
+          if (!res.ok) {
+            console.error(`Backend API responded with status ${res.status}`);
+            const errorText = await res.text(); // Get raw error message
+            throw new Error(`Authentication failed: ${errorText}`);
+          }
 
-                const auth_response = await res.json();
+          const auth_response = await res.json();
 
-                // If no error and we have user data, return it
-                if (res.ok && auth_response.authenticated) {
-                    return {
-                        id: '1',
-                        name: credentials?.username,
-                        email: null,
-                    }; // as User;
-                }
+          // If the backend responds successfully and authenticates the user
+          if (auth_response.success && auth_response.data && auth_response.data.user) {
+            console.log('Backend authentication successful for user:', auth_response.data.user.username);
+            return {
+              id: auth_response.data.user.user_id, // Ensure user_id is a string or number
+              name: auth_response.data.user.username,
+              email: auth_response.data.user.username, // Using username as email for simplicity if no email field
+              accessToken: auth_response.data.access_token, // Store accessToken
+            };
+          }
 
-                // Return null if user data could not be retrieved
-                return null;
+          // Return null if authentication failed
+          console.error('Backend authentication failed:', auth_response.message || 'Unknown error from backend.');
+          return null;
+        } catch (error) {
+          console.error('Error during backend authentication:', error);
+          return null;
+        }
+        //         // async authorize(credentials: Record<"username" | "pasword", string>) {
+        //         // You need to provide your own logic here that takes the credentials
+        //         // submitted and returns either a object representing a user or value
+        //         // that is false/null if the credentials are invalid.
+        //         // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
+        //         // You can also use the `req` object to obtain additional parameters
+        //         // (i.e., the request IP address)
+        //         console.log('LOGGING IN');
+
+        //         const res = await fetch(
+        //             'http://' + process.env.CONTROLLER_URI + `/auth/token`,
+        //             // {
+        //             //     method: 'POST',
+        //             //     body: JSON.stringify(credentials),
+        //             //     headers: { 'Content-Type': 'application/json' },
+        //             // }
+        //             {
+        //                 method: 'POST',
+        //                 body: new URLSearchParams(credentials).toString(), // OAuth2 token endpoint expects x-www-form-urlencoded
+        //                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        //                 }
+        //         );
+
+        //         const auth_response = await res.json();
+
+        //         // // If no error and we have user data, return it
+        //         // if (res.ok && auth_response.authenticated) {
+        //         //     return {
+        //         //         id: '1',
+        //         //         name: credentials?.username,
+        //         //         email: null,
+        //         //     }; // as User;
+        //         // }
+
+        //         // Handle cases where the response itself is not OK or JSON parsing fails
+        //   if (!res.ok) {
+        //     console.error(`Backend API responded with status ${res.status}`);
+        //     const errorText = await res.text(); // Get raw error message
+        //     throw new Error(`Authentication failed: ${errorText}`);
+        //   }
+
+        //         // If the backend responds successfully and authenticates the user
+        //   if (auth_response.success && auth_response.data && auth_response.data.user) {
+        //     console.log('Backend authentication successful for user:', auth_response.data.user.username);
+        //     return {
+        //       id: auth_response.data.user.user_id, // Ensure user_id is a string or number
+        //       name: auth_response.data.user.username,
+        //       email: auth_response.data.user.username, // Using username as email for simplicity if no email field
+        //       accessToken: auth_response.data.access_token, // Store accessToken
+        //     };
+        //   }
+
+        //         // Return null if user data could not be retrieved
+        //         return null;
             },
         }),
     ],

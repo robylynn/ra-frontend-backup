@@ -468,7 +468,8 @@ async def synchronize_all_all_tables(request: Request):
     else:
         return ApiResponse(success=True, message=message, data={"local_results": local_insert_results, "cloud_results": all_cloud_insert_results})
 
-@data_router.websocket("/ws/data/{table_name}")
+# @data_router.websocket("/ws/data/{table_name}")
+@data_router.websocket("/ws/data")
 async def websocket_data_stream(
     websocket: WebSocket,
     table_name: str,

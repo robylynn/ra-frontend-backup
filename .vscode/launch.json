@@ -85,7 +85,25 @@
                 "NODE_OPTIONS": "--inspect=9230" // Changed port here
             }
         },
-    
+        {
+            "name": "Next.js: Node (Server-side)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "yarn", // Changed from "npm" to "yarn"
+            "runtimeArgs": [
+              "dev" // Assumes your package.json has a "dev" script, e.g., "dev": "next dev"
+            ],
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+            "cwd": "${workspaceFolder}/dashboard",
+            "skipFiles": [
+              "<node_internals>/**"
+            ],
+            "outputCapture": "std",
+            "env": {
+              "NODE_OPTIONS": "--inspect"
+            }
+          },
         {
             "name": "Next.js: start server-side frontend app",
             "type": "node-terminal",

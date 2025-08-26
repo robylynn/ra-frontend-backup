@@ -8,9 +8,8 @@ import './globals.css';
 import NextAuthProvider from '@/lib/auth/next_auth_provider';
 import ConnectionStateIndicator from '@/lib/components/client_components/ConnectionStateContainer';
 import DashboardContextProvider from '@/lib/components/client_components/DashboardContextWrapper';
-import DataUpdater from '@/lib/components/client_components/DataUpdater';
 import { IOPointContextProvider } from '@/lib/components/client_components/IOPointContext';
-import RAWebSocket from '@/lib/components/client_components/WebsocketClient';
+import { RAServerWebSocket } from '@/lib/components/client_components/WebsocketClient';
 import LinksColumn from '@/lib/components/server_components/links_column';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -29,14 +28,18 @@ export default function RootLayout({
         <html lang="en" className="dark">
             <NextAuthProvider>
                 <DashboardContextProvider>
-                    <DataUpdater
+                    {/* <DataUpdater
                         update_period_seconds={1}
                         configuration_update_period_seconds={5}
-                    />
-                    <RAWebSocket
+                    /> */}
+                    {/* <RAWebSocket
                         websocket_path="/api/socket"
                         // websocket_path={`${process.env.CONTROLLER_URI}/api/socket`}
                         reconnect_period_seconds={1}
+                    /> */}
+                    <RAServerWebSocket
+                        websocketUrl="/api/socket?target=stream&table_name=sensor_data&historical_limit=100"
+                        reconnectInterval={3000}
                     />
                     <body className={inter.className}>
                         <div className="flex flex-col w-screen h-screen bg-no-repeat bg-cover dark:bg-dark-background-image/50 dark:bg-zinc-700 dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-sky-900/50 overflow-clip">
