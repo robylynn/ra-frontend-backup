@@ -14,6 +14,7 @@ import {
     RAServerWebSocket,
 } from '@/lib/components/client_components/WebsocketClient';
 import LinksColumn from '@/lib/components/server_components/links_column';
+import { SimpleDataUpdater } from '@/lib/components/client_components/DataUpdater';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,6 +36,7 @@ export default function RootLayout({
                         update_period_seconds={1}
                         configuration_update_period_seconds={5}
                     /> */}
+                    <SimpleDataUpdater/>
                     {/* <RAWebSocket
                         websocket_path="/api/socket"
                         // websocket_path={`${process.env.CONTROLLER_URI}/api/socket`}

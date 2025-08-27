@@ -9,7 +9,7 @@ import {
     HardwareConfiguration,
     IOPointType,
     PlotConfiguration,
-    UIConfiguration,
+    // UIConfiguration,
 } from '@/lib/models/api_models';
 import {
     ApplicationContext,
@@ -30,6 +30,7 @@ import {
 } from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
 import ROSLIB from 'roslib';
+import { UiConfig } from '@/lib/models/ui_configuration';
 
 interface ModifyPlotInterface {
     plot_index: number;
@@ -57,7 +58,7 @@ export default function DashboardContextProvider(props: {
     const initialDashboardContext = new ApplicationContext();
 
     const setUIConfigurationAction = createAction<{
-        configuration: UIConfiguration;
+        configuration: UiConfig;
     }>('ui_config/set');
     const incrementHeartbeatAction = createAction<{ heartbeat_valid: boolean }>(
         'heartbeat/rx'
@@ -161,7 +162,7 @@ export default function DashboardContextProvider(props: {
         (builder) => {
             builder
                 .addCase(setUIConfigurationAction, (state, action) => {
-                    state.configuration = action.payload.configuration;
+                    state.ui_configuration = action.payload.configuration;
                     return state;
                 })
                 .addCase(incrementHeartbeatAction, (state, action) => {
@@ -224,54 +225,54 @@ export default function DashboardContextProvider(props: {
                         action.payload.heartbeat;
                     return state;
                 })
-                .addCase(addPlotAction, (state, action) => {
-                    state.configuration.io_plots[action.payload.plot_type].push(
-                        action.payload.configuration
-                    );
-                    return state;
-                })
-                .addCase(addMotionPlotAction, (state, action) => {
-                    state.configuration.motion_plots.push(
-                        action.payload.configuration
-                    );
-                    return state;
-                })
-                .addCase(updatePlotConfiguration, (state, action) => {
-                    updatePlot(
-                        state.configuration.io_plots[action.payload.plot_type],
-                        action.payload
-                    );
-                    return state;
-                })
-                .addCase(updateMotionPlotConfiguration, (state, action) => {
-                    updatePlot(
-                        state.configuration.motion_plots,
-                        action.payload
-                    );
-                    return state;
-                })
-                .addCase(deletePlotAction, (state, action) => {
-                    deletePlot(
-                        state.configuration.io_plots[action.payload.plot_type],
-                        action.payload
-                    );
-                    return state;
-                })
-                .addCase(deleteMotionPlotAction, (state, action) => {
-                    deletePlot(
-                        state.configuration.motion_plots,
-                        action.payload
-                    );
-                    return state;
-                })
-                .addCase(saveMotionPlotsAction, (state, action) => {
-                    state.configuration.save_motion_plot_configuration();
-                    return state;
-                })
-                .addCase(saveIOPlotsAction, (state, action) => {
-                    state.configuration.save_motion_plot_configuration();
-                    return state;
-                })
+                // .addCase(addPlotAction, (state, action) => {
+                //     state.configuration.io_plots[action.payload.plot_type].push(
+                //         action.payload.configuration
+                //     );
+                //     return state;
+                // })
+                // .addCase(addMotionPlotAction, (state, action) => {
+                //     state.configuration.motion_plots.push(
+                //         action.payload.configuration
+                //     );
+                //     return state;
+                // })
+                // .addCase(updatePlotConfiguration, (state, action) => {
+                //     updatePlot(
+                //         state.configuration.io_plots[action.payload.plot_type],
+                //         action.payload
+                //     );
+                //     return state;
+                // })
+                // .addCase(updateMotionPlotConfiguration, (state, action) => {
+                //     updatePlot(
+                //         state.configuration.motion_plots,
+                //         action.payload
+                //     );
+                //     return state;
+                // })
+                // .addCase(deletePlotAction, (state, action) => {
+                //     deletePlot(
+                //         state.configuration.io_plots[action.payload.plot_type],
+                //         action.payload
+                //     );
+                //     return state;
+                // })
+                // .addCase(deleteMotionPlotAction, (state, action) => {
+                //     deletePlot(
+                //         state.configuration.motion_plots,
+                //         action.payload
+                //     );
+                //     return state;
+                // })
+                // .addCase(saveMotionPlotsAction, (state, action) => {
+                //     state.configuration.save_motion_plot_configuration();
+                //     return state;
+                // })
+                // .addCase(saveIOPlotsAction, (state, action) => {
+                //     state.configuration.save_motion_plot_configuration();
+                //     return state;
+                // })
                 .addCase(setApplicationStateAction, (state, action) => {
                     state.application_state.set_state(
                         action.payload.state_name,

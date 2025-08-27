@@ -3,7 +3,7 @@
 
 import ProtectedPage from '@/lib/components/server_components/protected_page';
 // import ChartMainPanel from './chart_panel';
-import { PlotPanel } from './PlotPanel';
+import { PlotPanel } from '@/lib/tiles/PlotPanel';
 
 export default function ChartsPage() {
     return (

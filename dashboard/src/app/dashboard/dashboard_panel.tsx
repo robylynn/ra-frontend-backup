@@ -3,15 +3,16 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 
-import IOConfigurationContainer from '@/app/io_configuration/io_configuration_container';
-import { PlotPanel } from '@/app/charts/PlotPanel';
-import JogPanel from '@/app/jog/jog_panel';
+// import { PlotPanel } from '@/app/charts/PlotPanel';
+// import JogPanel from '@/lib/components/tiles/JogPanel';
+import { ComponentMap } from '@/lib/components/client_components/ComponentMap';
 import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
-import { UiConfig, uiConfigSchema } from '@/lib/models/ui_configuration';
 import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import { UiConfig, uiConfigSchema } from '@/lib/models/ui_configuration';
 import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 
 export default function DashboardMainPanel(props: { className?: string }) {
     const [fillTile, setFillTile] = useState<string>('');
@@ -28,48 +29,32 @@ export default function DashboardMainPanel(props: { className?: string }) {
         null
     );
 
-    // const handleSerialize = () => {
-    //     if (!validatedConfig) {
-    //         console.error('No validated configuration to serialize.');
-    //         // setSerializableJson('');
-    //         return;
-    //     }
-
-    //     // Use JSON.stringify() to convert the object back to a string.
-    //     // The Zod schema ensures the object has the correct shape for serialization.
-    //     try {
-    //         const serializedData = JSON.stringify(validatedConfig, null, 2);
-    //         return serializedData;
-    //         // setSerializableJson(serializedData);
-    //         // setErrors([]);
-    //     } catch (e) {
-    //         console.error(`Serialization Error: ${e.message}`);
-    //     }
-    // };
+    const { dashboardContext, setDashboardContext } =
+        useContext(DashboardContext);
 
     // The useEffect hook runs after the component renders
-    useEffect(() => {
-        // Define an async function to handle the API call
-        const fetchConfig = async () => {
-            try {
-                const validatedData = await fetchFromBackendApi<UiConfig>(
-                    '/api/backend/ui/config/abc',
-                    uiConfigSchema
-                );
+    // useEffect(() => {
+    //     // Define an async function to handle the API call
+    //     const fetchConfig = async () => {
+    //         try {
+    //             const validatedData = await fetchFromBackendApi<UiConfig>(
+    //                 '/api/backend/ui/config/abc',
+    //                 uiConfigSchema
+    //             );
 
-                setValidatedConfig(validatedData as UiConfig);
-                
-                console.log(
-                    `Got UI configuration: ${JSON.stringify(validatedData)}`
-                );
-            } catch (err) {
-                console.error(`Error loading UI configuration: ${err}`);
-            }
-        };
+    //             setValidatedConfig(validatedData as UiConfig);
 
-        // Call the async function
-        fetchConfig();
-    }, []); // The empty dependency array [] ensures this effect runs only once on mount
+    //             console.log(
+    //                 `Got UI configuration: ${JSON.stringify(validatedData)}`
+    //             );
+    //         } catch (err) {
+    //             console.error(`Error loading UI configuration: ${err}`);
+    //         }
+    //     };
+
+    //     // Call the async function
+    //     fetchConfig();
+    // }, []); // The empty dependency array [] ensures this effect runs only once on mount
 
     return (
         <PagePanel
@@ -81,28 +66,38 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${props.className ?? ''}
       `}
         >
-            {validatedConfig ? (
+            {dashboardContext.ui_configuration ? (
                 <>
-                    <JogPanel
-                        id="jogging_panel"
-                        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                            'jogging_panel'
-                        )} ${fillTile === 'jogging_panel' ? 'h-full' : 'min-h-[400px] overflow-y-auto'}`}
-                    />
+                    {dashboardContext.ui_configuration.components.map(
+                        (componentConfig) => {
+                            // Look up the component from our map based on its type.
+                            const Component =
+                                ComponentMap[componentConfig.type];
 
-                    <IOConfigurationContainer
-                        id="io_configuration"
-                        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                            'io_configuration'
-                        )} ${fillTile === 'io_configuration' ? 'h-full' : 'min-h-[400px] overflow-y-auto'}`}
-                        fill_tile_callback={setFillTile}
-                    />
-                    <PlotPanel id={'plots'} />
+                            // Check if the component exists in the map.
+                            if (!Component) {
+                                console.error(
+                                    `Component type "${componentConfig.type}" not found in the component map.`
+                                );
+                                return null; // Don't render anything if the type is unknown.
+                            }
+
+                            // Use the `id` from the API as the React key.
+                            return (
+                                <Component
+                                    key={componentConfig.id}
+                                    //{...componentConfig.props}
+                                />
+                            );
+                        }
+                    )}
                 </>
             ) : (
                 <>
-                    <p>WAITING FOR UI CONFIG</p>
-                    <LoadingIndicator />
+                    <div>
+                        <p>WAITING FOR UI CONFIG</p>
+                        <LoadingIndicator />
+                    </div>
                 </>
             )}
 

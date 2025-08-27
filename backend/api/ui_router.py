@@ -40,9 +40,6 @@ async def get_frontend_config(client_id: str, request: Request):
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
     table_name = "frontend_configs"  # Hardcoded table name for UI configurations
 
-    # TODO Implement
-    # return json.dumps()
-
     return ApiResponse(
         success=True,
         message=f"Configuration for client '{client_id}' retrieved successfully.",
@@ -52,13 +49,13 @@ async def get_frontend_config(client_id: str, request: Request):
             "components": [
                 {
                     "id": "c6179b00-34a0-4a8f-b98a-7e0e8548a80a",
-                    "type": "button",
+                    "type": "jogging",
                     "label": "Click Me",
                     "metadata": {"color": "blue"},
                 },
                 {
                     "id": "e4d2a1b9-3b6d-4c8d-8a9d-1f2e3c4a5b6d",
-                    "type": "input",
+                    "type": "charts",
                     "label": "Enter your name",
                 },
             ],

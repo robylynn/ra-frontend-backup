@@ -11,8 +11,8 @@ export const uiConfigSchema = z.object({
     components: z
         .array(
             z.object({
-                id: z.string().uuid(),
-                type: z.enum(['button', 'card', 'input']),
+                id: z.uuid(),
+                type: z.string(),
                 label: z.string().min(1, 'Component label cannot be empty.'),
                 metadata: z.record(z.string(), z.any()).optional(), // A record for flexible key-value pairs
             })

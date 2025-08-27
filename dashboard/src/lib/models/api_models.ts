@@ -80,89 +80,89 @@ export class PlotConfiguration implements PlotConfigurationInterface {
     }
 }
 
-export interface UIConfigurationInterface {
-    client_id: number | undefined;
-    // io_plots: Array<PlotConfigurationInterface>;
-    io_plots: Record<IOPointType | number, Array<PlotConfigurationInterface>>;
-    motion_plots: Array<PlotConfigurationInterface>;
-}
+// export interface UIConfigurationInterface {
+//     client_id: number | undefined;
+//     // io_plots: Array<PlotConfigurationInterface>;
+//     io_plots: Record<IOPointType | number, Array<PlotConfigurationInterface>>;
+//     motion_plots: Array<PlotConfigurationInterface>;
+// }
 
-export class UIConfiguration implements UIConfigurationInterface {
-    client_id: number | undefined;
-    // io_plots: Array<PlotConfiguration> = [];
-    io_plots: Record<IOPointType | number, Array<PlotConfiguration>> = {
-        // [IOPointType.NULL]: [],
-        [IOPointType.ANALOG_INPUT]: [],
-        [IOPointType.ANALOG_OUTPUT]: [],
-        [IOPointType.DIGITAL_INPUT]: [],
-        [IOPointType.DIGITAL_OUTPUT]: [],
-    };
-    motion_plots: Array<PlotConfiguration> = [];
+// export class UIConfiguration implements UIConfigurationInterface {
+//     client_id: number | undefined;
+//     // io_plots: Array<PlotConfiguration> = [];
+//     io_plots: Record<IOPointType | number, Array<PlotConfiguration>> = {
+//         // [IOPointType.NULL]: [],
+//         [IOPointType.ANALOG_INPUT]: [],
+//         [IOPointType.ANALOG_OUTPUT]: [],
+//         [IOPointType.DIGITAL_INPUT]: [],
+//         [IOPointType.DIGITAL_OUTPUT]: [],
+//     };
+//     motion_plots: Array<PlotConfiguration> = [];
 
-    configured: boolean = false;
+//     configured: boolean = false;
 
-    saved_motion_plot_configuration: Array<PlotConfiguration> = [];
-    saved_io_plot_configuration: Record<
-        IOPointType | number,
-        Array<PlotConfiguration>
-    > = {};
+//     saved_motion_plot_configuration: Array<PlotConfiguration> = [];
+//     saved_io_plot_configuration: Record<
+//         IOPointType | number,
+//         Array<PlotConfiguration>
+//     > = {};
 
-    public copy(): UIConfiguration {
-        let config = new UIConfiguration();
-        Object.assign(config, this);
-        return config;
-    }
+//     public copy(): UIConfiguration {
+//         let config = new UIConfiguration();
+//         Object.assign(config, this);
+//         return config;
+//     }
 
-    constructor(input?: UIConfigurationInterface) {
-        if (input != undefined) {
-            this.io_plots = {
-                // [IOPointType.NULL]: [],
-                [IOPointType.ANALOG_INPUT]: [],
-                [IOPointType.ANALOG_OUTPUT]: [],
-                [IOPointType.DIGITAL_INPUT]: [],
-                [IOPointType.DIGITAL_OUTPUT]: [],
-            };
+//     constructor(input?: UIConfigurationInterface) {
+//         if (input != undefined) {
+//             this.io_plots = {
+//                 // [IOPointType.NULL]: [],
+//                 [IOPointType.ANALOG_INPUT]: [],
+//                 [IOPointType.ANALOG_OUTPUT]: [],
+//                 [IOPointType.DIGITAL_INPUT]: [],
+//                 [IOPointType.DIGITAL_OUTPUT]: [],
+//             };
 
-            this.client_id = input.client_id;
-            if (input.io_plots != undefined) {
-                Object.keys(input.io_plots).forEach((plot_type) => {
-                    this.io_plots[plot_type as keyof typeof IOPointType] =
-                        input.io_plots[
-                            plot_type as keyof typeof IOPointType
-                        ].map((p) => new PlotConfiguration(p));
-                });
-            }
+//             this.client_id = input.client_id;
+//             if (input.io_plots != undefined) {
+//                 Object.keys(input.io_plots).forEach((plot_type) => {
+//                     this.io_plots[plot_type as keyof typeof IOPointType] =
+//                         input.io_plots[
+//                             plot_type as keyof typeof IOPointType
+//                         ].map((p) => new PlotConfiguration(p));
+//                 });
+//             }
 
-            input.motion_plots?.forEach((p) =>
-                this.motion_plots.push(new PlotConfiguration(p))
-            );
+//             input.motion_plots?.forEach((p) =>
+//                 this.motion_plots.push(new PlotConfiguration(p))
+//             );
 
-            this.configured = true;
-        }
-    }
+//             this.configured = true;
+//         }
+//     }
 
-    save_motion_plot_configuration() {
-        this.saved_motion_plot_configuration = this.motion_plots;
-    }
+//     save_motion_plot_configuration() {
+//         this.saved_motion_plot_configuration = this.motion_plots;
+//     }
 
-    save_io_plot_confiuration() {
-        this.saved_io_plot_configuration = this.io_plots;
-    }
+//     save_io_plot_confiuration() {
+//         this.saved_io_plot_configuration = this.io_plots;
+//     }
 
-    serialize_saved_confiuration(): string {
-        let confiuration_to_serialize = this.copy();
-        confiuration_to_serialize.io_plots = this.saved_io_plot_configuration;
-        confiuration_to_serialize.motion_plots =
-            this.saved_motion_plot_configuration;
-        // const json_value = JSON.parse(JSON.stringify(confiuration_to_serialize));
-        return JSON.stringify(confiuration_to_serialize);
-    }
+//     serialize_saved_confiuration(): string {
+//         let confiuration_to_serialize = this.copy();
+//         confiuration_to_serialize.io_plots = this.saved_io_plot_configuration;
+//         confiuration_to_serialize.motion_plots =
+//             this.saved_motion_plot_configuration;
+//         // const json_value = JSON.parse(JSON.stringify(confiuration_to_serialize));
+//         return JSON.stringify(confiuration_to_serialize);
+//     }
 
-    serialize(): UIConfigurationInterface {
-        const json_value = JSON.parse(JSON.stringify(this));
-        return json_value;
-    }
-}
+//     serialize(): UIConfigurationInterface {
+//         const json_value = JSON.parse(JSON.stringify(this));
+//         return json_value;
+//     }
+// }
 
 ////////////////////////////////////////////////
 //////////// HARDWARE CONFIGURATION ////////////
