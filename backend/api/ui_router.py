@@ -33,6 +33,37 @@ async def get_frontend_config(client_id: str, request: Request):
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
     table_name = "frontend_configs" # Hardcoded table name for UI configurations
 
+    #TODO Implement
+    # return json.dumps()
+
+    return ApiResponse(
+                success=True,
+                message=f"Configuration for client '{client_id}' retrieved successfully.",
+                data={
+            "theme": "light",
+            "layout": {
+            "sidebarEnabled": True,
+            "headerHeight": 80
+            },
+            "components": [
+            {
+                "id": "c6179b00-34a0-4a8f-b98a-7e0e8548a80a",
+                "type": "button",
+                "label": "Click Me",
+                "metadata": {
+                "color": "blue"
+                }
+            },
+            {
+                "id": "e4d2a1b9-3b6d-4c8d-8a9d-1f2e3c4a5b6d",
+                "type": "input",
+                "label": "Enter your name"
+            }
+            ],
+            "lastUpdated": "2024-08-27T10:30:00Z"
+    }
+            )
+
     # Ensure the frontend_configs table is defined in the schema
     # If not, this is a critical backend setup error
     if LOADED_RAW_SCHEMA is None or table_name not in LOADED_RAW_SCHEMA.tables:

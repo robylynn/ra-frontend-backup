@@ -3,13 +3,15 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import IOConfigurationContainer from '@/app/io_configuration/io_configuration_container';
-import IOPlotPanel from '@/app/io_plot/io_plot_panel';
-import MotionPlotPanel from '@/app/motion_plot/motion_plot_panel';
+import { PlotPanel } from '@/app/charts/PlotPanel';
+import JogPanel from '@/app/jog/jog_panel';
 import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
-import JogPanel from '../jog/jog_panel';
+import { UiConfig, uiConfigSchema } from '@/lib/models/ui_configuration';
+import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
 
 export default function DashboardMainPanel(props: { className?: string }) {
     const [fillTile, setFillTile] = useState<string>('');
@@ -22,6 +24,53 @@ export default function DashboardMainPanel(props: { className?: string }) {
     const tile_hidden = (tile_name: string) =>
         fillTile != tile_name && fillTile != '' ? 'hidden' : '';
 
+    const [validatedConfig, setValidatedConfig] = useState<UiConfig | null>(
+        null
+    );
+
+    // const handleSerialize = () => {
+    //     if (!validatedConfig) {
+    //         console.error('No validated configuration to serialize.');
+    //         // setSerializableJson('');
+    //         return;
+    //     }
+
+    //     // Use JSON.stringify() to convert the object back to a string.
+    //     // The Zod schema ensures the object has the correct shape for serialization.
+    //     try {
+    //         const serializedData = JSON.stringify(validatedConfig, null, 2);
+    //         return serializedData;
+    //         // setSerializableJson(serializedData);
+    //         // setErrors([]);
+    //     } catch (e) {
+    //         console.error(`Serialization Error: ${e.message}`);
+    //     }
+    // };
+
+    // The useEffect hook runs after the component renders
+    useEffect(() => {
+        // Define an async function to handle the API call
+        const fetchConfig = async () => {
+            try {
+                const validatedData = await fetchFromBackendApi<UiConfig>(
+                    '/api/backend/ui/config/abc',
+                    uiConfigSchema
+                );
+
+                setValidatedConfig(validatedData as UiConfig);
+                
+                console.log(
+                    `Got UI configuration: ${JSON.stringify(validatedData)}`
+                );
+            } catch (err) {
+                console.error(`Error loading UI configuration: ${err}`);
+            }
+        };
+
+        // Call the async function
+        fetchConfig();
+    }, []); // The empty dependency array [] ensures this effect runs only once on mount
+
     return (
         <PagePanel
             className={`
@@ -32,22 +81,32 @@ export default function DashboardMainPanel(props: { className?: string }) {
         ${props.className ?? ''}
       `}
         >
-            <JogPanel
-                id="jogging_panel"
-                className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                    'jogging_panel'
-                )} ${fillTile === 'jogging_panel' ? 'h-full' : 'min-h-[400px] overflow-y-auto'}`}
-            />
+            {validatedConfig ? (
+                <>
+                    <JogPanel
+                        id="jogging_panel"
+                        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+                            'jogging_panel'
+                        )} ${fillTile === 'jogging_panel' ? 'h-full' : 'min-h-[400px] overflow-y-auto'}`}
+                    />
 
-            <IOConfigurationContainer
-                id="io_configuration"
-                className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                    'io_configuration'
-                )} ${fillTile === 'io_configuration' ? 'h-full' : 'min-h-[400px] overflow-y-auto'}`}
-                fill_tile_callback={setFillTile}
-            />
+                    <IOConfigurationContainer
+                        id="io_configuration"
+                        className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+                            'io_configuration'
+                        )} ${fillTile === 'io_configuration' ? 'h-full' : 'min-h-[400px] overflow-y-auto'}`}
+                        fill_tile_callback={setFillTile}
+                    />
+                    <PlotPanel id={'plots'} />
+                </>
+            ) : (
+                <>
+                    <p>WAITING FOR UI CONFIG</p>
+                    <LoadingIndicator />
+                </>
+            )}
 
-            <IOPlotPanel
+            {/* <IOPlotPanel
                 id="io_plot"
                 className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
                     'io_plot'
@@ -61,7 +120,7 @@ export default function DashboardMainPanel(props: { className?: string }) {
                     'motion_plot'
                 )}`}
                 fill_tile_callback={setFillTile}
-            />
+            /> */}
         </PagePanel>
     );
 }
