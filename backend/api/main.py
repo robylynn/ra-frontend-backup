@@ -15,6 +15,7 @@ import uvicorn
 from pydantic import ValidationError
 
 from fastapi.middleware.cors import CORSMiddleware
+from backend.api.subscription_router import SubscriptionManager, zmq_router
 
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -155,6 +156,10 @@ async def lifespan(app: FastAPI):
     app.state.websocket_active_clients: Dict[str, List[asyncio.Queue]] = {}
     app.state.broadcast_consumer_tasks: List[asyncio.Task] = []
 
+    # --- Initialize SubscriptionManager for ZMQ-like WebSockets ---
+    app.state.subscription_manager = SubscriptionManager()
+    logger.info("SubscriptionManager initialized and added to app state.")
+
     if LOADED_RAW_SCHEMA and LOADED_RAW_SCHEMA.tables:
         for table_name in LOADED_RAW_SCHEMA.tables.keys():
             app.state.websocket_broadcast_queues[table_name] = asyncio.Queue()
@@ -284,6 +289,7 @@ backend_api.include_router(data_router)
 backend_api.include_router(ui_router)
 backend_api.include_router(auth_router)
 backend_api.include_router(status_router)  # ADDED: Register the status_router
+backend_api.include_router(zmq_router)
 
 
 # --- New Root Endpoint for a simple message ---

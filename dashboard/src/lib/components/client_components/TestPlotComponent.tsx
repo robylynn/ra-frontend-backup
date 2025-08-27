@@ -1,7 +1,11 @@
 'use client';
 
-import { RAServerWebSocket } from '@/lib/components/client_components/WebsocketClient';
-import React, { useCallback, useState } from 'react';
+import {
+    useWebSocket,
+    WebSocketMessage,
+} from '@/lib/components/client_components/WebsocketSubscriptionProvider';
+import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     CartesianGrid,
     Legend,
@@ -12,11 +16,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
 
 interface PlotProperties {
-    table_name: string,
-    column: string
+    table_name: string;
+    column: string;
 }
 
 export const TestPlotComponent: React.FC<PlotProperties> = (
@@ -25,6 +28,8 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
 ) => {
     const [chartData, setChartData] = useState([]);
     const [logMessages, setLogMessages] = useState([]);
+    const { registerMessageListener, subscribe, unsubscribe, isConnected } =
+        useWebSocket();
 
     const logMessage = useCallback((text, type = 'info') => {
         const now = new Date();
@@ -40,35 +45,74 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
         });
     }, []);
 
-    const websocketMessageCallback = (data) => {
+    // This effect registers and unregisters the listener
+    useEffect(() => {
+        if (!isConnected) return; // Only register if connected
+
+        const listenerId = 'sensor_data';
+        const callback = (message: WebSocketMessage) => {
+            // Define your arbitrary logic here.
+            // For example, if it's a 'live' message from 'special_alerts_table'
+            // or if it contains a specific flag in its data.
+
+            console.log('GOT WEBSOCKET MESSAGE');
+            // if (
+            //     message.type === 'live' &&
+            //     message.table === 'special_alerts_table' &&
+            //     message.data?.severity === 'high'
+            // ) {
+            //     alertCount.current += 1;
+            //     const alertText = `🚨 Special High Severity Alert (${alertCount.current}): ${JSON.stringify(message.data)}`;
+            //     setLastSpecialMessage(alertText);
+            //     console.log(alertText);
+            //     // You can trigger other arbitrary actions here, e.g.,
+            //     // playSoundEffect();
+            //     // showToastNotification(alertText);
+            // }
+        };
+
+        // Register to listen for 'live' messages from 'special_alerts_table'
+        const unregister_listener = registerMessageListener(
+            listenerId,
+            websocketMessageCallback,
+            {
+                type: ['live', 'historical'],
+                table: 'sensor_data',
+            }
+        );
+
+        subscribe('sensor_data', true, 50);
+
+        return () => {
+            unsubscribe('sensor_data');
+            unregister_listener(); // Clean up listener when component unmounts or isConnected changes
+        };
+    }, [isConnected, registerMessageListener]); // Re-register if connection status or register function changes
+
+    const websocketMessageCallback = (message: WebSocketMessage) => {
         // console.log(data);
-        logMessage(`Received: ${data}`, 'received');
+        logMessage(`Received: ${message}`, 'received');
         try {
-            const receivedData = JSON.parse(data);
+            // const receivedData = message.data;
             // Check for the "historical" data type and parse it
-            if (receivedData.type === 'historical') {
-                const parsedData = parseHistoricalData(receivedData);
-                setChartData(parsedData);
-            } else if (receivedData.type === 'live') {
-                const parsedData = parseLiveData(receivedData);
-                setChartData((prevData) => {
-                    let a = 5;
-                    return [...prevData, parsedData].slice(-100);
-                });
-            } else if (typeof receivedData.value === 'number') {
-                // Original logic for single data points
-                setChartData((prevData) => {
-                    const newDataPoint = {
-                        name: `Point ${prevData.length + 1}`,
-                        value: receivedData.value,
-                    };
-                    return [...prevData, newDataPoint].slice(-10);
-                });
+            if (message) {
+                if (message.type === 'historical') {
+                    const parsedData = parseHistoricalData(message);
+                    setChartData(parsedData);
+                } else if (message.type === 'live') {
+                    const parsedData = parseLiveData(message);
+                    setChartData((prevData) => {
+                        // let a = 5;
+                        return [...prevData, parsedData].slice(-100);
+                    });
+                } else {
+                    logMessage(
+                        'Received message is not valid data for chart.',
+                        'info'
+                    );
+                }
             } else {
-                logMessage(
-                    'Received message is not valid data for chart.',
-                    'info'
-                );
+                logMessage('Received message has no data.', 'info');
             }
         } catch (e) {
             logMessage('Received message is not valid JSON.', 'info');
@@ -104,11 +148,11 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
 
     return (
         <>
-            <RAServerWebSocket
+            {/* <RAServerWebSocket
                 websocketUrl={`/api/socket?target=stream&table_name=${props.table_name}&historical_limit=100`}
                 reconnectInterval={3000}
                 callback={websocketMessageCallback}
-            />
+            /> */}
             {/* <LineChartComponent chartData={chartData} /> */}
             <div>
                 <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
@@ -170,7 +214,7 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
                         </LineChart>
                     </ResponsiveContainer>
                 ) : (
-                    <LoadingIndicator/>
+                    <LoadingIndicator />
                     // <div className="h-full flex flex-col items-center justify-center p-6 bg-gray-100 rounded-lg border border-gray-200 text-center">
                     //     <svg
                     //         className="animate-spin h-8 w-8 text-gray-400 mb-4"

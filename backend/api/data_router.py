@@ -441,26 +441,68 @@ async def insert_data(
         logger.info(
             f"Batch data ({len(validated_records_data)} records) inserted successfully into '{table_name}' on local DB."
         )
-        if table_name in request.app.state.websocket_broadcast_queues:
+        # if table_name in request.app.state.websocket_broadcast_queues:
+        #     for record in validated_records_data:
+        #         serializable_record = {}
+        #         for key, value in record.items():
+        #             if isinstance(value, datetime):
+        #                 serializable_record[key] = (
+        #                     value.isoformat(timespec="milliseconds").replace(
+        #                         "+00:00", "Z"
+        #                     )
+        #                     if value.tzinfo
+        #                     else value.isoformat(timespec="milliseconds") + "Z"
+        #                 )
+        #             else:
+        #                 serializable_record[key] = value
+        #         await request.app.state.websocket_broadcast_queues[table_name].put(
+        #             {"type": "live", "data": serializable_record}
+        #         )
+        #     logger.debug(
+        #         f"Pushed {len(validated_records_data)} records to WebSocket broadcast queue for table '{table_name}'."
+        #     )
+        # --- MODIFICATION START ---
+        # Removed the old direct broadcast to table-specific queues
+        # if table_name in request.app.state.websocket_broadcast_queues:
+        #     for record in validated_records_data:
+        #         serializable_record = {}
+        #         for key, value in record.items():
+        #             if isinstance(value, datetime):
+        #                 serializable_record[key] = (
+        #                     value.isoformat(timespec="milliseconds").replace(
+        #                         "+00:00", "Z"
+        #                     )
+        #                     if value.tzinfo
+        #                     else value.isoformat(timespec="milliseconds") + "Z"
+        #                 )
+        #             else:
+        #                 serializable_record[key] = value
+        #         await request.app.state.websocket_broadcast_queues[table_name].put(
+        #             {"type": "live", "data": serializable_record}
+        #         )
+        #     logger.debug(
+        #         f"Pushed {len(validated_records_data)} records to WebSocket broadcast queue for table '{table_name}'."
+        #     )
+
+        # Publish to the new SubscriptionManager if it exists
+        if hasattr(request.app.state, 'subscription_manager'):
             for record in validated_records_data:
-                serializable_record = {}
-                for key, value in record.items():
-                    if isinstance(value, datetime):
-                        serializable_record[key] = (
-                            value.isoformat(timespec="milliseconds").replace(
-                                "+00:00", "Z"
-                            )
-                            if value.tzinfo
-                            else value.isoformat(timespec="milliseconds") + "Z"
-                        )
-                    else:
-                        serializable_record[key] = value
-                await request.app.state.websocket_broadcast_queues[table_name].put(
-                    {"type": "live", "data": serializable_record}
+                # Ensure datetime objects are converted to ISO format for JSON serialization
+                serializable_record = {
+                    key: (
+                        value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+                        if isinstance(value, datetime)
+                        else value
+                    )
+                    for key, value in record.items()
+                }
+                await request.app.state.subscription_manager.publish(
+                    table_name, {"type": "live", "table": table_name, "data": serializable_record}
                 )
             logger.debug(
-                f"Pushed {len(validated_records_data)} records to WebSocket broadcast queue for table '{table_name}'."
+                f"Published {len(validated_records_data)} records to SubscriptionManager for table '{table_name}'."
             )
+        # --- MODIFICATION END ---
 
     if request.app.state.enable_cloud_db and request.app.state.cloud_db_pools:
         for cloud_idx, cloud_db_pool in enumerate(request.app.state.cloud_db_pools):
