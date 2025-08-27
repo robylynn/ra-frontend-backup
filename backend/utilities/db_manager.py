@@ -99,58 +99,81 @@ from urllib.parse import urlparse
 # Adjust sys.path to include the 'backend' directory for importing 'api' modules
 # Assuming this script is in 'backend/utilities/'
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.join(current_dir, '..') # Go up one level from 'utilities' to 'backend'
+project_root = os.path.join(
+    current_dir, ".."
+)  # Go up one level from 'utilities' to 'backend'
 sys.path.insert(0, project_root)
 
-from api.models import SchemaConfig, DeploymentConfig, DatabaseConnectionConfig, CloudDbInstance
+from api.models import (
+    SchemaConfig,
+    DeploymentConfig,
+    DatabaseConnectionConfig,
+    CloudDbInstance,
+)
 from api.schema_models import load_raw_schema, LOADED_RAW_SCHEMA
 from api.models import FrontendConfigData
 
 
 # --- Global Config for DB Manager ---
-DB_CONFIG_FILE_PATH = os.path.join(project_root, 'config', 'database_configs.yml') # Adjusted path
-DEPLOYMENT_ENVIRONMENT = os.getenv('DEPLOYMENT_ENV', 'development')
+DB_CONFIG_FILE_PATH = os.path.join(
+    project_root, "config", "database_configs.yml"
+)  # Adjusted path
+DEPLOYMENT_ENVIRONMENT = os.getenv("DEPLOYMENT_ENV", "development")
 
 MANAGER_DB_CONFIG: Optional[DatabaseConnectionConfig] = None
+
 
 # --- Function to load DB config for the manager ---
 def load_manager_db_config():
     global MANAGER_DB_CONFIG
     config_path = Path(DB_CONFIG_FILE_PATH)
     if not config_path.is_file():
-        print(f"ERROR: Database configuration file not found at {config_path}. Aborting.")
+        print(
+            f"ERROR: Database configuration file not found at {config_path}. Aborting."
+        )
         sys.exit(1)
 
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             raw_db_configs = yaml.safe_load(f)
-        
+
         deployment_config = DeploymentConfig(**raw_db_configs)
-        
-        if DEPLOYMENT_ENVIRONMENT == 'development':
+
+        if DEPLOYMENT_ENVIRONMENT == "development":
             MANAGER_DB_CONFIG = deployment_config.development
-        elif DEPLOYMENT_ENVIRONMENT == 'production':
+        elif DEPLOYMENT_ENVIRONMENT == "production":
             MANAGER_DB_CONFIG = deployment_config.production
-        elif DEPLOYMENT_ENVIRONMENT == 'testing': # NEW: Add 'testing' environment check
+        elif (
+            DEPLOYMENT_ENVIRONMENT == "testing"
+        ):  # NEW: Add 'testing' environment check
             MANAGER_DB_CONFIG = deployment_config.testing
         else:
-            print(f"ERROR: Invalid DEPLOYMENT_ENV '{DEPLOYMENT_ENVIRONMENT}'. Must be 'development', 'production', or 'testing'. Aborting.")
+            print(
+                f"ERROR: Invalid DEPLOYMENT_ENV '{DEPLOYMENT_ENVIRONMENT}'. Must be 'development', 'production', or 'testing'. Aborting."
+            )
             sys.exit(1)
 
-        print(f"INFO: Loaded database configuration for environment: '{DEPLOYMENT_ENVIRONMENT}'.")
+        print(
+            f"INFO: Loaded database configuration for environment: '{DEPLOYMENT_ENVIRONMENT}'."
+        )
 
     except FileNotFoundError:
-        print(f"ERROR: Database configuration file not found at {config_path}. Aborting.")
+        print(
+            f"ERROR: Database configuration file not found at {config_path}. Aborting."
+        )
         sys.exit(1)
     except yaml.YAMLError as e:
         print(f"ERROR: Error parsing database configuration YAML file: {e}. Aborting.")
         sys.exit(1)
     except ValidationError as e:
-        print(f"ERROR: Validation error in database configuration YAML for environment '{DEPLOYMENT_ENVIRONMENT}': {e}. Aborting.")
+        print(
+            f"ERROR: Validation error in database configuration YAML for environment '{DEPLOYMENT_ENVIRONMENT}': {e}. Aborting."
+        )
         sys.exit(1)
     except Exception as e:
         print(f"ERROR: Unexpected error loading database configuration: {e}. Aborting.")
         sys.exit(1)
+
 
 # Call on script startup
 load_manager_db_config()
@@ -163,7 +186,10 @@ if MANAGER_DB_CONFIG is None:
 
 # REMOVED: FrontendConfigTableDef class as it's no longer needed
 
-async def _ensure_database_exists(db_url: str, db_name_to_create: str, db_identifier: str):
+
+async def _ensure_database_exists(
+    db_url: str, db_name_to_create: str, db_identifier: str
+):
     """
     Connects to a default database (e.g., 'postgres') on the target host/port
     and ensures the specified database exists.
@@ -171,24 +197,36 @@ async def _ensure_database_exists(db_url: str, db_name_to_create: str, db_identi
     parsed_url = urlparse(db_url)
     # Create a connection string to a default database on the same host/port
     # Ensure to use the same user/password from the parsed URL
-    default_db_url = parsed_url._replace(path='/postgres').geturl()
+    default_db_url = parsed_url._replace(path="/postgres").geturl()
 
-    print(f"INFO: Ensuring database '{db_name_to_create}' exists in {db_identifier} DB...")
+    print(
+        f"INFO: Ensuring database '{db_name_to_create}' exists in {db_identifier} DB..."
+    )
     conn = None
     try:
         conn = await asyncpg.connect(default_db_url)
-        exists = await conn.fetchval(f"SELECT 1 FROM pg_database WHERE datname = $1;", db_name_to_create)
+        exists = await conn.fetchval(
+            f"SELECT 1 FROM pg_database WHERE datname = $1;", db_name_to_create
+        )
         if not exists:
             await conn.execute(f'CREATE DATABASE "{db_name_to_create}";')
-            print(f"INFO: Database '{db_name_to_create}' created in {db_identifier} DB.")
+            print(
+                f"INFO: Database '{db_name_to_create}' created in {db_identifier} DB."
+            )
         else:
-            print(f"INFO: Database '{db_name_to_create}' already exists in {db_identifier} DB.")
+            print(
+                f"INFO: Database '{db_name_to_create}' already exists in {db_identifier} DB."
+            )
         return True
     except asyncpg.exceptions.DuplicateDatabaseError:
-        print(f"INFO: Database '{db_name_to_create}' already exists (handled race condition).")
+        print(
+            f"INFO: Database '{db_name_to_create}' already exists (handled race condition)."
+        )
         return True
     except Exception as e:
-        print(f"ERROR: Failed to ensure database '{db_name_to_create}' exists in {db_identifier} DB: {e}")
+        print(
+            f"ERROR: Failed to ensure database '{db_name_to_create}' exists in {db_identifier} DB: {e}"
+        )
         return False
     finally:
         if conn:
@@ -200,11 +238,7 @@ async def _get_pool(db_url: str, db_name: str = "Database") -> AsyncpgPool:
     print(f"INFO: Attempting to connect to {db_name} at {db_url.split('@')[-1]}...")
     try:
         pool = await asyncpg.create_pool(
-            db_url,
-            min_size=1,
-            max_size=3,
-            timeout=30,
-            command_timeout=30
+            db_url, min_size=1, max_size=3, timeout=30, command_timeout=30
         )
         print(f"INFO: Successfully connected to {db_name} at {db_url.split('@')[-1]}.")
         return pool
@@ -212,15 +246,20 @@ async def _get_pool(db_url: str, db_name: str = "Database") -> AsyncpgPool:
         print(f"ERROR: Failed to connect to {db_name} at {db_url.split('@')[-1]}: {e}")
         raise
 
-async def _setup_table(pool: AsyncpgPool, table_name: str, table_def: Any, db_identifier: str = "Local"):
+
+async def _setup_table(
+    pool: AsyncpgPool, table_name: str, table_def: Any, db_identifier: str = "Local"
+):
     """Creates a table and hypertable in a given database pool."""
     print(f"INFO: Setting up table '{table_name}' in {db_identifier} DB...")
-    
+
     columns = table_def.columns
     hypertable_column = table_def.hypertable_column
 
-    column_defs = ", ".join([f"{col_name} {col_type}" for col_name, col_type in columns.items()])
-    
+    column_defs = ", ".join(
+        [f"{col_name} {col_type}" for col_name, col_type in columns.items()]
+    )
+
     # NEW: Add PRIMARY KEY constraint for client_id for frontend_configs table
     if table_name == "frontend_configs" and "client_id" in columns:
         create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_defs}, PRIMARY KEY (client_id));"
@@ -232,19 +271,25 @@ async def _setup_table(pool: AsyncpgPool, table_name: str, table_def: Any, db_id
     if hypertable_column:
         create_hypertable_sql = f"SELECT create_hypertable('{table_name}', '{hypertable_column}', if_not_exists => TRUE);"
 
-
     try:
         async with pool.acquire() as conn:
             await conn.execute(create_table_sql)
             if create_hypertable_sql:
-                 await conn.execute(create_hypertable_sql)
-        print(f"INFO: Table '{table_name}' created/ensured hypertable in {db_identifier} DB.")
+                await conn.execute(create_hypertable_sql)
+        print(
+            f"INFO: Table '{table_name}' created/ensured hypertable in {db_identifier} DB."
+        )
         return True
     except Exception as e:
-        print(f"ERROR: Failed to set up table '{table_name}' in {db_identifier} DB: {e}")
+        print(
+            f"ERROR: Failed to set up table '{table_name}' in {db_identifier} DB: {e}"
+        )
         return False
 
-async def _reset_table(pool: AsyncpgPool, table_name: str, db_identifier: str = "Local"):
+
+async def _reset_table(
+    pool: AsyncpgPool, table_name: str, db_identifier: str = "Local"
+):
     """Drops a table in a given database pool."""
     print(f"INFO: Resetting table '{table_name}' in {db_identifier} DB...")
     drop_table_sql = f"DROP TABLE IF EXISTS {table_name} CASCADE;"
@@ -257,20 +302,41 @@ async def _reset_table(pool: AsyncpgPool, table_name: str, db_identifier: str = 
         print(f"ERROR: Failed to drop table '{table_name}' in {db_identifier} DB: {e}")
         return False
 
-async def main():
-    parser = argparse.ArgumentParser(description="Manage TimescaleDB schemas for local and cloud instances.")
-    parser.add_argument("--action", required=True, choices=["setup", "reset", "auto_setup"],
-                        help="Action to perform: 'setup' (create tables), 'reset' (drop and recreate tables), or 'auto_setup' (perform full setup for local and enabled cloud DBs for the current environment).")
-    parser.add_argument("--target", choices=["local", "cloud_all", "cloud_name"],
-                        help="Target database(s): 'local', 'cloud_all', or 'cloud_name' for a specific cloud instance (by its name from YAML). Required for 'setup' and 'reset' actions.")
-    parser.add_argument("--cloud-name", type=str,
-                        help="Required if --target is 'cloud_name'. The name of the cloud database instance from database_configs.yml to target.")
-    parser.add_argument("--table", help="Optional: Specific table to target. If not provided, all tables in schema.yml (and frontend_configs for auto_setup) will be processed.")
-    parser.add_argument("--drop-local-existing", action="store_true",
-                        help="If set with 'auto_setup', drops all existing tables in the local database before recreating them.")
-    parser.add_argument("--drop-cloud-existing", action="store_true",
-                        help="If set with 'auto_setup', drops all existing tables in the cloud database(s) before recreating them.")
 
+async def main():
+    parser = argparse.ArgumentParser(
+        description="Manage TimescaleDB schemas for local and cloud instances."
+    )
+    parser.add_argument(
+        "--action",
+        required=True,
+        choices=["setup", "reset", "auto_setup"],
+        help="Action to perform: 'setup' (create tables), 'reset' (drop and recreate tables), or 'auto_setup' (perform full setup for local and enabled cloud DBs for the current environment).",
+    )
+    parser.add_argument(
+        "--target",
+        choices=["local", "cloud_all", "cloud_name"],
+        help="Target database(s): 'local', 'cloud_all', or 'cloud_name' for a specific cloud instance (by its name from YAML). Required for 'setup' and 'reset' actions.",
+    )
+    parser.add_argument(
+        "--cloud-name",
+        type=str,
+        help="Required if --target is 'cloud_name'. The name of the cloud database instance from database_configs.yml to target.",
+    )
+    parser.add_argument(
+        "--table",
+        help="Optional: Specific table to target. If not provided, all tables in schema.yml (and frontend_configs for auto_setup) will be processed.",
+    )
+    parser.add_argument(
+        "--drop-local-existing",
+        action="store_true",
+        help="If set with 'auto_setup', drops all existing tables in the local database before recreating them.",
+    )
+    parser.add_argument(
+        "--drop-cloud-existing",
+        action="store_true",
+        help="If set with 'auto_setup', drops all existing tables in the cloud database(s) before recreating them.",
+    )
 
     args = parser.parse_args()
 
@@ -281,7 +347,9 @@ async def main():
         return
 
     # Determine tables to process
-    tables_to_process = list(LOADED_RAW_SCHEMA.tables.keys()) # Now includes frontend_configs from schema.yml
+    tables_to_process = list(
+        LOADED_RAW_SCHEMA.tables.keys()
+    )  # Now includes frontend_configs from schema.yml
     if args.table:
         tables_to_process = [args.table]
 
@@ -295,99 +363,157 @@ async def main():
 
     try:
         if args.action == "auto_setup":
-            print(f"\n--- Performing Automatic Setup for Environment: '{DEPLOYMENT_ENVIRONMENT}' ---")
-            
+            print(
+                f"\n--- Performing Automatic Setup for Environment: '{DEPLOYMENT_ENVIRONMENT}' ---"
+            )
+
             # Setup local DB
-            local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip('/')
-            if not await _ensure_database_exists(MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"):
-                raise Exception(f"Failed to ensure database '{local_db_name}' exists for Local DB.")
+            local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip("/")
+            if not await _ensure_database_exists(
+                MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"
+            ):
+                raise Exception(
+                    f"Failed to ensure database '{local_db_name}' exists for Local DB."
+                )
             local_pool = await _get_pool(MANAGER_DB_CONFIG.local_db_url, "Local")
             pools_to_target["Local"] = local_pool
-            
+
             # Setup all cloud DBs if enabled for the environment
             if MANAGER_DB_CONFIG.enable_cloud_db and MANAGER_DB_CONFIG.cloud_dbs:
-                print(f"INFO: Cloud DB sync is enabled. Connecting to {len(MANAGER_DB_CONFIG.cloud_dbs)} cloud instances.")
+                print(
+                    f"INFO: Cloud DB sync is enabled. Connecting to {len(MANAGER_DB_CONFIG.cloud_dbs)} cloud instances."
+                )
                 for cloud_db in MANAGER_DB_CONFIG.cloud_dbs:
-                    cloud_db_name = urlparse(cloud_db.url).path.lstrip('/')
-                    if not await _ensure_database_exists(cloud_db.url, cloud_db_name, f"Cloud DB '{cloud_db.name}'"):
-                        print(f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to database existence check failure.")
+                    cloud_db_name = urlparse(cloud_db.url).path.lstrip("/")
+                    if not await _ensure_database_exists(
+                        cloud_db.url, cloud_db_name, f"Cloud DB '{cloud_db.name}'"
+                    ):
+                        print(
+                            f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to database existence check failure."
+                        )
                         continue
                     try:
                         pool = await _get_pool(cloud_db.url, cloud_db.name)
                         cloud_pools_to_manage[cloud_db.name] = pool
                         pools_to_target[f"Cloud DB '{cloud_db.name}'"] = pool
                     except Exception:
-                        print(f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to connection failure.")
+                        print(
+                            f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to connection failure."
+                        )
             else:
-                print("INFO: Cloud DB sync is disabled or no cloud URLs configured for this environment.")
-            
+                print(
+                    "INFO: Cloud DB sync is disabled or no cloud URLs configured for this environment."
+                )
+
             if not pools_to_target:
-                print("ERROR: No target databases could be connected for auto_setup. Aborting.")
+                print(
+                    "ERROR: No target databases could be connected for auto_setup. Aborting."
+                )
                 return
 
         elif args.target == "local":
-            local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip('/')
-            if not await _ensure_database_exists(MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"):
-                raise Exception(f"Failed to ensure database '{local_db_name}' exists for Local DB.")
+            local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip("/")
+            if not await _ensure_database_exists(
+                MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"
+            ):
+                raise Exception(
+                    f"Failed to ensure database '{local_db_name}' exists for Local DB."
+                )
             local_pool = await _get_pool(MANAGER_DB_CONFIG.local_db_url, "Local")
             pools_to_target["Local"] = local_pool
         elif args.target == "cloud_all":
             if not MANAGER_DB_CONFIG.enable_cloud_db or not MANAGER_DB_CONFIG.cloud_dbs:
-                print("ERROR: Cloud DB management is disabled or no cloud URLs configured in YAML for this environment. Aborting.")
+                print(
+                    "ERROR: Cloud DB management is disabled or no cloud URLs configured in YAML for this environment. Aborting."
+                )
                 return
             for cloud_db in MANAGER_DB_CONFIG.cloud_dbs:
-                cloud_db_name = urlparse(cloud_db.url).path.lstrip('/')
-                if not await _ensure_database_exists(cloud_db.url, cloud_db_name, f"Cloud DB '{cloud_db.name}'"):
-                    print(f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to database existence check failure.")
+                cloud_db_name = urlparse(cloud_db.url).path.lstrip("/")
+                if not await _ensure_database_exists(
+                    cloud_db.url, cloud_db_name, f"Cloud DB '{cloud_db.name}'"
+                ):
+                    print(
+                        f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to database existence check failure."
+                    )
                     continue
                 try:
                     pool = await _get_pool(cloud_db.url, cloud_db.name)
                     cloud_pools_to_manage[cloud_db.name] = pool
                     pools_to_target[f"Cloud DB '{cloud_db.name}'"] = pool
                 except Exception:
-                    print(f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to connection failure.")
+                    print(
+                        f"ERROR: Skipping Cloud DB '{cloud_db.name}' due to connection failure."
+                    )
                     return
         elif args.target == "cloud_name":
             if not MANAGER_DB_CONFIG.enable_cloud_db or not MANAGER_DB_CONFIG.cloud_dbs:
-                print("ERROR: Cloud DB management is disabled or no cloud URLs configured in YAML for this environment. Aborting.")
+                print(
+                    "ERROR: Cloud DB management is disabled or no cloud URLs configured in YAML for this environment. Aborting."
+                )
                 return
             if args.cloud_name is None:
-                print("ERROR: --cloud-name is required when --target is 'cloud_name'. Aborting.")
+                print(
+                    "ERROR: --cloud-name is required when --target is 'cloud_name'. Aborting."
+                )
                 return
-            
-            target_cloud_db_instance: Optional[CloudDbInstance] = next((db for db in MANAGER_DB_CONFIG.cloud_dbs if db.name == args.cloud_name), None)
-            
+
+            target_cloud_db_instance: Optional[CloudDbInstance] = next(
+                (
+                    db
+                    for db in MANAGER_DB_CONFIG.cloud_dbs
+                    if db.name == args.cloud_name
+                ),
+                None,
+            )
+
             if not target_cloud_db_instance:
-                print(f"ERROR: Cloud DB with name '{args.cloud_name}' not found in configuration for environment '{DEPLOYMENT_ENVIRONMENT}'. Aborting.")
+                print(
+                    f"ERROR: Cloud DB with name '{args.cloud_name}' not found in configuration for environment '{DEPLOYMENT_ENVIRONMENT}'. Aborting."
+                )
                 return
-            
-            cloud_db_name = urlparse(target_cloud_db_instance.url).path.lstrip('/')
-            if not await _ensure_database_exists(target_cloud_db_instance.url, cloud_db_name, f"Cloud DB '{target_cloud_db_instance.name}'"):
-                raise Exception(f"Failed to ensure database '{cloud_db_name}' exists for Cloud DB '{target_cloud_db_instance.name}'.")
+
+            cloud_db_name = urlparse(target_cloud_db_instance.url).path.lstrip("/")
+            if not await _ensure_database_exists(
+                target_cloud_db_instance.url,
+                cloud_db_name,
+                f"Cloud DB '{target_cloud_db_instance.name}'",
+            ):
+                raise Exception(
+                    f"Failed to ensure database '{cloud_db_name}' exists for Cloud DB '{target_cloud_db_instance.name}'."
+                )
             try:
-                pool = await _get_pool(target_cloud_db_instance.url, target_cloud_db_instance.name)
+                pool = await _get_pool(
+                    target_cloud_db_instance.url, target_cloud_db_instance.name
+                )
                 cloud_pools_to_manage[target_cloud_db_instance.name] = pool
                 pools_to_target[f"Cloud DB '{target_cloud_db_instance.name}'"] = pool
             except Exception:
-                print(f"ERROR: Skipping Cloud DB '{target_cloud_db_instance.name}' due to connection failure.")
+                print(
+                    f"ERROR: Skipping Cloud DB '{target_cloud_db_instance.name}' due to connection failure."
+                )
                 return
         else:
-             if args.action != "auto_setup":
-                 print("ERROR: --target is required for 'setup' and 'reset' actions. Aborting.")
-                 return
-
+            if args.action != "auto_setup":
+                print(
+                    "ERROR: --target is required for 'setup' and 'reset' actions. Aborting."
+                )
+                return
 
         if not pools_to_target:
             print("ERROR: No target databases could be connected. Aborting.")
             return
-            
+
         for db_identifier, pool in pools_to_target.items():
             print(f"\n--- Processing {db_identifier} ---")
             for table_name in tables_to_process:
-                if table_name not in LOADED_RAW_SCHEMA.tables: # This check is now sufficient
-                    print(f"WARNING: Table '{table_name}' not found in schema.yml. Skipping for {db_identifier}.")
+                if (
+                    table_name not in LOADED_RAW_SCHEMA.tables
+                ):  # This check is now sufficient
+                    print(
+                        f"WARNING: Table '{table_name}' not found in schema.yml. Skipping for {db_identifier}."
+                    )
                     continue
-                
+
                 table_def_for_setup = LOADED_RAW_SCHEMA.tables[table_name]
 
                 # Logic to handle dropping tables
@@ -397,14 +523,19 @@ async def main():
                 elif args.action == "auto_setup":
                     if db_identifier == "Local" and args.drop_local_existing:
                         should_drop = True
-                    elif db_identifier.startswith("Cloud DB") and args.drop_cloud_existing:
+                    elif (
+                        db_identifier.startswith("Cloud DB")
+                        and args.drop_cloud_existing
+                    ):
                         should_drop = True
-                
+
                 if should_drop:
                     await _reset_table(pool, table_name, db_identifier)
-                
+
                 if args.action == "setup" or args.action == "auto_setup":
-                    await _setup_table(pool, table_name, table_def_for_setup, db_identifier)
+                    await _setup_table(
+                        pool, table_name, table_def_for_setup, db_identifier
+                    )
             print(f"--- Finished processing {db_identifier} ---")
 
     except Exception as e:

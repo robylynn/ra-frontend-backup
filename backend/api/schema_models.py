@@ -2,7 +2,7 @@
 import os
 import yaml
 from typing import Dict, Any, Optional
-from loguru import logger # Keep logger import, but remove configuration here
+from loguru import logger  # Keep logger import, but remove configuration here
 
 # Import the new Pydantic model for schema configuration
 from api.models import SchemaConfig
@@ -21,7 +21,8 @@ from api.models import SchemaConfig
 LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
 
 # Schema file path is now relative to the container's root working directory /app/config/schema.yml
-SCHEMA_FILE_PATH = os.path.join(os.getcwd(), 'config', 'schema.yml')
+SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "config", "schema.yml")
+
 
 def load_raw_schema():
     """
@@ -31,16 +32,20 @@ def load_raw_schema():
     global LOADED_RAW_SCHEMA
 
     try:
-        with open(SCHEMA_FILE_PATH, 'r') as f:
+        with open(SCHEMA_FILE_PATH, "r") as f:
             raw_yaml_data = yaml.safe_load(f)
-        
+
         # Validate and load the raw YAML data into the SchemaConfig Pydantic model
         LOADED_RAW_SCHEMA = SchemaConfig(**raw_yaml_data)
         logger.info("Raw schema loaded successfully into SchemaConfig model.")
 
     except FileNotFoundError:
-        logger.error(f"Schema file not found at {SCHEMA_FILE_PATH}. Please ensure it exists in the 'config' directory.")
-        LOADED_RAW_SCHEMA = SchemaConfig(tables={}) # Provide an empty default to prevent errors
+        logger.error(
+            f"Schema file not found at {SCHEMA_FILE_PATH}. Please ensure it exists in the 'config' directory."
+        )
+        LOADED_RAW_SCHEMA = SchemaConfig(
+            tables={}
+        )  # Provide an empty default to prevent errors
     except yaml.YAMLError as e:
         logger.error(f"Error parsing YAML schema file: {e}")
         LOADED_RAW_SCHEMA = SchemaConfig(tables={})
@@ -48,4 +53,5 @@ def load_raw_schema():
         logger.error(f"An unexpected error occurred during raw schema loading: {e}")
         LOADED_RAW_SCHEMA = SchemaConfig(tables={})
 
-load_raw_schema() # Load raw schema on import
+
+load_raw_schema()  # Load raw schema on import

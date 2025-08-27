@@ -5,7 +5,16 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Type
 import uuid
 
-from fastapi import APIRouter, HTTPException, Body, Request, status, WebSocket, WebSocketDisconnect, Query
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Body,
+    Request,
+    status,
+    WebSocket,
+    WebSocketDisconnect,
+    Query,
+)
 from pydantic import BaseModel, ValidationError
 from loguru import logger
 import asyncpg
@@ -21,8 +30,9 @@ from api.models import FrontendConfigData
 data_router = APIRouter(
     prefix="/database",
     tags=["Database Operations"],
-    responses={404: {"description": "Not found"}}
+    responses={404: {"description": "Not found"}},
 )
+
 
 # --- Helper Function for Cloud Write ---
 async def _write_to_cloud_db(
@@ -30,7 +40,7 @@ async def _write_to_cloud_db(
     insert_sql: str,
     values: tuple,
     cloud_db_pool: AsyncpgPool,
-    cloud_db_index: int
+    cloud_db_index: int,
 ) -> bool:
     """
     Helper to attempt writing data to a specific cloud database.
@@ -39,13 +49,20 @@ async def _write_to_cloud_db(
     try:
         async with cloud_db_pool.acquire() as conn_cloud:
             await conn_cloud.execute(insert_sql, *values)
-        logger.info(f"Data successfully synced to cloud DB {cloud_db_index} for table '{table_name}'.")
+        logger.info(
+            f"Data successfully synced to cloud DB {cloud_db_index} for table '{table_name}'."
+        )
         return True
     except asyncpg.exceptions.PostgresError as e:
-        logger.error(f"PostgreSQL error syncing data to cloud DB {cloud_db_index} for table '{table_name}': {e}")
+        logger.error(
+            f"PostgreSQL error syncing data to cloud DB {cloud_db_index} for table '{table_name}': {e}"
+        )
     except Exception as e:
-        logger.error(f"Unexpected error syncing data to cloud DB {cloud_db_index} for table '{table_name}': {e}")
+        logger.error(
+            f"Unexpected error syncing data to cloud DB {cloud_db_index} for table '{table_name}': {e}"
+        )
     return False
+
 
 # --- Helper Function to Fetch Historical Data (refactored from get_data) ---
 async def _fetch_historical_data(
@@ -60,7 +77,9 @@ async def _fetch_historical_data(
     Intelligently defaults to the table's hypertable_column for ordering if not provided or invalid.
     """
     if LOADED_RAW_SCHEMA is None or table_name not in LOADED_RAW_SCHEMA.tables:
-        logger.warning(f"Historical fetch: Table '{table_name}' not found in loaded schema config.")
+        logger.warning(
+            f"Historical fetch: Table '{table_name}' not found in loaded schema config."
+        )
         return []
 
     if table_name not in DYNAMIC_TABLE_MODELS:
@@ -73,20 +92,31 @@ async def _fetch_historical_data(
     column_names = list(schema_columns.keys())
 
     if not column_names:
-        logger.warning(f"Historical fetch: No columns defined for table '{table_name}'.")
+        logger.warning(
+            f"Historical fetch: No columns defined for table '{table_name}'."
+        )
         return []
 
     actual_order_by_column = order_by_column
     if actual_order_by_column not in schema_columns:
-        if table_def.hypertable_column and table_def.hypertable_column in schema_columns:
+        if (
+            table_def.hypertable_column
+            and table_def.hypertable_column in schema_columns
+        ):
             actual_order_by_column = table_def.hypertable_column
             if order_by_column:
-                logger.warning(f"Historical fetch: Order by column '{order_by_column}' not found in schema for table '{table_name}'. Defaulting to hypertable column '{actual_order_by_column}'.")
+                logger.warning(
+                    f"Historical fetch: Order by column '{order_by_column}' not found in schema for table '{table_name}'. Defaulting to hypertable column '{actual_order_by_column}'."
+                )
         else:
             if order_by_column:
-                logger.warning(f"Historical fetch: Order by column '{order_by_column}' not found, and no valid hypertable column defined for table '{table_name}'. No ordering applied.")
+                logger.warning(
+                    f"Historical fetch: Order by column '{order_by_column}' not found, and no valid hypertable column defined for table '{table_name}'. No ordering applied."
+                )
             else:
-                logger.warning(f"Historical fetch: No order_by_column provided, and no valid hypertable column defined for table '{table_name}'. No ordering applied.")
+                logger.warning(
+                    f"Historical fetch: No order_by_column provided, and no valid hypertable column defined for table '{table_name}'. No ordering applied."
+                )
             actual_order_by_column = None
 
     select_columns = ", ".join(column_names)
@@ -95,7 +125,7 @@ async def _fetch_historical_data(
 
     if actual_order_by_column:
         query += f" ORDER BY {actual_order_by_column} DESC"
-    
+
     query += " LIMIT $1;"
     params.append(limit)
 
@@ -104,36 +134,54 @@ async def _fetch_historical_data(
         async with local_db_pool.acquire() as conn:
             logger.debug(f"Executing historical SQL: {query} with params: {params}")
             data_records = await conn.fetch(query, *params)
-            
+
             for record in data_records:
                 row_dict = {}
                 for col_name in column_names:
                     value = record[col_name]
                     if isinstance(value, datetime):
-                        row_dict[col_name] = value.isoformat(timespec='milliseconds').replace('+00:00', 'Z') if value.tzinfo else value.isoformat(timespec='milliseconds') + 'Z'
+                        row_dict[col_name] = (
+                            value.isoformat(timespec="milliseconds").replace(
+                                "+00:00", "Z"
+                            )
+                            if value.tzinfo
+                            else value.isoformat(timespec="milliseconds") + "Z"
+                        )
                     else:
                         row_dict[col_name] = value
-                result.append(PydanticModel(**row_dict).model_dump() if hasattr(PydanticModel, 'model_dump') else PydanticModel(**row_dict).dict())
-        logger.info(f"Successfully fetched {len(result)} historical records from '{table_name}'.")
+                result.append(
+                    PydanticModel(**row_dict).model_dump()
+                    if hasattr(PydanticModel, "model_dump")
+                    else PydanticModel(**row_dict).dict()
+                )
+        logger.info(
+            f"Successfully fetched {len(result)} historical records from '{table_name}'."
+        )
         return result
     except Exception as e:
         logger.error(f"Error fetching historical data from '{table_name}': {e}")
         return []
 
 
-@data_router.post("/create_table/{table_name}", summary="Create Dynamic Table", response_model=ApiResponse)
+@data_router.post(
+    "/create_table/{table_name}",
+    summary="Create Dynamic Table",
+    response_model=ApiResponse,
+)
 async def create_table(table_name: str, request: Request):
     """
     Creates a table and converts it to a TimescaleDB hypertable based on the loaded schema.
     Also attempts to create the table on all configured cloud databases if enabled.
     """
     logger.info(f"Attempting to create table: {table_name}")
-    
+
     if LOADED_RAW_SCHEMA is None or table_name not in LOADED_RAW_SCHEMA.tables:
         logger.warning(f"Table '{table_name}' not defined in schema.yml.")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=ApiResponse(success=False, message=f"Table '{table_name}' not defined in schema.yml").model_dump()
+            detail=ApiResponse(
+                success=False, message=f"Table '{table_name}' not defined in schema.yml"
+            ).model_dump(),
         )
 
     table_def = LOADED_RAW_SCHEMA.tables[table_name]
@@ -144,22 +192,37 @@ async def create_table(table_name: str, request: Request):
         logger.error(f"No columns defined for table '{table_name}' in schema.yml.")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ApiResponse(success=False, message=f"No columns defined for table '{table_name}' in schema.yml").model_dump()
+            detail=ApiResponse(
+                success=False,
+                message=f"No columns defined for table '{table_name}' in schema.yml",
+            ).model_dump(),
         )
     if not hypertable_column:
-        logger.error(f"Hypertable column not defined for table '{table_name}' in schema.yml.")
+        logger.error(
+            f"Hypertable column not defined for table '{table_name}' in schema.yml."
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ApiResponse(success=False, message=f"Hypertable column not defined for table '{table_name}' in schema.yml").model_dump()
+            detail=ApiResponse(
+                success=False,
+                message=f"Hypertable column not defined for table '{table_name}' in schema.yml",
+            ).model_dump(),
         )
     if hypertable_column not in columns:
-        logger.error(f"Hypertable column '{hypertable_column}' not found in columns for table '{table_name}'.")
+        logger.error(
+            f"Hypertable column '{hypertable_column}' not found in columns for table '{table_name}'."
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ApiResponse(success=False, message=f"Hypertable column '{hypertable_column}' not found in columns for table '{table_name}'.").model_dump()
+            detail=ApiResponse(
+                success=False,
+                message=f"Hypertable column '{hypertable_column}' not found in columns for table '{table_name}'.",
+            ).model_dump(),
         )
 
-    column_defs = ", ".join([f"{col_name} {col_type}" for col_name, col_type in columns.items()])
+    column_defs = ", ".join(
+        [f"{col_name} {col_type}" for col_name, col_type in columns.items()]
+    )
     create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_defs});"
     create_hypertable_sql = f"SELECT create_hypertable('{table_name}', '{hypertable_column}', if_not_exists => TRUE);"
 
@@ -173,7 +236,9 @@ async def create_table(table_name: str, request: Request):
             logger.debug(f"Executing SQL on local DB: {create_table_sql}")
             await conn.execute(create_table_sql)
             await conn.execute(create_hypertable_sql)
-        logger.info(f"Table '{table_name}' and hypertable created successfully on local DB.")
+        logger.info(
+            f"Table '{table_name}' and hypertable created successfully on local DB."
+        )
         local_success = True
     except asyncpg.exceptions.PostgresError as e:
         logger.error(f"PostgreSQL error creating table '{table_name}' on local DB: {e}")
@@ -185,37 +250,57 @@ async def create_table(table_name: str, request: Request):
     if not local_success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ApiResponse(success=False, message=f"Failed to create table '{table_name}' on local DB.", data={"error": error_details}).model_dump()
+            detail=ApiResponse(
+                success=False,
+                message=f"Failed to create table '{table_name}' on local DB.",
+                data={"error": error_details},
+            ).model_dump(),
         )
 
     if request.app.state.enable_cloud_db and request.app.state.cloud_db_pools:
         cloud_create_tasks = []
         for idx, cloud_db_pool in enumerate(request.app.state.cloud_db_pools):
+
             async def create_on_cloud(pool: AsyncpgPool, db_idx: int):
                 try:
                     async with pool.acquire() as conn_cloud:
-                        logger.debug(f"Executing SQL on cloud DB {db_idx+1}: {create_table_sql}")
+                        logger.debug(
+                            f"Executing SQL on cloud DB {db_idx+1}: {create_table_sql}"
+                        )
                         await conn_cloud.execute(create_table_sql)
                         await conn_cloud.execute(create_hypertable_sql)
-                    logger.info(f"Table '{table_name}' and hypertable created successfully on cloud DB {db_idx+1}.")
+                    logger.info(
+                        f"Table '{table_name}' and hypertable created successfully on cloud DB {db_idx+1}."
+                    )
                     return True
                 except Exception as e:
-                    logger.error(f"Error creating table '{table_name}' on cloud DB {db_idx+1}: {e}. Local DB operation successful.")
+                    logger.error(
+                        f"Error creating table '{table_name}' on cloud DB {db_idx+1}: {e}. Local DB operation successful."
+                    )
                     return False
+
             cloud_create_tasks.append(create_on_cloud(cloud_db_pool, idx))
-        
-        cloud_results = await asyncio.gather(*cloud_create_tasks, return_exceptions=False)
+
+        cloud_results = await asyncio.gather(
+            *cloud_create_tasks, return_exceptions=False
+        )
         for idx, result in enumerate(cloud_results):
-            cloud_sync_statuses[idx+1] = result
+            cloud_sync_statuses[idx + 1] = result
 
     else:
-        logger.info(f"Cloud DB sync disabled or no cloud pools available for table '{table_name}'.")
+        logger.info(
+            f"Cloud DB sync disabled or no cloud pools available for table '{table_name}'."
+        )
 
     message = f"Table '{table_name}' and hypertable created successfully on local DB."
-    
+
     if request.app.state.enable_cloud_db and request.app.state.cloud_db_pools:
-        successful_cloud_syncs = [idx for idx, success in cloud_sync_statuses.items() if success]
-        failed_cloud_syncs = [idx for idx, success in cloud_sync_statuses.items() if not success]
+        successful_cloud_syncs = [
+            idx for idx, success in cloud_sync_statuses.items() if success
+        ]
+        failed_cloud_syncs = [
+            idx for idx, success in cloud_sync_statuses.items() if not success
+        ]
 
         if successful_cloud_syncs:
             message += f" Successfully synced to cloud DBs: {successful_cloud_syncs}."
@@ -223,91 +308,159 @@ async def create_table(table_name: str, request: Request):
             message += f" Failed to sync to cloud DBs: {failed_cloud_syncs}."
     else:
         message += " Cloud sync was disabled."
-    
-    return ApiResponse(success=local_success, message=message, data={"cloud_sync_statuses": cloud_sync_statuses})
+
+    return ApiResponse(
+        success=local_success,
+        message=message,
+        data={"cloud_sync_statuses": cloud_sync_statuses},
+    )
 
 
-@data_router.post("/insert_data/{table_name}", summary="Insert Batch Data into Table", status_code=status.HTTP_201_CREATED, response_model=ApiResponse)
-async def insert_data(table_name: str, request: Request, records_data: List[Dict[str, Any]] = Body(...)):
+@data_router.post(
+    "/insert_data/{table_name}",
+    summary="Insert Batch Data into Table",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ApiResponse,
+)
+async def insert_data(
+    table_name: str, request: Request, records_data: List[Dict[str, Any]] = Body(...)
+):
     """
     Inserts a batch of records into the specified table.
     Each record is validated against the statically generated Pydantic model.
     Data is also pushed to all configured cloud databases if enabled.
     Returns details on local and cloud insertion success/failure for each record.
     """
-    logger.info(f"Attempting to insert batch data into table: {table_name} ({len(records_data)} records)")
+    logger.info(
+        f"Attempting to insert batch data into table: {table_name} ({len(records_data)} records)"
+    )
     if table_name not in DYNAMIC_TABLE_MODELS:
-        logger.warning(f"Table '{table_name}' not defined in schema.yml or no Pydantic model generated.")
+        logger.warning(
+            f"Table '{table_name}' not defined in schema.yml or no Pydantic model generated."
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=ApiResponse(success=False, message=f"Table '{table_name}' not defined in schema.yml or no Pydantic model generated.").model_dump()
+            detail=ApiResponse(
+                success=False,
+                message=f"Table '{table_name}' not defined in schema.yml or no Pydantic model generated.",
+            ).model_dump(),
         )
 
     PydanticModel: Type[BaseModel] = DYNAMIC_TABLE_MODELS[table_name]
-    
+
     validated_records_data = []
     failed_validations = []
 
     for idx, record_data in enumerate(records_data):
         try:
             validated_record = PydanticModel(**record_data)
-            validated_records_data.append(validated_record.model_dump() if hasattr(validated_record, 'model_dump') else validated_record.dict())
+            validated_records_data.append(
+                validated_record.model_dump()
+                if hasattr(validated_record, "model_dump")
+                else validated_record.dict()
+            )
         except ValidationError as e:
-            failed_validations.append({"record_index": idx, "errors": e.errors(), "data": record_data})
+            failed_validations.append(
+                {"record_index": idx, "errors": e.errors(), "data": record_data}
+            )
         except Exception as e:
-            failed_validations.append({"record_index": idx, "errors": str(e), "data": record_data})
+            failed_validations.append(
+                {"record_index": idx, "errors": str(e), "data": record_data}
+            )
 
     if failed_validations:
-        logger.error(f"Batch insert validation failed for {len(failed_validations)} records in table '{table_name}'.")
+        logger.error(
+            f"Batch insert validation failed for {len(failed_validations)} records in table '{table_name}'."
+        )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=ApiResponse(
                 success=False,
                 message=f"Validation failed for some records in table '{table_name}'.",
-                data={"failed_validations": failed_validations}
-            ).model_dump()
+                data={"failed_validations": failed_validations},
+            ).model_dump(),
         )
-    
-    if not validated_records_data:
-        return ApiResponse(success=True, message=f"No valid records to insert into '{table_name}'.", data=[])
 
+    if not validated_records_data:
+        return ApiResponse(
+            success=True,
+            message=f"No valid records to insert into '{table_name}'.",
+            data=[],
+        )
 
     local_insert_results = []
-    all_cloud_insert_results: Dict[int, List[Dict[str, Any]]] = {idx+1: [] for idx, _ in enumerate(request.app.state.cloud_db_pools)}
-    
+    all_cloud_insert_results: Dict[int, List[Dict[str, Any]]] = {
+        idx + 1: [] for idx, _ in enumerate(request.app.state.cloud_db_pools)
+    }
+
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
-    
+
     async with local_db_pool.acquire() as conn_local:
         async with conn_local.transaction():
             for idx, record_dict in enumerate(validated_records_data):
                 columns = ", ".join(record_dict.keys())
                 placeholders = ", ".join([f"${i+1}" for i in range(len(record_dict))])
-                insert_sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
+                insert_sql = (
+                    f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
+                )
                 values = tuple(record_dict.values())
-                
+
                 try:
                     await conn_local.execute(insert_sql, *values)
-                    local_insert_results.append({"record_index": idx, "success": True, "data": records_data[idx]})
+                    local_insert_results.append(
+                        {
+                            "record_index": idx,
+                            "success": True,
+                            "data": records_data[idx],
+                        }
+                    )
                 except Exception as e:
-                    logger.error(f"Local DB insert failed for record {idx} in table '{table_name}': {e}")
-                    local_insert_results.append({"record_index": idx, "success": False, "error": str(e), "data": records_data[idx]})
-    
+                    logger.error(
+                        f"Local DB insert failed for record {idx} in table '{table_name}': {e}"
+                    )
+                    local_insert_results.append(
+                        {
+                            "record_index": idx,
+                            "success": False,
+                            "error": str(e),
+                            "data": records_data[idx],
+                        }
+                    )
+
     if any(not res["success"] for res in local_insert_results):
         message = f"Partial success: Some records failed to insert into local DB for table '{table_name}'. See data for details."
-        return ApiResponse(success=False, message=message, data={"local_results": local_insert_results, "cloud_results": all_cloud_insert_results})
+        return ApiResponse(
+            success=False,
+            message=message,
+            data={
+                "local_results": local_insert_results,
+                "cloud_results": all_cloud_insert_results,
+            },
+        )
     else:
-        logger.info(f"Batch data ({len(validated_records_data)} records) inserted successfully into '{table_name}' on local DB.")
+        logger.info(
+            f"Batch data ({len(validated_records_data)} records) inserted successfully into '{table_name}' on local DB."
+        )
         if table_name in request.app.state.websocket_broadcast_queues:
             for record in validated_records_data:
                 serializable_record = {}
                 for key, value in record.items():
                     if isinstance(value, datetime):
-                        serializable_record[key] = value.isoformat(timespec='milliseconds').replace('+00:00', 'Z') if value.tzinfo else value.isoformat(timespec='milliseconds') + 'Z'
+                        serializable_record[key] = (
+                            value.isoformat(timespec="milliseconds").replace(
+                                "+00:00", "Z"
+                            )
+                            if value.tzinfo
+                            else value.isoformat(timespec="milliseconds") + "Z"
+                        )
                     else:
                         serializable_record[key] = value
-                await request.app.state.websocket_broadcast_queues[table_name].put({"type": "live", "data": serializable_record})
-            logger.debug(f"Pushed {len(validated_records_data)} records to WebSocket broadcast queue for table '{table_name}'.")
-
+                await request.app.state.websocket_broadcast_queues[table_name].put(
+                    {"type": "live", "data": serializable_record}
+                )
+            logger.debug(
+                f"Pushed {len(validated_records_data)} records to WebSocket broadcast queue for table '{table_name}'."
+            )
 
     if request.app.state.enable_cloud_db and request.app.state.cloud_db_pools:
         for cloud_idx, cloud_db_pool in enumerate(request.app.state.cloud_db_pools):
@@ -316,37 +469,88 @@ async def insert_data(table_name: str, request: Request, records_data: List[Dict
             for record_dict in validated_records_data:
                 columns = ", ".join(record_dict.keys())
                 placeholders = ", ".join([f"${i+1}" for i in range(len(record_dict))])
-                insert_sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
+                insert_sql = (
+                    f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
+                )
                 values = tuple(record_dict.values())
-                cloud_tasks.append(_write_to_cloud_db(table_name, insert_sql, values, cloud_db_pool, current_cloud_db_index))
-            
+                cloud_tasks.append(
+                    _write_to_cloud_db(
+                        table_name,
+                        insert_sql,
+                        values,
+                        cloud_db_pool,
+                        current_cloud_db_index,
+                    )
+                )
+
             cloud_task_results = await asyncio.gather(*cloud_tasks)
-            
+
             for idx, res in enumerate(cloud_task_results):
                 if res:
-                    all_cloud_insert_results[current_cloud_db_index].append({"record_index": idx, "success": True, "data": records_data[idx]})
+                    all_cloud_insert_results[current_cloud_db_index].append(
+                        {
+                            "record_index": idx,
+                            "success": True,
+                            "data": records_data[idx],
+                        }
+                    )
                 else:
-                    all_cloud_insert_results[current_cloud_db_index].append({"record_index": idx, "success": False, "data": records_data[idx]})
-        
+                    all_cloud_insert_results[current_cloud_db_index].append(
+                        {
+                            "record_index": idx,
+                            "success": False,
+                            "data": records_data[idx],
+                        }
+                    )
+
         total_cloud_success = True
         cloud_sync_summary = []
         for db_idx, results in all_cloud_insert_results.items():
             if any(not r["success"] for r in results):
                 total_cloud_success = False
                 failed_count = sum(1 for r in results if not r["success"])
-                cloud_sync_summary.append(f"Cloud DB {db_idx} (failed {failed_count}/{len(results)} records)")
+                cloud_sync_summary.append(
+                    f"Cloud DB {db_idx} (failed {failed_count}/{len(results)} records)"
+                )
             else:
-                cloud_sync_summary.append(f"Cloud DB {db_idx} (all {len(results)} records synced)")
-        
+                cloud_sync_summary.append(
+                    f"Cloud DB {db_idx} (all {len(results)} records synced)"
+                )
+
         message = f"Data inserted successfully into '{table_name}' on local DB. Cloud sync status: {'; '.join(cloud_sync_summary)}."
-        return ApiResponse(success=True, message=message, data={"local_results": local_insert_results, "cloud_results": all_cloud_insert_results})
+        return ApiResponse(
+            success=True,
+            message=message,
+            data={
+                "local_results": local_insert_results,
+                "cloud_results": all_cloud_insert_results,
+            },
+        )
     else:
-        logger.info(f"Cloud DB sync disabled or no cloud pools available for table '{table_name}'.")
-        return ApiResponse(success=True, message=f"Data inserted successfully into '{table_name}' on local DB. Cloud sync disabled.", data={"local_results": local_insert_results, "cloud_results": all_cloud_insert_results})
+        logger.info(
+            f"Cloud DB sync disabled or no cloud pools available for table '{table_name}'."
+        )
+        return ApiResponse(
+            success=True,
+            message=f"Data inserted successfully into '{table_name}' on local DB. Cloud sync disabled.",
+            data={
+                "local_results": local_insert_results,
+                "cloud_results": all_cloud_insert_results,
+            },
+        )
 
 
-@data_router.get("/get_data/{table_name}", summary="Retrieve Data from Table", response_model=ApiResponse)
-async def get_data(table_name: str, request: Request, limit: int = 100, order_by_column: Optional[str] = None):
+@data_router.get(
+    "/get_data/{table_name}",
+    summary="Retrieve Data from Table",
+    response_model=ApiResponse,
+)
+async def get_data(
+    table_name: str,
+    request: Request,
+    limit: int = 100,
+    order_by_column: Optional[str] = None,
+):
     """
     Retrieves data from the specified table. Reads only from the local database.
     Can limit the number of results and specify a column for ordering.
@@ -354,19 +558,34 @@ async def get_data(table_name: str, request: Request, limit: int = 100, order_by
     logger.info(f"Attempting to retrieve data from table: {table_name}")
     try:
         local_db_pool: AsyncpgPool = request.app.state.local_db_pool
-        result = await _fetch_historical_data(local_db_pool, table_name, limit, order_by_column)
-        logger.info(f"Successfully retrieved {len(result)} records from '{table_name}'.")
-        return ApiResponse(success=True, message=f"Successfully retrieved data from '{table_name}'.", data=result)
+        result = await _fetch_historical_data(
+            local_db_pool, table_name, limit, order_by_column
+        )
+        logger.info(
+            f"Successfully retrieved {len(result)} records from '{table_name}'."
+        )
+        return ApiResponse(
+            success=True,
+            message=f"Successfully retrieved data from '{table_name}'.",
+            data=result,
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error retrieving data from '{table_name}': {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ApiResponse(success=False, message=f"Error retrieving data from '{table_name}': {e}").model_dump()
+            detail=ApiResponse(
+                success=False, message=f"Error retrieving data from '{table_name}': {e}"
+            ).model_dump(),
         )
 
-@data_router.post("/synchronize_all_tables", summary="Force Synchronize All Local Data to Cloud", response_model=ApiResponse)
+
+@data_router.post(
+    "/synchronize_all_tables",
+    summary="Force Synchronize All Local Data to Cloud",
+    response_model=ApiResponse,
+)
 async def synchronize_all_all_tables(request: Request):
     """
     Fetches all data from each local database table and attempts to insert it into all configured cloud databases.
@@ -379,43 +598,54 @@ async def synchronize_all_all_tables(request: Request):
     if not request.app.state.enable_cloud_db or not request.app.state.cloud_db_pools:
         return ApiResponse(
             success=False,
-            message="Cloud database synchronization is disabled or no cloud pools are available."
+            message="Cloud database synchronization is disabled or no cloud pools are available.",
         )
 
     if LOADED_RAW_SCHEMA is None or not LOADED_RAW_SCHEMA.tables:
         return ApiResponse(
             success=False,
-            message="Schema not loaded or no tables defined for synchronization."
+            message="Schema not loaded or no tables defined for synchronization.",
         )
 
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
     cloud_db_pools: List[AsyncpgPool] = request.app.state.cloud_db_pools
-    
+
     sync_results = {}
     total_synced_records_across_clouds = 0
     total_tables_processed = 0
-    
+
     for table_name in LOADED_RAW_SCHEMA.tables.keys():
         logger.info(f"Synchronizing table: '{table_name}'...")
         table_sync_status = {
             "local_records_fetched": 0,
-            "cloud_sync_results": {idx+1: {"synced_count": 0, "failed_count": 0, "status": "pending"} for idx, _ in enumerate(cloud_db_pools)}
+            "cloud_sync_results": {
+                idx + 1: {"synced_count": 0, "failed_count": 0, "status": "pending"}
+                for idx, _ in enumerate(cloud_db_pools)
+            },
         }
-        
+
         local_records = []
         try:
-            local_records = await _fetch_historical_data(local_db_pool, table_name, 999999999, "time")
-            logger.info(f"Fetched {len(local_records)} records from local table '{table_name}'.")
+            local_records = await _fetch_historical_data(
+                local_db_pool, table_name, 999999999, "time"
+            )
+            logger.info(
+                f"Fetched {len(local_records)} records from local table '{table_name}'."
+            )
             table_sync_status["local_records_fetched"] = len(local_records)
 
             if not local_records:
-                table_sync_status["message"] = "No records found locally to synchronize."
+                table_sync_status["message"] = (
+                    "No records found locally to synchronize."
+                )
                 sync_results[table_name] = {"status": "skipped", **table_sync_status}
                 total_tables_processed += 1
                 continue
 
             columns_for_insert = ", ".join(local_records[0].keys())
-            placeholders_for_insert = ", ".join([f"${i+1}" for i in range(len(local_records[0]))])
+            placeholders_for_insert = ", ".join(
+                [f"${i+1}" for i in range(len(local_records[0]))]
+            )
             insert_into_cloud_sql = f"INSERT INTO {table_name} ({columns_for_insert}) VALUES ({placeholders_for_insert});"
 
             per_cloud_sync_tasks = []
@@ -430,27 +660,39 @@ async def synchronize_all_all_tables(request: Request):
                             insert_into_cloud_sql,
                             values_to_insert,
                             cloud_db_pool,
-                            current_cloud_db_index
+                            current_cloud_db_index,
                         )
                     )
-                per_cloud_sync_tasks.append(asyncio.gather(*cloud_insert_tasks_for_this_db, return_exceptions=True))
-            
+                per_cloud_sync_tasks.append(
+                    asyncio.gather(
+                        *cloud_insert_tasks_for_this_db, return_exceptions=True
+                    )
+                )
+
             all_cloud_results = await asyncio.gather(*per_cloud_sync_tasks)
 
             total_table_synced_count = 0
             for cloud_idx, cloud_results_for_db in enumerate(all_cloud_results):
                 current_cloud_db_index = cloud_idx + 1
-                synced_count_for_db = sum(1 for res in cloud_results_for_db if res is True)
+                synced_count_for_db = sum(
+                    1 for res in cloud_results_for_db if res is True
+                )
                 failed_count_for_db = len(cloud_results_for_db) - synced_count_for_db
-                
+
                 table_sync_status["cloud_sync_results"][current_cloud_db_index] = {
                     "synced_count": synced_count_for_db,
                     "failed_count": failed_count_for_db,
-                    "status": "completed" if failed_count_for_db == 0 else "partial_failure" if synced_count_for_db > 0 else "failed"
+                    "status": (
+                        "completed"
+                        if failed_count_for_db == 0
+                        else "partial_failure" if synced_count_for_db > 0 else "failed"
+                    ),
                 }
                 total_table_synced_count += synced_count_for_db
-                logger.info(f"Finished synchronizing table '{table_name}' to cloud DB {current_cloud_db_index}: Synced {synced_count_for_db}, Failed {failed_count_for_db}.")
-            
+                logger.info(
+                    f"Finished synchronizing table '{table_name}' to cloud DB {current_cloud_db_index}: Synced {synced_count_for_db}, Failed {failed_count_for_db}."
+                )
+
             total_synced_records_across_clouds += total_table_synced_count
             total_tables_processed += 1
             sync_results[table_name] = {"status": "completed", **table_sync_status}
@@ -460,20 +702,33 @@ async def synchronize_all_all_tables(request: Request):
             table_sync_status["message"] = str(e)
             sync_results[table_name] = {"status": "failed", **table_sync_status}
             total_tables_processed += 1
-            
+
     message = f"Synchronization process completed. Total tables processed: {total_tables_processed}. Total records pushed to cloud: {total_synced_records_across_clouds}."
-    if any(res.get("status") == "failed" or res.get("status") == "partial_failure" for res in sync_results.values()):
+    if any(
+        res.get("status") == "failed" or res.get("status") == "partial_failure"
+        for res in sync_results.values()
+    ):
         message += " Some operations failed or partially failed. Check individual table results."
         return ApiResponse(success=False, message=message, data=sync_results)
     else:
-        return ApiResponse(success=True, message=message, data={"local_results": local_insert_results, "cloud_results": all_cloud_insert_results})
+        return ApiResponse(
+            success=True,
+            message=message,
+            data={
+                "local_results": local_insert_results,
+                "cloud_results": all_cloud_insert_results,
+            },
+        )
+
 
 # @data_router.websocket("/ws/data/{table_name}")
 @data_router.websocket("/ws/data")
 async def websocket_data_stream(
     websocket: WebSocket,
     table_name: str,
-    historical_limit: int = Query(100, description="Number of historical records to send initially.")
+    historical_limit: int = Query(
+        100, description="Number of historical records to send initially."
+    ),
 ):
     """
     WebSocket endpoint to stream historical and then live data for a given table.
@@ -481,50 +736,72 @@ async def websocket_data_stream(
     """
     client_queue: asyncio.Queue = asyncio.Queue(maxsize=100)
     client_id = str(uuid.uuid4())
-    
+
     send_task = None
     # receive_task = None # REMOVED: No longer need this for unidirectional streaming
 
     if table_name not in websocket.app.state.websocket_broadcast_queues:
-        logger.error(f"WebSocket client connected to unknown table '{table_name}'. No broadcast queue exists.")
+        logger.error(
+            f"WebSocket client connected to unknown table '{table_name}'. No broadcast queue exists."
+        )
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
     websocket.app.state.websocket_active_clients[table_name].append(client_queue)
-    logger.info(f"WebSocket client {client_id} connected to table '{table_name}'. Active clients: {len(websocket.app.state.websocket_active_clients[table_name])}")
+    logger.info(
+        f"WebSocket client {client_id} connected to table '{table_name}'. Active clients: {len(websocket.app.state.websocket_active_clients[table_name])}"
+    )
 
     try:
         await websocket.accept()
 
-        logger.info(f"WebSocket client {client_id}: Fetching historical data for {table_name} (limit={historical_limit})...")
+        logger.info(
+            f"WebSocket client {client_id}: Fetching historical data for {table_name} (limit={historical_limit})..."
+        )
         local_db_pool: AsyncpgPool = websocket.app.state.local_db_pool
-        historical_data_raw = await _fetch_historical_data(local_db_pool, table_name, historical_limit)
-        
+        historical_data_raw = await _fetch_historical_data(
+            local_db_pool, table_name, historical_limit
+        )
+
         serializable_historical_data = []
         for record in historical_data_raw:
             serializable_record = {}
             for key, value in record.items():
                 if isinstance(value, datetime):
-                    serializable_record[key] = value.isoformat(timespec='milliseconds').replace('+00:00', 'Z') if value.tzinfo else value.isoformat(timespec='milliseconds') + 'Z'
+                    serializable_record[key] = (
+                        value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+                        if value.tzinfo
+                        else value.isoformat(timespec="milliseconds") + "Z"
+                    )
                 else:
                     serializable_record[key] = value
             serializable_historical_data.append(serializable_record)
 
-        await websocket.send_json({"type": "historical", "data": serializable_historical_data})
-        logger.info(f"WebSocket client {client_id}: Sent {len(serializable_historical_data)} historical records for {table_name}.")
+        await websocket.send_json(
+            {"type": "historical", "data": serializable_historical_data}
+        )
+        logger.info(
+            f"WebSocket client {client_id}: Sent {len(serializable_historical_data)} historical records for {table_name}."
+        )
 
         async def send_data_to_client():
             try:
                 while True:
                     data_to_send = await client_queue.get()
-                    logger.debug(f"WebSocket client {client_id} (send_task): Sending live data.")
+                    logger.debug(
+                        f"WebSocket client {client_id} (send_task): Sending live data."
+                    )
                     await websocket.send_json(data_to_send)
                     client_queue.task_done()
             except asyncio.CancelledError:
                 logger.info(f"WebSocket client {client_id} (send_task) cancelled.")
-            except WebSocketDisconnect: # NEW: Catch WebSocketDisconnect here for send task
-                logger.info(f"WebSocket client {client_id} (send_task) detected client disconnect during send.")
-                raise # Re-raise to be caught by main try-except
+            except (
+                WebSocketDisconnect
+            ):  # NEW: Catch WebSocketDisconnect here for send task
+                logger.info(
+                    f"WebSocket client {client_id} (send_task) detected client disconnect during send."
+                )
+                raise  # Re-raise to be caught by main try-except
             except Exception as e:
                 logger.error(f"WebSocket client {client_id} (send_task) error: {e}")
                 raise
@@ -544,22 +821,30 @@ async def websocket_data_stream(
         #         logger.error(f"WebSocket client {client_id} (receive_task) error: {e}")
         #         raise
 
-        logger.debug(f"WebSocket client {client_id}: Send task started. Waiting for it to complete.")
+        logger.debug(
+            f"WebSocket client {client_id}: Send task started. Waiting for it to complete."
+        )
         send_task = asyncio.create_task(send_data_to_client())
-        
+
         # Now we only await the send_task. If the client disconnects, send_json will raise WebSocketDisconnect.
         await send_task
         logger.debug(f"WebSocket client {client_id}: Send task completed.")
 
     except WebSocketDisconnect:
-        logger.info(f"WebSocket client {client_id} disconnected from {table_name} gracefully.")
+        logger.info(
+            f"WebSocket client {client_id} disconnected from {table_name} gracefully."
+        )
     except Exception as e:
         logger.error(f"WebSocket error for client {client_id} on {table_name}: {e}")
     finally:
         if client_queue in websocket.app.state.websocket_active_clients[table_name]:
-            websocket.app.state.websocket_active_clients[table_name].remove(client_queue)
-            logger.info(f"WebSocket client {client_id} removed from active clients for '{table_name}'. Remaining: {len(websocket.app.state.websocket_active_clients[table_name])}")
-        
+            websocket.app.state.websocket_active_clients[table_name].remove(
+                client_queue
+            )
+            logger.info(
+                f"WebSocket client {client_id} removed from active clients for '{table_name}'. Remaining: {len(websocket.app.state.websocket_active_clients[table_name])}"
+            )
+
         if send_task:
             send_task.cancel()
         # if receive_task: # REMOVED
