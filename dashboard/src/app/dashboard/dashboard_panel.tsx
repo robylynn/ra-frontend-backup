@@ -25,36 +25,8 @@ export default function DashboardMainPanel(props: { className?: string }) {
     const tile_hidden = (tile_name: string) =>
         fillTile != tile_name && fillTile != '' ? 'hidden' : '';
 
-    const [validatedConfig, setValidatedConfig] = useState<UiConfig | null>(
-        null
-    );
-
     const { dashboardContext, setDashboardContext } =
         useContext(DashboardContext);
-
-    // The useEffect hook runs after the component renders
-    // useEffect(() => {
-    //     // Define an async function to handle the API call
-    //     const fetchConfig = async () => {
-    //         try {
-    //             const validatedData = await fetchFromBackendApi<UiConfig>(
-    //                 '/api/backend/ui/config/abc',
-    //                 uiConfigSchema
-    //             );
-
-    //             setValidatedConfig(validatedData as UiConfig);
-
-    //             console.log(
-    //                 `Got UI configuration: ${JSON.stringify(validatedData)}`
-    //             );
-    //         } catch (err) {
-    //             console.error(`Error loading UI configuration: ${err}`);
-    //         }
-    //     };
-
-    //     // Call the async function
-    //     fetchConfig();
-    // }, []); // The empty dependency array [] ensures this effect runs only once on mount
 
     return (
         <PagePanel

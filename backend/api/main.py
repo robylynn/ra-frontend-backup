@@ -15,7 +15,7 @@ import uvicorn
 from pydantic import ValidationError
 
 from fastapi.middleware.cors import CORSMiddleware
-from backend.api.subscription_router import SubscriptionManager, zmq_router
+from api.subscription_router import SubscriptionManager, subscription_router
 
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -289,7 +289,7 @@ backend_api.include_router(data_router)
 backend_api.include_router(ui_router)
 backend_api.include_router(auth_router)
 backend_api.include_router(status_router)  # ADDED: Register the status_router
-backend_api.include_router(zmq_router)
+backend_api.include_router(subscription_router)
 
 
 # --- New Root Endpoint for a simple message ---

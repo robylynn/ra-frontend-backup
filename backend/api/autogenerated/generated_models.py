@@ -4,12 +4,11 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Dict, Any, Optional
-import uuid  # Needed for UUID type
+import uuid # Needed for UUID type
 
 # Dynamically created Pydantic models for each table
 
 DYNAMIC_TABLE_MODELS: Dict[str, type[BaseModel]] = {}
-
 
 class SensorData(BaseModel):
     time: datetime
@@ -17,9 +16,15 @@ class SensorData(BaseModel):
     temperature: Optional[float]
     humidity: Optional[float]
 
+DYNAMIC_TABLE_MODELS['sensor_data'] = SensorData
 
-DYNAMIC_TABLE_MODELS["sensor_data"] = SensorData
+class Logs(BaseModel):
+    time: datetime
+    device_id: str
+    message_level: str
+    message: str
 
+DYNAMIC_TABLE_MODELS['logs'] = Logs
 
 class ProjectMetrics(BaseModel):
     timestamp: datetime
@@ -27,9 +32,7 @@ class ProjectMetrics(BaseModel):
     value: Optional[float]
     status: str
 
-
-DYNAMIC_TABLE_MODELS["project_metrics"] = ProjectMetrics
-
+DYNAMIC_TABLE_MODELS['project_metrics'] = ProjectMetrics
 
 class UserActivity(BaseModel):
     activity_time: datetime
@@ -37,18 +40,14 @@ class UserActivity(BaseModel):
     action: str
     duration_ms: Optional[int]
 
-
-DYNAMIC_TABLE_MODELS["user_activity"] = UserActivity
-
+DYNAMIC_TABLE_MODELS['user_activity'] = UserActivity
 
 class FrontendConfigs(BaseModel):
     client_id: str
     config_data: Optional[Dict[str, Any]]
     last_updated: datetime
 
-
-DYNAMIC_TABLE_MODELS["frontend_configs"] = FrontendConfigs
-
+DYNAMIC_TABLE_MODELS['frontend_configs'] = FrontendConfigs
 
 class Users(BaseModel):
     user_id: uuid.UUID
@@ -56,5 +55,4 @@ class Users(BaseModel):
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-
-DYNAMIC_TABLE_MODELS["users"] = Users
+DYNAMIC_TABLE_MODELS['users'] = Users

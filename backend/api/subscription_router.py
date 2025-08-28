@@ -11,7 +11,7 @@ from api.data_router import _fetch_historical_data # Reusing the existing helper
 from api.schema_models import LOADED_RAW_SCHEMA # To get table names for historical data
 
 # Create a new API Router for ZeroMQ-like WebSocket streaming
-zmq_router = APIRouter(
+subscription_router = APIRouter(
     prefix="/zmq_database",
     tags=["ZeroMQ-like WebSockets"],
     responses={404: {"description": "Not found"}},
@@ -152,7 +152,7 @@ class SubscriptionManager:
 
 
 # --- WebSocket Endpoint for ZeroMQ-like streaming ---
-@zmq_router.websocket("/ws/zmq_stream")
+@subscription_router.websocket("/ws/zmq_stream")
 async def websocket_zmq_stream(websocket: WebSocket):
     """
     WebSocket endpoint for ZeroMQ-like subscription streaming.

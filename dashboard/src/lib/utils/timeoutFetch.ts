@@ -1,5 +1,5 @@
 import { NextAPIResponseInterface } from '@/lib/models/api_models';
-import { boolean, z, ZodError } from 'zod';
+import { z, ZodError } from 'zod';
 
 export default async function timeoutFetch<Type>(
     path: string,
@@ -100,10 +100,13 @@ const basicApiResponseSchema = z.object({
 const createApiResponseSchema = <T>(schema: z.ZodSchema<T>) =>
     z.object({
         authenticated: z.boolean(),
-        backend_response: z.object({
-            success: z.boolean(),
-            message: z.string(),
-            // The 'data' field's schema is now dynamic.
+        // backend_response: z.object({
+        //     success: z.boolean(),
+        //     message: z.string(),
+        //     // The 'data' field's schema is now dynamic.
+        //     data: schema.nullable(),
+        // }),
+        backend_response: basicApiResponseSchema.extend({
             data: schema.nullable(),
         }),
         proxy_error: z.boolean(),
@@ -144,7 +147,10 @@ export async function fetchFromBackendApi<T = unknown>(
             const apiResponseSchema = createApiResponseSchema(schema);
             const validatedResponse = apiResponseSchema.parse(rawData);
 
-            if (!validatedResponse.backend_response.success || !validatedResponse.backend_response.data) {
+            if (
+                !validatedResponse.backend_response.success ||
+                !validatedResponse.backend_response.data
+            ) {
                 throw new FetchError(
                     `API returned a failure: ${validatedResponse.backend_response.message}`
                 );

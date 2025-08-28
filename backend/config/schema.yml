@@ -8,6 +8,14 @@ tables:
       humidity: DOUBLE PRECISION
     hypertable_column: time
 
+  logs:
+    columns:
+      time: TIMESTAMPTZ NOT NULL
+      device_id: TEXT NOT NULL
+      message_level: TEXT
+      message: TEXT
+    hypertable_column: time
+
   project_metrics:
     columns:
       timestamp: TIMESTAMPTZ NOT NULL

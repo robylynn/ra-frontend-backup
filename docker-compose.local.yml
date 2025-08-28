@@ -244,7 +244,7 @@ services:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       timescaledb:
         condition: service_healthy

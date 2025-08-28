@@ -898,7 +898,3 @@ async def websocket_data_stream(
             #     await receive_task
         except asyncio.CancelledError:
             pass
-
-
-# --- Frontend Configuration Management Endpoints (Moved from data_router.py to ui_router.py) ---
-# Removed directly from data_router.py as they are now in ui_router.py

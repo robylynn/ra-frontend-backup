@@ -6,6 +6,7 @@
 import { useContext } from 'react';
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
+import { LogViewerIcon } from '@/lib/components/client_components/LogMessageDisplay';
 
 export default function StateReadout(props: { className?: string }) {
     const { dashboardContext } = useContext(DashboardContext);
@@ -18,8 +19,10 @@ export default function StateReadout(props: { className?: string }) {
                 }`}
             >
                 {/* {"NOT IMPLEMENTED"} */}
+
                 {'AUTOMATIC'}
             </p>
+            <LogViewerIcon />
         </div>
     );
 }

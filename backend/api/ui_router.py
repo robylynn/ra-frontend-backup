@@ -1,6 +1,6 @@
 # ./api/ui_router.py
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 import json  # NEW: Import json for serialization
 
@@ -40,28 +40,28 @@ async def get_frontend_config(client_id: str, request: Request):
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
     table_name = "frontend_configs"  # Hardcoded table name for UI configurations
 
-    return ApiResponse(
-        success=True,
-        message=f"Configuration for client '{client_id}' retrieved successfully.",
-        data={
-            "theme": "light",
-            "layout": {"sidebarEnabled": True, "headerHeight": 80},
-            "components": [
-                {
-                    "id": "c6179b00-34a0-4a8f-b98a-7e0e8548a80a",
-                    "type": "jogging",
-                    "label": "Click Me",
-                    "metadata": {"color": "blue"},
-                },
-                {
-                    "id": "e4d2a1b9-3b6d-4c8d-8a9d-1f2e3c4a5b6d",
-                    "type": "charts",
-                    "label": "Enter your name",
-                },
-            ],
-            "lastUpdated": "2024-08-27T10:30:00Z",
-        },
-    )
+    # return ApiResponse(
+    #     success=True,
+    #     message=f"Configuration for client '{client_id}' retrieved successfully.",
+    #     data={
+    #         "theme": "light",
+    #         "layout": {"sidebarEnabled": True, "headerHeight": 80},
+    #         "components": [
+    #             {
+    #                 "id": "c6179b00-34a0-4a8f-b98a-7e0e8548a80a",
+    #                 "type": "jogging",
+    #                 "label": "Click Me",
+    #                 "metadata": {"color": "blue"},
+    #             },
+    #             {
+    #                 "id": "e4d2a1b9-3b6d-4c8d-8a9d-1f2e3c4a5b6d",
+    #                 "type": "charts",
+    #                 "label": "Enter your name",
+    #             },
+    #         ],
+    #         "lastUpdated": "2024-08-27T10:30:00Z",
+    #     },
+    # )
 
     # Ensure the frontend_configs table is defined in the schema
     # If not, this is a critical backend setup error
@@ -92,8 +92,8 @@ async def get_frontend_config(client_id: str, request: Request):
                 message=f"Configuration for client '{client_id}' retrieved successfully.",
                 data={
                     "client_id": client_id,
-                    "config_data": record["config_data"],
-                    "last_updated": record["last_updated"].isoformat(),
+                    "config_data": json.loads(record["config_data"]),
+                    "last_updated": record["last_updated"].isoformat().replace("+00:00","Z"),
                 },
             )
         else:
@@ -167,7 +167,8 @@ async def save_frontend_config(
     """
 
     try:
-        current_time = datetime.utcnow()
+        # current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
         # NEW: Serialize the config_payload.config_json (which is a dict) to a JSON string
         json_data_to_store = json.dumps(config_payload.config_json)
         await local_db_pool.execute(
@@ -183,7 +184,7 @@ async def save_frontend_config(
             data={
                 "client_id": client_id,
                 "config_data_saved": config_payload.config_json,
-                "last_updated": current_time.isoformat(),
+                "last_updated": current_time.isoformat().replace("+00:00","Z"),
             },
         )
     except ValidationError as e:

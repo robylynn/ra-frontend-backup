@@ -23,3 +23,12 @@ export const uiConfigSchema = z.object({
 
 // Define the TypeScript type from the schema for type safety
 export type UiConfig = z.infer<typeof uiConfigSchema>;
+
+export const uiConfigApiResponseSchema = z.object({
+    client_id: z.string(),
+    config_data: uiConfigSchema,
+    last_updated: z.iso.datetime({precision: 6}),
+});
+
+// Define the TypeScript type from the schema for type safety
+export type UiConfigApiResponse = z.infer<typeof uiConfigApiResponseSchema>;
