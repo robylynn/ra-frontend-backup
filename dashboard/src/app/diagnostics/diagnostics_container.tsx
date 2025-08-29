@@ -8,7 +8,7 @@ import { Dispatch, SetStateAction, useContext } from 'react';
 import { R2Button } from '@/lib/components/client_components/ClickButton';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 import {
     HardwareConfiguration,
     NextAPIResponseInterface,

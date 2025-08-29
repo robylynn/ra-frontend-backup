@@ -3,16 +3,14 @@
 
 'use client';
 
-import { useEffect, useState, useContext } from 'react';
+import { useContext, useState } from 'react';
 
 // import { PlotPanel } from '@/app/charts/PlotPanel';
 // import JogPanel from '@/lib/components/tiles/JogPanel';
-import { ComponentMap } from '@/lib/components/client_components/ComponentMap';
-import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
-import { UiConfig, uiConfigSchema } from '@/lib/models/ui_configuration';
-import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
+import { ComponentMap } from '@/lib/utils/ComponentMap';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
+import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 
 export default function DashboardMainPanel(props: { className?: string }) {
     const [fillTile, setFillTile] = useState<string>('');
@@ -40,6 +38,14 @@ export default function DashboardMainPanel(props: { className?: string }) {
         >
             {dashboardContext.ui_configuration ? (
                 <>
+                    {/* <CameraStreamPanel
+                        id="camera_panel"
+                        cameraId="camera0"
+                        className={`bg-purple-800 col-span-1 row-start-1 peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
+                            'camera_panel'
+                        )} ${fillTile === 'camera_panel' ? 'h-full' : 'min-h-[200px]'}`}
+                        // fill_tile_callback={setFillTile}
+                    /> */}
                     {dashboardContext.ui_configuration.components.map(
                         (componentConfig) => {
                             // Look up the component from our map based on its type.

@@ -1,7 +1,7 @@
 'use client';
 
 import { IOPointContext } from '@/lib/components/client_components/IOPointContext';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 import {
     IOPointConfiguration,
     IOPointType,

@@ -9,7 +9,7 @@ import {
     DashboardHeaderContainer,
     PagePanel,
 } from '@/lib/components/client_components/DashboardHeaderContainer';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 import { DashboardContext } from './DashboardContextWrapper';
 
 interface MessageContainerInterface {

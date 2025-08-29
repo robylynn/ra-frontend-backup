@@ -1,16 +1,12 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-// import { getServerSession } from 'next-auth/next';
 import { auth } from '@/auth';
 import { ReactNode } from 'react';
 
-// import authOptions from '@/lib/auth/auth_options';
-
-import UnauthenticatedIndicator from './unauthenticated_indicator';
+import UnauthenticatedIndicator from './UnauthenticatedIndicator';
 
 export default async function ProtectedPage(props: { children: ReactNode }) {
-    // const session = await getServerSession(authOptions);
     const session = await auth();
     if (session == null) {
         return <UnauthenticatedIndicator />;

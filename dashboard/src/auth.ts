@@ -71,17 +71,42 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     );
 
                     // Handle cases where the response itself is not OK or JSON parsing fails
+                    // if (!res.ok) {
+                    //     console.error(
+                    //         `Backend API responded with status ${res.status}`
+                    //     );
+                    //     const errorText = await res.text(); // Get raw error message
+                    //     throw new Error(`Authentication failed: ${errorText}`);
+                    // }
+
+                    // --- IMPORTANT CHANGE: Instead of returning null on !res.ok, throw an error with the backend's message.
+                    // Auth.js will catch this error and set `result.error` in `signInAction` to the error message.
                     if (!res.ok) {
+                        const errorText = await res.text();
                         console.error(
-                            `Backend API responded with status ${res.status}`
+                            `Backend API responded with status ${res.status}. Status text: ${res.statusText}`
                         );
-                        const errorText = await res.text(); // Get raw error message
-                        throw new Error(`Authentication failed: ${errorText}`);
+                        console.error(
+                            `Authentication failed (backend not OK): ${errorText}`
+                        );
+
+                        let errorMessage =
+                            'Authentication failed due to server error.';
+                        try {
+                            const backendError = JSON.parse(errorText);
+                            if (backendError && backendError.message) {
+                                errorMessage = backendError.message; // Use the specific message from the backend
+                            }
+                        } catch (parseError) {
+                            console.warn(
+                                'Could not parse backend error response as JSON. Using generic message.'
+                            );
+                        }
+                        throw new Error(errorMessage); // Throw the specific message
                     }
 
                     const auth_response = await res.json();
 
-                    // If the backend responds successfully and authenticates the user
                     if (
                         auth_response.success &&
                         auth_response.data &&
@@ -92,25 +117,33 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                             auth_response.data.user.username
                         );
                         return {
-                            id: auth_response.data.user.user_id, // Ensure user_id is a string or number
+                            id: auth_response.data.user.user_id,
                             name: auth_response.data.user.username,
-                            email: auth_response.data.user.username, // Using username as email for simplicity if no email field
-                            accessToken: auth_response.data.access_token, // Store accessToken
+                            email: auth_response.data.user.username,
+                            accessToken: auth_response.data.access_token,
                         };
                     }
 
-                    // Return null if authentication failed
+                    // If res.ok but auth_response.success is false (backend reports login failed for other reasons)
                     console.error(
                         'Backend authentication failed:',
                         auth_response.message || 'Unknown error from backend.'
                     );
-                    return null;
+                    throw new Error(
+                        auth_response.message ||
+                            'Incorrect username or password.'
+                    ); // Throw backend's specific message
                 } catch (error) {
+                    // console; // This catch block handles network errors or errors thrown above.
+                    // Auth.js will catch this error and set `result.error` in `signInAction`.
                     console.error(
                         'Error during backend authentication:',
-                        error
+                        error.message || error
                     );
-                    return null;
+                    throw new Error(
+                        error.message ||
+                            'An unexpected error occurred during login.'
+                    ); // Re-throw with message
                 }
             },
         }),

@@ -4,7 +4,7 @@
 import { ApplicationStateContainer } from '@/lib/components/client_components/ApplicationStateContainer';
 import Header from '@/lib/components/client_components/Header';
 import { AxisPositionContainer } from '@/lib/components/client_components/MotionPositionContainer';
-import ProtectedPage from '@/lib/components/server_components/protected_page';
+import ProtectedPage from '@/lib/components/server_components/ProtectedPage';
 
 import DashboardMainPanel from './dashboard_panel';
 

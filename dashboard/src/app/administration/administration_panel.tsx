@@ -15,7 +15,7 @@ import React, {
 import { R2Button } from '@/lib/components/client_components/ClickButton';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 import timeoutFetch, { timeoutFetchWithErrors } from '@/lib/utils/timeoutFetch';
 
 enum CONNECTION_STATE {
@@ -172,11 +172,11 @@ const NetworkSelectionContainer = (props: {
                         <div className="flex flex-col">
                             <TextBlock>Password</TextBlock>
                             <input
-                                className='text-center'
+                                className="text-center"
                                 onChange={(e) =>
                                     setWifiPassword(e.target.value)
                                 }
-                                type='password'
+                                type="password"
                             />
                         </div>
                         <R2Button

@@ -8,7 +8,7 @@ import { Dispatch, SetStateAction, useContext } from 'react';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
 import IODisplay from '@/lib/components/client_components/IODisplay';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 
 export default function IOStateContainer(props: {
     id: string;

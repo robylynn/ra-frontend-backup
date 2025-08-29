@@ -45,10 +45,20 @@ module.exports = {
         spin: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' }
-        }
+        },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideOut: { // NEW KEYFRAME for sliding out
+          '0%': { opacity: '1', transform: 'translateY(0) translateX(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-10px) translateX(100%)' }, // Slide right and fade out
+        },
       },
       animation: {
-        loading_spin: 'spin 1s linear infinite'
+        loading_spin: 'spin 1s linear infinite',
+        'fade-in': 'fadeIn 0.5s ease-out forwards', // 'fade-in' is the utility class name
+        'slide-out': 'slideOut 0.3s ease-in forwards', // NEW ANIMATION for sliding out
       }
     },
     fontSize: {

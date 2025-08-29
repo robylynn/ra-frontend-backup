@@ -46,6 +46,11 @@ curl -X POST "http://localhost:8000/ui/config/abc" \
                      "id": "e4d2a1b9-3b6d-4c8d-8a9d-1f2e3c4a5b6d",
                      "type": "charts",
                      "label": "Enter your name"
+                 },
+                {
+                     "id": "e4d2a1b9-3b6d-4c8d-8a9d-1f2e3c4a5b6d",
+                     "type": "camera",
+                     "label": "Enter your name"
                  }
              ],
              "lastUpdated": "2024-08-27T10:30:00Z"

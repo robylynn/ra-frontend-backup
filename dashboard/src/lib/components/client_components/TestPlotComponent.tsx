@@ -4,7 +4,7 @@ import {
     useWebSocket,
     WebSocketMessage,
 } from '@/lib/components/client_components/WebsocketSubscriptionProvider';
-import LoadingIndicator from '@/lib/components/server_components/loading_indicator';
+import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
 import { logMessage } from '@/lib/utils/utilities';
 import React, { useEffect, useState } from 'react';
 import {
@@ -86,7 +86,7 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
         }
         return {
             time: new Date(rawData.data.time).toLocaleTimeString(),
-            value: rawData.data[props.column]
+            value: rawData.data[props.column],
         };
     };
 
@@ -98,7 +98,7 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
         // Map the historical data to the format Recharts expects: [{ name: '...', value: ... }]
         return rawData.data.map((item) => ({
             time: new Date(item.time).toLocaleTimeString(),
-            value: item[props.column]
+            value: item[props.column],
         }));
     };
 
@@ -159,7 +159,7 @@ export const TestPlotComponent: React.FC<PlotProperties> = (
                     </LineChart>
                 </ResponsiveContainer>
             ) : (
-                <LoadingIndicator />
+                <LoadingIndicator text='WAITING FOR WEBSOCKET'/>
                 // <div className="h-full flex flex-col items-center justify-center p-6 bg-gray-100 rounded-lg border border-gray-200 text-center">
                 //     <svg
                 //         className="animate-spin h-8 w-8 text-gray-400 mb-4"
