@@ -150,7 +150,7 @@ async def _fetch_historical_data(
                     else:
                         row_dict[col_name] = value
                 result.append(
-                    PydanticModel(**row_dict).model_dump()
+                    PydanticModel.from_db_format(**row_dict).model_dump()
                     if hasattr(PydanticModel, "model_dump")
                     else PydanticModel(**row_dict).dict()
                 )
@@ -486,7 +486,7 @@ async def insert_data(
         #     )
 
         # Publish to the new SubscriptionManager if it exists
-        if hasattr(request.app.state, 'subscription_manager'):
+        if hasattr(request.app.state, "subscription_manager"):
             for record in validated_records_data:
                 # Ensure datetime objects are converted to ISO format for JSON serialization
                 serializable_record = {
@@ -498,7 +498,8 @@ async def insert_data(
                     for key, value in record.items()
                 }
                 await request.app.state.subscription_manager.publish(
-                    table_name, {"type": "live", "table": table_name, "data": serializable_record}
+                    table_name,
+                    {"type": "live", "table": table_name, "data": serializable_record},
                 )
             logger.debug(
                 f"Published {len(validated_records_data)} records to SubscriptionManager for table '{table_name}'."

@@ -27,9 +27,11 @@ class ColumnDef(BaseModel):
 
 class TableDef(BaseModel):
     """Represents a single table's definition in the schema file."""
-    
+
     columns: Dict[str, Any]
-    hypertable_column: Optional[str] = Field(None, description="The column used as the TimescaleDB hypertable dimension.")
+    hypertable_column: Optional[str] = Field(
+        None, description="The column used as the TimescaleDB hypertable dimension."
+    )
     number_of_tables: Optional[int] = None
 
 

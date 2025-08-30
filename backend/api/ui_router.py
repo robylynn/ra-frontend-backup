@@ -93,7 +93,9 @@ async def get_frontend_config(client_id: str, request: Request):
                 data={
                     "client_id": client_id,
                     "config_data": json.loads(record["config_data"]),
-                    "last_updated": record["last_updated"].isoformat().replace("+00:00","Z"),
+                    "last_updated": record["last_updated"]
+                    .isoformat()
+                    .replace("+00:00", "Z"),
                 },
             )
         else:
@@ -184,7 +186,7 @@ async def save_frontend_config(
             data={
                 "client_id": client_id,
                 "config_data_saved": config_payload.config_json,
-                "last_updated": current_time.isoformat().replace("+00:00","Z"),
+                "last_updated": current_time.isoformat().replace("+00:00", "Z"),
             },
         )
     except ValidationError as e:

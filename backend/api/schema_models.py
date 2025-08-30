@@ -104,10 +104,12 @@ def load_raw_schema():
                 for i in range(table_def.number_of_tables):
                     dynamic_table_name = f"{table_name}_{i}"
                     dynamic_tables_to_add[dynamic_table_name] = table_def
-        
+
         # Merge the dynamic table entries into the main schema
         LOADED_RAW_SCHEMA.tables.update(dynamic_tables_to_add)
-        logger.info(f"Augmented schema with {len(dynamic_tables_to_add)} dynamic tables.")
+        logger.info(
+            f"Augmented schema with {len(dynamic_tables_to_add)} dynamic tables."
+        )
 
     except FileNotFoundError:
         logger.error(

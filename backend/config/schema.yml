@@ -57,6 +57,7 @@ tables:
 
   analog_in_config:
     columns:
+      stamp: TIMESTAMPTZ NOT NULL
       channel: SMALLINT NOT NULL
       label: TEXT
       unit: TEXT
@@ -68,7 +69,7 @@ tables:
       hardware_config__configured: BOOLEAN
       hardware_config__enabled: BOOLEAN
       hardware_config__channel_type: SMALLINT
-    hypertable_column: null
+    hypertable_column: stamp
 
   analog_in_data:
     columns:
@@ -101,6 +102,7 @@ tables:
 
   analog_out_config:
     columns:
+      stamp: TIMESTAMPTZ NOT NULL
       channel: SMALLINT NOT NULL
       label: TEXT
       unit: TEXT
@@ -115,15 +117,16 @@ tables:
       hardware_config__initial_value_volts: DOUBLE PRECISION
       hardware_config__estop_configured: BOOLEAN
       hardware_config__estop_value_volts: DOUBLE PRECISION
-    hypertable_column: null
+    hypertable_column: stamp
 
   digital_in_config:
     columns:
+      stamp: TIMESTAMPTZ NOT NULL
       channel: SMALLINT NOT NULL
       label: TEXT
       hardware_config__configured: BOOLEAN
       hardware_config__enabled: BOOLEAN
-    hypertable_column: null
+    hypertable_column: stamp
 
   digital_in_data:
     columns:
@@ -148,6 +151,7 @@ tables:
 
   digital_out_config:
     columns:
+      stamp: TIMESTAMPTZ NOT NULL
       channel: SMALLINT NOT NULL
       label: TEXT
       hardware_config__configured: BOOLEAN
@@ -155,7 +159,7 @@ tables:
       hardware_config__initial_value: BOOLEAN
       hardware_config__estop_configured: BOOLEAN
       hardware_config__estop_value: BOOLEAN
-    hypertable_column: null
+    hypertable_column: stamp
   
   digital_out_data: # Table for digital out data
     columns:
