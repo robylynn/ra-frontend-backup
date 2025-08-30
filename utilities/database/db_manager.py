@@ -104,14 +104,14 @@ project_root = os.path.join(
 )  # Go up one level from 'utilities' to 'backend'
 sys.path.insert(0, project_root)
 
-from api.models import (
+from backend.api.models import (
     SchemaConfig,
     DeploymentConfig,
     DatabaseConnectionConfig,
     CloudDbInstance,
 )
-from api.schema_models import load_raw_schema, LOADED_RAW_SCHEMA
-from api.models import FrontendConfigData
+from backend.api.schema_models import load_raw_schema, LOADED_RAW_SCHEMA
+from backend.api.models import FrontendConfigData
 
 
 # --- Global Config for DB Manager ---
