@@ -46,3 +46,143 @@ tables:
       hashed_password: TEXT NOT NULL
       created_at: TIMESTAMPTZ NOT NULL DEFAULT NOW()
     hypertable_column: null # Not a hypertable
+
+# --- New tables for the ROS 2 TimescaleDB project ---
+
+  realtime_sys_state:
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      state: INTEGER
+    hypertable_column: stamp
+
+  analog_in_config:
+    columns:
+      channel: SMALLINT NOT NULL
+      label: TEXT
+      unit: TEXT
+      min_electrical_value: DOUBLE PRECISION
+      max_electrical_value: DOUBLE PRECISION
+      min_measurement_value: DOUBLE PRECISION
+      max_measurement_value: DOUBLE PRECISION
+      transfer_function_type: SMALLINT
+      hardware_config__configured: BOOLEAN
+      hardware_config__enabled: BOOLEAN
+      hardware_config__channel_type: SMALLINT
+    hypertable_column: null
+
+  analog_in_data:
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      read_channels__0: BOOLEAN
+      read_channels__1: BOOLEAN
+      read_channels__2: BOOLEAN
+      read_channels__3: BOOLEAN
+      read_channels__4: BOOLEAN
+      read_channels__5: BOOLEAN
+      read_channels__6: BOOLEAN
+      read_channels__7: BOOLEAN
+      values__0: DOUBLE PRECISION
+      values__1: DOUBLE PRECISION
+      values__2: DOUBLE PRECISION
+      values__3: DOUBLE PRECISION
+      values__4: DOUBLE PRECISION
+      values__5: DOUBLE PRECISION
+      values__6: DOUBLE PRECISION
+      values__7: DOUBLE PRECISION
+      types__0: SMALLINT
+      types__1: SMALLINT
+      types__2: SMALLINT
+      types__3: SMALLINT
+      types__4: SMALLINT
+      types__5: SMALLINT
+      types__6: SMALLINT
+      types__7: SMALLINT
+    hypertable_column: stamp
+
+  analog_out_config:
+    columns:
+      channel: SMALLINT NOT NULL
+      label: TEXT
+      unit: TEXT
+      min_electrical_value: DOUBLE PRECISION
+      max_electrical_value: DOUBLE PRECISION
+      min_measurement_value: DOUBLE PRECISION
+      max_measurement_value: DOUBLE PRECISION
+      transfer_function_type: SMALLINT
+      hardware_config__configured: BOOLEAN
+      hardware_config__enabled: BOOLEAN
+      hardware_config__pwm_period_ms: INTEGER
+      hardware_config__initial_value_volts: DOUBLE PRECISION
+      hardware_config__estop_configured: BOOLEAN
+      hardware_config__estop_value_volts: DOUBLE PRECISION
+    hypertable_column: null
+
+  digital_in_config:
+    columns:
+      channel: SMALLINT NOT NULL
+      label: TEXT
+      hardware_config__configured: BOOLEAN
+      hardware_config__enabled: BOOLEAN
+    hypertable_column: null
+
+  digital_in_data:
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      read_channels__0: BOOLEAN
+      read_channels__1: BOOLEAN
+      read_channels__2: BOOLEAN
+      read_channels__3: BOOLEAN
+      read_channels__4: BOOLEAN
+      read_channels__5: BOOLEAN
+      read_channels__6: BOOLEAN
+      read_channels__7: BOOLEAN
+      values__0: BOOLEAN
+      values__1: BOOLEAN
+      values__2: BOOLEAN
+      values__3: BOOLEAN
+      values__4: BOOLEAN
+      values__5: BOOLEAN
+      values__6: BOOLEAN
+      values__7: BOOLEAN
+    hypertable_column: stamp
+
+  digital_out_config:
+    columns:
+      channel: SMALLINT NOT NULL
+      label: TEXT
+      hardware_config__configured: BOOLEAN
+      hardware_config__enabled: BOOLEAN
+      hardware_config__initial_value: BOOLEAN
+      hardware_config__estop_configured: BOOLEAN
+      hardware_config__estop_value: BOOLEAN
+    hypertable_column: null
+  
+  digital_out_data: # Table for digital out data
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      write_channels__0: BOOLEAN
+      write_channels__1: BOOLEAN
+      write_channels__2: BOOLEAN
+      write_channels__3: BOOLEAN
+      write_channels__4: BOOLEAN
+      write_channels__5: BOOLEAN
+      write_channels__6: BOOLEAN
+      write_channels__7: BOOLEAN
+      values__0: BOOLEAN
+      values__1: BOOLEAN
+      values__2: BOOLEAN
+      values__3: BOOLEAN
+      values__4: BOOLEAN
+      values__5: BOOLEAN
+      values__6: BOOLEAN
+      values__7: BOOLEAN
+    hypertable_column: stamp
+
+  axis_estimates:
+    number_of_tables: 4
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      axis_index: SMALLINT NOT NULL
+      position: DOUBLE PRECISION
+      velocity: DOUBLE PRECISION
+    hypertable_column: stamp

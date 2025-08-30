@@ -354,11 +354,12 @@ async def insert_data(
     for idx, record_data in enumerate(records_data):
         try:
             validated_record = PydanticModel(**record_data)
-            validated_records_data.append(
-                validated_record.model_dump()
-                if hasattr(validated_record, "model_dump")
-                else validated_record.dict()
-            )
+            validated_records_data.append(validated_record.to_db_format())
+            # validated_records_data.append(
+            #     validated_record.model_dump()
+            #     if hasattr(validated_record, "model_dump")
+            #     else validated_record.dict()
+            # )
         except ValidationError as e:
             failed_validations.append(
                 {"record_index": idx, "errors": e.errors(), "data": record_data}
