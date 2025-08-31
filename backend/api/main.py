@@ -45,7 +45,7 @@ logger.add(
 )
 
 # --- Configuration Loading ---
-DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "config", "database_configs.yml")
+DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "..", "config", "database_configs.yml")
 
 
 def load_database_configs() -> DeploymentConfig:

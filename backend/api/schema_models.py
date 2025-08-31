@@ -64,21 +64,11 @@ from loguru import logger  # Keep logger import, but remove configuration here
 # Import the new Pydantic model for schema configuration
 from api.models import SchemaConfig
 
-# --- Loguru Configuration for this module ---
-# NEW: Removed local loguru configuration to centralize it in api/main.py
-# logger.remove() # Remove default handler (important to avoid duplicating handlers from main)
-# logger.add(
-#     os.sys.stderr,
-#     level="INFO",
-#     format="{time} | {level} | {module}:{function}:{line} - {message}",
-#     colorize=True
-# )
-
 # LOADED_RAW_SCHEMA will now be an instance of SchemaConfig
 LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
 
 # Schema file path is now relative to the container's root working directory /app/config/schema.yml
-SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "config", "schema.yml")
+SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "..", "config", "schema.yml")
 
 
 def load_raw_schema():
