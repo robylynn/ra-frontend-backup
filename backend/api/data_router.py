@@ -511,7 +511,7 @@ async def insert_data(
                 }
                 await request.app.state.subscription_manager.publish(
                     table_name,
-                    {"type": "live", "table": table_name, "data": serializable_record},
+                    {"type": "live", "table": table_name, "data": [serializable_record]},
                 )
             logger.debug(
                 f"Published {len(validated_records_data)} records to SubscriptionManager for table '{table_name}'."

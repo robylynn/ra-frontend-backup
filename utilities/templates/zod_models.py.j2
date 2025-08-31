@@ -11,6 +11,9 @@ export const {{ model.camel_case_name }}Schema = z.object({
 {{ field.name }}: {{ field.zod_type }},
 {%- endfor %}
 });
+export const {{ model.camel_case_name }}BatchSchema = z.array({{ model.camel_case_name }}Schema)
+export type {{ model.camel_case_name }} = z.infer<typeof {{ model.camel_case_name }}Schema>
+export type {{ model.camel_case_name }}Batch = z.infer<typeof {{ model.camel_case_name }}BatchSchema>
 {% endfor %}
 
 // TypeScript interfaces derived from the Zod schemas

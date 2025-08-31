@@ -8,6 +8,7 @@ import {
 } from '@/lib/models/ros_types';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import {z} from 'zod';
 
 export interface BackendAPIResponseInterface {
     error: boolean;
@@ -925,3 +926,26 @@ export class HardwareConfiguration implements HardwareConfigurationInterface {
         );
     }
 }
+
+// BEGIN NEW
+
+const basicApiResponseSchema = z.object({
+    success: z.boolean(),
+    message: z.string(),
+});
+
+export const createApiResponseSchema = <T>(schema: z.ZodSchema<T>) =>
+    z.object({
+        authenticated: z.boolean(),
+        // backend_response: z.object({
+        //     success: z.boolean(),
+        //     message: z.string(),
+        //     // The 'data' field's schema is now dynamic.
+        //     data: schema.nullable(),
+        // }),
+        backend_response: basicApiResponseSchema.extend({
+            data: schema.nullable(),
+        }),
+        proxy_error: z.boolean(),
+        proxy_error_string: z.string(),
+    });

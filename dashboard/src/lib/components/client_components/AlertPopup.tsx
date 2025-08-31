@@ -15,6 +15,8 @@ interface AlertPopupProps {
     style?: React.CSSProperties; // NEW: style prop for dynamic positioning (e.g., top)
     alertRef?: (instance: HTMLDivElement | null) => void; // UPDATED: Changed from RefObject to a callback ref
     header?: string; // NEW: Optional header prop for dynamic text
+    isRefreshed?: boolean; // NEW: Indicates if the alert is a refreshed duplicate
+    refreshCount?: number;
 }
 
 export const AlertPopup: React.FC<AlertPopupProps> = ({
@@ -25,6 +27,8 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
     style,
     alertRef,
     header,
+    // isRefreshed = false, // Default to false if not provided
+    refreshCount = 0
 }) => {
     // Determine alert styling based on type
     let alertBgClass = 'bg-yellow-100 border-yellow-400 text-yellow-700'; // Default for warning
@@ -37,6 +41,9 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
     // Use the provided header, or fallback to a default if not provided
     const alertHeader = header || 'Alert:';
 
+    // We use refreshCount to determine if this is a new or refreshed alert
+    const isRefreshed = refreshCount > 0;
+
     return (
         <div
             ref={alertRef} // Attach the ref here so parent can measure
@@ -46,12 +53,11 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
         absolute right-0 w-fit min-w-[300px] max-w-sm p-4 rounded-lg shadow-lg flex items-center justify-between
         transition-all duration-300 ease-out transform pointer-events-auto {/* Ensure the alert itself is clickable */}
         ${alertBgClass}
-        ${isDismissing ? 'animate-slide-out' : 'animate-fade-in'}
+        ${isDismissing ? 'animate-slide-out' : isRefreshed ? 'animate-jiggle' : 'animate-fade-in'}
       `}
         >
             <div>
                 <strong className="font-bold">{alertHeader}</strong>{' '}
-                {/* NEW: Use dynamic alertHeader */}
                 <span className="block sm:inline ml-2">{message}</span>
             </div>
             <button

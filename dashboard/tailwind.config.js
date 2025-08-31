@@ -54,11 +54,18 @@ module.exports = {
           '0%': { opacity: '1', transform: 'translateY(0) translateX(0)' },
           '100%': { opacity: '0', transform: 'translateY(-10px) translateX(100%)' }, // Slide right and fade out
         },
+        jiggle: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-4px)' },
+          '50%': { transform: 'translateX(4px)' },
+          '75%': { transform: 'translateX(-4px)' },
+        },
       },
       animation: {
-        loading_spin: 'spin 1s linear infinite',
+        'loading_spin': 'spin 1s linear infinite',
         'fade-in': 'fadeIn 0.5s ease-out forwards', // 'fade-in' is the utility class name
         'slide-out': 'slideOut 0.3s ease-in forwards', // NEW ANIMATION for sliding out
+        'jiggle': 'jiggle 0.5s ease-in-out forwards',
       }
     },
     fontSize: {

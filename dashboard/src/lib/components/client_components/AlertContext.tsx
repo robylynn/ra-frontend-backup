@@ -12,6 +12,8 @@ export interface AlertItem {
     autoDismissDuration?: number; // Optional duration for this specific alert
     isDismissing: boolean; // For animation control
     header?: string; // NEW LINE: Optional header text for the alert
+    // isRefreshed: boolean; // NEW: Signal that this is a refreshed alert
+    refreshCount: number;
 }
 
 // Define the shape of the context value that will be provided

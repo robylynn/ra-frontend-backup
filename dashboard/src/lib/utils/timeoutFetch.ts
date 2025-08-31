@@ -1,5 +1,7 @@
 import { NextAPIResponseInterface } from '@/lib/models/api_models';
 import { z, ZodError } from 'zod';
+import { createApiResponseSchema } from '@/lib/models/api_models';
+import { FetchError } from '@/lib/models/errors';
 
 export default async function timeoutFetch<Type>(
     path: string,
@@ -85,33 +87,8 @@ export async function timeoutFetchWithErrors(
     return ret;
 }
 
-class FetchError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'FetchError';
-    }
-}
 
-const basicApiResponseSchema = z.object({
-    success: z.boolean(),
-    message: z.string(),
-});
 
-const createApiResponseSchema = <T>(schema: z.ZodSchema<T>) =>
-    z.object({
-        authenticated: z.boolean(),
-        // backend_response: z.object({
-        //     success: z.boolean(),
-        //     message: z.string(),
-        //     // The 'data' field's schema is now dynamic.
-        //     data: schema.nullable(),
-        // }),
-        backend_response: basicApiResponseSchema.extend({
-            data: schema.nullable(),
-        }),
-        proxy_error: z.boolean(),
-        proxy_error_string: z.string(),
-    });
 
 /**
  * Fetches and validates data from an API using a generic type and an optional Zod schema.

@@ -77,27 +77,12 @@ tables:
       read_channels__0: BOOLEAN
       read_channels__1: BOOLEAN
       read_channels__2: BOOLEAN
-      # read_channels__3: BOOLEAN
-      # read_channels__4: BOOLEAN
-      # read_channels__5: BOOLEAN
-      # read_channels__6: BOOLEAN
-      # read_channels__7: BOOLEAN
       values__0: DOUBLE PRECISION
       values__1: DOUBLE PRECISION
       values__2: DOUBLE PRECISION
-      # values__3: DOUBLE PRECISION
-      # values__4: DOUBLE PRECISION
-      # values__5: DOUBLE PRECISION
-      # values__6: DOUBLE PRECISION
-      # values__7: DOUBLE PRECISION
       types__0: SMALLINT
       types__1: SMALLINT
       types__2: SMALLINT
-      # types__3: SMALLINT
-      # types__4: SMALLINT
-      # types__5: SMALLINT
-      # types__6: SMALLINT
-      # types__7: SMALLINT
     hypertable_column: stamp
 
   analog_out_config:
@@ -126,28 +111,10 @@ tables:
       write_channels__1: BOOLEAN
       write_channels__2: BOOLEAN
       write_channels__3: BOOLEAN
-      # read_channels__3: BOOLEAN
-      # read_channels__4: BOOLEAN
-      # read_channels__5: BOOLEAN
-      # read_channels__6: BOOLEAN
-      # read_channels__7: BOOLEAN
       values__0: DOUBLE PRECISION
       values__1: DOUBLE PRECISION
       values__2: DOUBLE PRECISION
       values__3: DOUBLE PRECISION
-      # values__3: DOUBLE PRECISION
-      # values__4: DOUBLE PRECISION
-      # values__5: DOUBLE PRECISION
-      # values__6: DOUBLE PRECISION
-      # values__7: DOUBLE PRECISION
-      # types__0: SMALLINT
-      # types__1: SMALLINT
-      # types__2: SMALLINT
-      # types__3: SMALLINT
-      # types__4: SMALLINT
-      # types__5: SMALLINT
-      # types__6: SMALLINT
-      # types__7: SMALLINT
     hypertable_column: stamp
 
   digital_in_config:

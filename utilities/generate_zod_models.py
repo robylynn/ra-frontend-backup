@@ -154,7 +154,8 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
                 continue
             
             fields.append({
-                "name": to_camel_case(col_name),
+                # "name": to_camel_case(col_name),
+                "name": col_name,
                 "zod_type": postgres_type_to_zod_type(pg_type),
                 "ts_type": postgres_type_to_ts_type(pg_type),
             })
@@ -162,11 +163,12 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
         if is_special_table:
             special_fields = SPECIAL_TABLE_LIST_FIELDS[table_name]
             for field_name, types in special_fields.items():
-                camel_field_name = to_camel_case(field_name)
+                # camel_field_name = to_camel_case(field_name)
 
                 # Add the list-based field
                 fields.append({
-                    "name": camel_field_name,
+                    # "name": camel_field_name,
+                    "name": field_name,
                     "zod_type": types["zod"],
                     "ts_type": types["ts"],
                 })

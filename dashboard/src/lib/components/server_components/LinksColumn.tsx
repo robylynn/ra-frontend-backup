@@ -148,6 +148,7 @@
 import { auth } from '@/auth'; // Server-side authentication helper
 import Image from 'next/image'; // Works in Server Components
 import Link from 'next/link'; // Works in Server Components
+import StateReadout from '@/lib/components/client_components/StateReadout';
 
 // PageTab is designed to be rendered within a Server Component,
 // as it primarily handles UI and navigation links.
@@ -307,7 +308,7 @@ export default async function LinksColumn(props: { className?: string }) {
             </div>
             {/* You could add a footer here, e.g., version info or theme toggle */}
             {/* For now, StateReadout is rendered outside LinksColumn in layout.tsx */}
-            {/* {session != null ? <StateReadout /> : <></>} */}
+            {session != null ? <StateReadout /> : <></>}
         </div>
     );
 }
