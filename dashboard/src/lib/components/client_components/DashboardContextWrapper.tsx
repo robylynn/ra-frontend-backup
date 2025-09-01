@@ -17,6 +17,7 @@ import {
     AxisCommandServices,
     IOCommandServices,
     IOConfigurationServices,
+    RosState,
 } from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInData,
@@ -71,7 +72,8 @@ export default function DashboardContextProvider(props: {
         ros_io_state_services: IOCommandServices;
         ros_application_services: ApplicationServices;
         ros_axis_command_services: AxisCommandServices;
-        ra_ros_websocket: ROSLIB.Ros;
+        // ra_ros_websocket: ROSLIB.Ros;
+        ros_state: RosState;
     }>('ros/set');
     const setAnalogInDataAction = createAction<{
         analog_in_data: IRosTypeR2CInterfacesAnalogInData;
@@ -178,7 +180,9 @@ export default function DashboardContextProvider(props: {
                     return state;
                 })
                 .addCase(setROSAction, (state, action) => {
-                    state.ra_ros_websocket = action.payload.ra_ros_websocket;
+                    // state.ra_ros_websocket = action.payload.ra_ros_websocket;
+                    // state.ros_state.ros = action.payload.ros_state.
+                    state.ros_state = action.payload.ros_state;
                     state.io_configuration_services =
                         action.payload.ros_config_services;
                     state.io_command_services =

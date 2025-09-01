@@ -32,6 +32,7 @@ export interface WebSocketMessageFilter {
 
 // --- WebSocket Context Definition ---
 interface WebSocketContextType {
+    isInitialized: boolean;
     isConnected: boolean;
     clientId: string;
     subscribedTables: Set<string>;
@@ -59,6 +60,7 @@ interface WebSocketProviderProps {
 }
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
+    const [isInitialized, setIsInitialized] = useState(false);
     const [ws, setWs] = useState<WebSocket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [clientId, setClientId] = useState<string>('');
@@ -105,6 +107,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         newWs.onopen = () => {
             setIsConnected(true);
+            setIsInitialized(true); // <-- Set initialized state on successful connection
             reconnectAttempts.current = 0;
             console.log(`WebSocket connected for client: ${currentClientId}`);
             // Notify listeners about connection status
@@ -150,7 +153,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         newWs.onclose = (event) => {
             setIsConnected(false);
-            logMessage(`WebSocket disconnected: ${event.code} $${event.reason}`, 'info');
+            logMessage(
+                `WebSocket disconnected: ${event.code} $${event.reason}`,
+                'info'
+            );
             messageListeners.current.forEach(({ callback }) =>
                 callback({ type: 'status', message: 'WebSocket disconnected.' })
             );
@@ -158,7 +164,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             reconnectAttempts.current++;
             setTimeout(() => {
                 logMessage(
-                    `Attempting to reconnect... (Attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`, 'info'
+                    `Attempting to reconnect... (Attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`,
+                    'info'
                 );
                 connectWebSocket();
             }, reconnectInterval);
@@ -273,6 +280,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     );
 
     const contextValue: WebSocketContextType = {
+        isInitialized,
         isConnected,
         clientId,
         subscribedTables,
@@ -292,7 +300,29 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 export function useWebSocket() {
     const context = useContext(WebSocketContext);
     if (context === undefined) {
-        throw new Error('useWebSocket must be used within a WebSocketProvider');
+        // throw new Error('useWebSocket must be used within a WebSocketProvider');
+        return {
+            isInitialized: false,
+            isConnected: false,
+            clientId: null,
+            // isConnected,
+            // clientId,
+            subscribedTables: [],
+            subscribe: (
+                tableName: string,
+                sendHistorical?: boolean,
+                historicalLimit?: number
+            ) => {},
+            unsubscribe: (tableName: string) => {},
+            // New: Function to register callbacks for specific messages
+            registerMessageListener:
+                (
+                    listenerId: string,
+                    callback: (message: WebSocketMessage) => void,
+                    filter?: WebSocketMessageFilter
+                ) =>
+                () => {}, // Returns an unregister function
+        };
     }
     return context;
 }

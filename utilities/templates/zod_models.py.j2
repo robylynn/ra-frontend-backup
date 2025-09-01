@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 // Zod schemas for the database tables
 // These schemas define the data structure and validation rules.
-{% for model in models %}
+{% for model in schemas_to_generate %}
 export const {{ model.camel_case_name }}Schema = z.object({
 {%- for field in model.fields %}
 {{ field.name }}: {{ field.zod_type }},
@@ -18,10 +18,17 @@ export type {{ model.camel_case_name }}Batch = z.infer<typeof {{ model.camel_cas
 
 // TypeScript interfaces derived from the Zod schemas
 // These interfaces provide type safety for your data.
-{% for model in models %}
+{% for model in schemas_to_generate %}
 export interface I{{ model.name }} {
 {%- for field in model.fields %}
 {{ field.name }}: {{ field.ts_type }};
 {%- endfor %}
 }
 {% endfor %}
+
+// Mapping for dynamic inference
+export const TableSchemaMap = {
+{%- for table in tables_for_map %}
+{{ table.table_name }}: {{ table.camel_case_name }}BatchSchema,
+{%- endfor %}
+}

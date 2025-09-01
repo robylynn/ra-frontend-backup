@@ -8,13 +8,9 @@ import './globals.css';
 import NextAuthProvider from '@/lib/auth/next_auth_provider';
 import ConnectionStateIndicator from '@/lib/components/client_components/ConnectionStateContainer';
 import DashboardContextProvider from '@/lib/components/client_components/DashboardContextWrapper';
-// import { SimpleDataUpdater } from '@/lib/components/client_components/DataUpdater'; // REMOVED: Moved to AuthenticatedAppProviders
-// import { IOPointContextProvider } from '@/lib/components/client_components/IOPointContext'; // REMOVED: Moved to AuthenticatedAppProviders
-// import { WebSocketProvider } from '@/lib/components/client_components/WebsocketSubscriptionProvider'; // REMOVED: Moved to AuthenticatedAppProviders
 import { AlertProvider } from '@/lib/components/client_components/AlertProvider';
 import AuthenticatedComponentProvider from '@/lib/components/client_components/AuthenticatedComponentProvider';
 import LinksColumn from '@/lib/components/server_components/LinksColumn';
-// import { LogViewerIcon } from '@/lib/components/client_components/LogMessageDisplay';
 
 const inter = Inter({ subsets: ['latin'] });
 

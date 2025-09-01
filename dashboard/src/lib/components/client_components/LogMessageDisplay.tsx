@@ -2,7 +2,7 @@ import { useState, useEffect, useContext, useRef } from "react";
 import { useWebSocket, WebSocketMessage} from "@/lib/components/client_components/WebsocketSubscriptionProvider";
 
 export function LogViewerIcon() {
-  const { isConnected, registerMessageListener, subscribe, unsubscribe } = useWebSocket();
+  const { isInitialized, isConnected, registerMessageListener, subscribe, unsubscribe } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
   const [unviewedLogCount, setUnviewedLogCount] = useState(0);
   const [allLogs, setAllLogs] = useState<WebSocketMessage[]>([]);
@@ -27,7 +27,7 @@ export function LogViewerIcon() {
 
   // Register a listener for ALL messages to act as the log source
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected || !isInitialized) return;
 
     const listenerId = 'log-viewer-listener';
     const callback = (message: WebSocketMessage) => {
@@ -45,7 +45,7 @@ export function LogViewerIcon() {
       unsubscribe('logs')
       unRegisterListener(); // Clean up listener
     };
-  }, [isConnected, registerMessageListener]); // Re-register if connection status or isOpen changes
+  }, [isConnected, isInitialized, registerMessageListener]); // Re-register if connection status or isOpen changes
 
   const renderLogMessage = (log: WebSocketMessage, index: number) => {
     let content;

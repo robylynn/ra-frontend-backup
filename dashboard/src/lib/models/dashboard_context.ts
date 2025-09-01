@@ -866,20 +866,29 @@ export class IOConfigurationServices extends IOServices {
     }
 }
 
+export interface RosState {
+    ros: ROSLIB.Ros | null
+    connected: boolean
+}
+
 export class ApplicationContext {
     [immerable] = true;
 
     // latest_document: DatabaseDocument | null = null;
     messages: DatabaseMessageArray | null = null;
     // configuration: UIConfiguration | null = null;
-    ui_configuration: UiConfig
+    ui_configuration: UiConfig;
     // io_state: DatabaseIOStateDocumentArray | null = null;
     hardware_configuration: HardwareConfiguration | null = null;
     heartbeat: boolean = false;
     heartbeat_counter: number = 0;
     database_online: boolean = false;
-    ra_websocket: WebSocket | null = null;
+    // ra_websocket: WebSocket | null = null;
     ra_ros_websocket: ROSLIB.Ros | null = null;
+    ros_state: RosState = {
+        ros: null,
+        connected: false
+    };
     io_configuration_services: IOConfigurationServices;
     io_command_services: IOCommandServices;
     application_services: ApplicationServices;
@@ -907,6 +916,10 @@ export class ApplicationContext {
         this.io_configuration_services = new IOConfigurationServices();
         this.io_command_services = new IOCommandServices();
         this.application_state = new ApplicationState();
+        this.ros_state = {
+            ros: null,
+            connected: false,
+        };
     }
 
     public getIOState(point_type: IOPointType) {

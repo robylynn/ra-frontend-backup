@@ -139,7 +139,11 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
     template = env.get_template(template_path.name)
 
     # Prepare data for the template
-    models = []
+    # models = []
+    # --- ADDED: New data structures for separating schema generation from map creation ---
+    schemas_to_generate = []
+    tables_for_map = []
+
     for table_name, table_def in raw_yaml_data.get("tables", {}).items():
         fields = []
         is_special_table = table_name in SPECIAL_TABLE_LIST_FIELDS
@@ -183,14 +187,59 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
                         "ts_type": f"{types['inner_ts']} | undefined",
                     })
 
-        models.append({
+        # models.append({
+        #     "name": to_pascal_case(table_name),
+        #     "table_name": table_name,
+        #     "camel_case_name": to_camel_case(table_name),
+        #     "fields": fields
+        # })
+
+        # # --- NEW LOGIC FOR NUMBERED TABLES ---
+        # if "number_of_tables" in table_def:
+        #     for i in range(table_def["number_of_tables"]):
+        #         dynamic_table_name = f"{table_name}_{i}"
+        #         models.append({
+        #             "name": to_pascal_case(table_name), # The name of the Zod model remains the same
+        #             "table_name": dynamic_table_name,   # But the table name in the map is specific
+        #             "camel_case_name": to_camel_case(table_name),
+        #             "fields": fields
+        #         })
+        # else:
+        #     # Original logic for single tables
+        #     models.append({
+        #         "name": to_pascal_case(table_name),
+        #         "table_name": table_name,
+        #         "camel_case_name": to_camel_case(table_name),
+        #         "fields": fields
+        #     })
+        # --- ADDED: Logic to populate the two new lists instead ---
+        # Create a single model object to generate schema/types
+        model_object = {
             "name": to_pascal_case(table_name),
             "camel_case_name": to_camel_case(table_name),
             "fields": fields
-        })
+        }
+        schemas_to_generate.append(model_object)
+    
+        # Logic for populating the TableSchemaMap entries
+        if "number_of_tables" in table_def:
+            for i in range(table_def["number_of_tables"]):
+                tables_for_map.append({
+                    "table_name": f"{table_name}_{i}",
+                    "camel_case_name": to_camel_case(table_name),
+                })
+        else:
+            tables_for_map.append({
+                "table_name": table_name,
+                "camel_case_name": to_camel_case(table_name),
+            })
         
     # Render the template
-    rendered_code = template.render(models=models)
+    # rendered_code = template.render(models=models)
+    rendered_code = template.render(
+        schemas_to_generate=schemas_to_generate,
+        tables_for_map=tables_for_map
+    )
 
     # Write the output file
     output_file.parent.mkdir(parents=True, exist_ok=True)

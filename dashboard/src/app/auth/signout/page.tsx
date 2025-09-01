@@ -65,6 +65,7 @@
 // This is a Server Component – no "use client" directive
 import React from 'react';
 import { signOutAction } from './actions'; // Import the Server Action
+import { SignOutButton } from './SignOutButton';
 
 export default async function SignOutPage() {
   // In a Server Component, you can use server-side functions like `await auth()`
@@ -86,12 +87,13 @@ export default async function SignOutPage() {
 
         {/* This form directly calls the server action */}
         <form action={signOutAction}>
-          <button
+          {/* <button
             type="submit"
             className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 transform hover:scale-105"
           >
             Confirm Sign Out
-          </button>
+          </button> */}
+          <SignOutButton/>
         </form>
       </div>
     </div>

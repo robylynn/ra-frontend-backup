@@ -44,6 +44,7 @@ export async function signOutAction() {
     // 1. Call signOut to clear the session, but prevent it from issuing its own redirect.
     // This try-block specifically handles errors that occur during the *session clearing* process.
     await signOut({ redirect: false }); 
+    // await signOut({ redirect: true }); 
 
     console.log('[Server Action] Session cleared successfully.');
     

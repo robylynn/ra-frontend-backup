@@ -22,9 +22,9 @@ import {
     IRosTypeR2CInterfacesTorques,
     IRosTypeStdMsgsString,
 } from '@/lib/models/ros_types';
-import { getSession } from 'next-auth/react';
+import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import ROSLIB, { Topic } from 'roslib';
+import ROSLIB from 'roslib';
 
 // Define the properties for the Rosbridge component
 // interface RosbridgeWebSocketProps {
@@ -230,7 +230,8 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
         config_services: IOConfigurationServices,
         io_state_services: IOCommandServices,
         application_services: ApplicationServices,
-        axis_command_services: AxisCommandServices
+        axis_command_services: AxisCommandServices,
+        connected?: boolean
     ) => {
         setDashboardContext({
             payload: {
@@ -238,7 +239,11 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 ros_io_state_services: io_state_services,
                 ros_application_services: application_services,
                 ros_axis_command_services: axis_command_services,
-                ra_ros_websocket: ros.current,
+                // ra_ros_websocket: ros.current,
+                ros_state: {
+                    ros: ros.current,
+                    connected: connected ?? isConnected
+                }
             },
             type: 'ros/set',
         });
@@ -250,7 +255,11 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 ros_config_services: null,
                 ros_io_state_services: null,
                 ros_application_services: null,
-                ra_ros_websocket: ros.current,
+                // ra_ros_websocket: ros.current,
+                ros_state: {
+                    ros: ros.current,
+                    connected: false,
+                },
             },
             type: 'ros/set',
         });
@@ -415,27 +424,55 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
         });
         ros.current = newRos;
 
-        newRos.on('connections', () => {
+        newRos.on('connection', () => {
             // Event when connected
             if (isMounted.current) {
-                setIsConnected(true);
-                logDebugMessage('Connected to Rosbridge successfully.');
+                // setIsConnected(true);
+                // logDebugMessage('Connected to Rosbridge successfully.');
                 // Clear any pending reconnection timer on successful connection
                 if (reconnectTimer.current) {
                     clearTimeout(reconnectTimer.current);
                     reconnectTimer.current = null;
                 }
+                // const a = newRos.getTopics(
+                //     (nodes) => {
+                //         let b = 5;
+                //     },
+                //     (error) => {
+                //         let c = 5;
+                //     }
+                // );
+                // const b = newRos.waitFor('service', 1)
+                
+                // Check available nodes to see if we are connected
+                const nodes_service = new ROSLIB.Service({
+                    ros: newRos,
+                    name: '/rosapi/nodes',
+                    serviceType: 'rosapi_msgs/srv/Nodes',
+                });
+                timeoutServiceCall(nodes_service, {}, reconnectInterval / 2).then(
+                    (nodes) => {
+                        logDebugMessage(`Found ROS nodes: ${JSON.stringify(nodes)}`);
+                    },
+                    (error) => {
+                        logDebugMessage(
+                            `Failed to find any ROS nodes. Is the ROS backend running? Error: ${error}.`
+                        );
+                        return;
+                    }
+                );
 
-                // subscriptions.current = new Subscriptions(ros.current);
-                // set_up_subsciptions();
+                setIsConnected(true);
+                logDebugMessage('Connected to Rosbridge successfully.');
+
                 configureSubscriptions();
-                // subscriptions.current.subscribeToTopics();
 
                 setRosContext(
                     initializeIOConfigurationServices(ros.current),
                     initializeIOCommandServices(ros.current),
                     initializeApplicationServices(ros.current),
-                    initializeAxisServices(ros.current)
+                    initializeAxisServices(ros.current),
+                    true
                 );
             }
         });
@@ -455,6 +492,7 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
             // Event when disconnected
             if (isMounted.current) {
                 setIsConnected(false);
+                clearRosContext();
                 logDebugMessage(
                     `Disconnected from Rosbridge. Reconnecting in ${reconnectInterval / 1000}s...`
                 );
@@ -564,117 +602,117 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
     return <></>;
 };
 
-export function RAServerWebSocket(props: WebsocketProps) {
-    const [isConnected, setIsConnected] = useState<boolean>(false);
-    const [lastMessage, setLastMessage] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+// export function RAServerWebSocket(props: WebsocketProps) {
+//     const [isConnected, setIsConnected] = useState<boolean>(false);
+//     const [lastMessage, setLastMessage] = useState<string | null>(null);
+//     const [error, setError] = useState<string | null>(null);
 
-    // useRef to hold the WebSocket instance
-    const ws = useRef<WebSocket | null>(null);
-    // useRef to track if the component is mounted
-    const isMounted = useRef<boolean>(true);
-    // useRef for the reconnection timer
-    const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+//     // useRef to hold the WebSocket instance
+//     const ws = useRef<WebSocket | null>(null);
+//     // useRef to track if the component is mounted
+//     const isMounted = useRef<boolean>(true);
+//     // useRef for the reconnection timer
+//     const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Function to establish WebSocket connection, memoized with useCallback
-    const connectWebSocket = useCallback(() => {
-        // Prevent multiple connection attempts if already open or connecting
-        if (
-            ws.current &&
-            (ws.current.readyState === WebSocket.OPEN ||
-                ws.current.readyState === WebSocket.CONNECTING)
-        ) {
-            console.log('WebSocket is already open or connecting.');
-            return;
-        }
+//     // Function to establish WebSocket connection, memoized with useCallback
+//     const connectWebSocket = useCallback(() => {
+//         // Prevent multiple connection attempts if already open or connecting
+//         if (
+//             ws.current &&
+//             (ws.current.readyState === WebSocket.OPEN ||
+//                 ws.current.readyState === WebSocket.CONNECTING)
+//         ) {
+//             console.log('WebSocket is already open or connecting.');
+//             return;
+//         }
 
-        setError(null); // Clear any previous errors
-        console.log(
-            `Attempting to connect to WebSocket: ${props.websocketUrl}`
-        );
+//         setError(null); // Clear any previous errors
+//         console.log(
+//             `Attempting to connect to WebSocket: ${props.websocketUrl}`
+//         );
 
-        const newWs = new WebSocket(props.websocketUrl);
-        ws.current = newWs; // Store the new WebSocket instance
+//         const newWs = new WebSocket(props.websocketUrl);
+//         ws.current = newWs; // Store the new WebSocket instance
 
-        newWs.onopen = () => {
-            if (isMounted.current) {
-                setIsConnected(true);
-                console.log('WebSocket connected successfully.');
-                // Clear any pending reconnection timer on successful connection
-                if (reconnectTimer.current) {
-                    clearTimeout(reconnectTimer.current);
-                    reconnectTimer.current = null;
-                }
-            }
-        };
+//         newWs.onopen = () => {
+//             if (isMounted.current) {
+//                 setIsConnected(true);
+//                 console.log('WebSocket connected successfully.');
+//                 // Clear any pending reconnection timer on successful connection
+//                 if (reconnectTimer.current) {
+//                     clearTimeout(reconnectTimer.current);
+//                     reconnectTimer.current = null;
+//                 }
+//             }
+//         };
 
-        newWs.onmessage = (event) => {
-            if (isMounted.current) {
-                setLastMessage(event.data);
-                console.log('Received message:', event.data);
-                props.callback?.(event.data);
-            }
-        };
+//         newWs.onmessage = (event) => {
+//             if (isMounted.current) {
+//                 setLastMessage(event.data);
+//                 console.log('Received message:', event.data);
+//                 props.callback?.(event.data);
+//             }
+//         };
 
-        newWs.onclose = (event) => {
-            if (isMounted.current) {
-                setIsConnected(false);
-                console.warn(
-                    'WebSocket disconnected:',
-                    event.code,
-                    event.reason
-                );
-                setError(
-                    `Disconnected: ${event.reason || 'Unknown reason'}. Reconnecting in ${props.reconnectInterval / 1000}s...`
-                );
+//         newWs.onclose = (event) => {
+//             if (isMounted.current) {
+//                 setIsConnected(false);
+//                 console.warn(
+//                     'WebSocket disconnected:',
+//                     event.code,
+//                     event.reason
+//                 );
+//                 setError(
+//                     `Disconnected: ${event.reason || 'Unknown reason'}. Reconnecting in ${props.reconnectInterval / 1000}s...`
+//                 );
 
-                // Clear any existing timer to avoid duplicate reconnect attempts
-                if (reconnectTimer.current) {
-                    clearTimeout(reconnectTimer.current);
-                }
-                // Set a new timer to attempt reconnection after the specified interval
-                reconnectTimer.current = setTimeout(() => {
-                    connectWebSocket();
-                }, props.reconnectInterval);
-            }
-        };
+//                 // Clear any existing timer to avoid duplicate reconnect attempts
+//                 if (reconnectTimer.current) {
+//                     clearTimeout(reconnectTimer.current);
+//                 }
+//                 // Set a new timer to attempt reconnection after the specified interval
+//                 reconnectTimer.current = setTimeout(() => {
+//                     connectWebSocket();
+//                 }, props.reconnectInterval);
+//             }
+//         };
 
-        newWs.onerror = (event) => {
-            if (isMounted.current) {
-                console.error('WebSocket error:', event);
-                setError('WebSocket error occurred. See console for details.');
-                // Force close to trigger onclose, which then handles reconnection
-                newWs.close();
-            }
-        };
-    }, [props.websocketUrl, props.reconnectInterval]); // Dependencies for useCallback
+//         newWs.onerror = (event) => {
+//             if (isMounted.current) {
+//                 console.error('WebSocket error:', event);
+//                 setError('WebSocket error occurred. See console for details.');
+//                 // Force close to trigger onclose, which then handles reconnection
+//                 newWs.close();
+//             }
+//         };
+//     }, [props.websocketUrl, props.reconnectInterval]); // Dependencies for useCallback
 
-    useEffect(() => {
-        isMounted.current = true; // Mark component as mounted
+//     useEffect(() => {
+//         isMounted.current = true; // Mark component as mounted
 
-        // Initiate the WebSocket connection when the component mounts
-        connectWebSocket();
+//         // Initiate the WebSocket connection when the component mounts
+//         connectWebSocket();
 
-        // Cleanup function when the component unmounts
-        return () => {
-            isMounted.current = false; // Mark component as unmounted
-            console.log('Cleaning up WebSocket and timers...');
-            // Close the WebSocket connection if it's open or connecting
-            if (
-                ws.current &&
-                (ws.current.readyState === WebSocket.OPEN ||
-                    ws.current.readyState === WebSocket.CONNECTING)
-            ) {
-                ws.current.close();
-            }
-            ws.current = null; // Clear the WebSocket instance
-            // Clear any pending reconnection timer
-            if (reconnectTimer.current) {
-                clearTimeout(reconnectTimer.current);
-                reconnectTimer.current = null;
-            }
-        };
-    }, [connectWebSocket]); // Dependency array for useEffect
+//         // Cleanup function when the component unmounts
+//         return () => {
+//             isMounted.current = false; // Mark component as unmounted
+//             console.log('Cleaning up WebSocket and timers...');
+//             // Close the WebSocket connection if it's open or connecting
+//             if (
+//                 ws.current &&
+//                 (ws.current.readyState === WebSocket.OPEN ||
+//                     ws.current.readyState === WebSocket.CONNECTING)
+//             ) {
+//                 ws.current.close();
+//             }
+//             ws.current = null; // Clear the WebSocket instance
+//             // Clear any pending reconnection timer
+//             if (reconnectTimer.current) {
+//                 clearTimeout(reconnectTimer.current);
+//                 reconnectTimer.current = null;
+//             }
+//         };
+//     }, [connectWebSocket]); // Dependency array for useEffect
 
-    return <></>;
-}
+//     return <></>;
+// }

@@ -21,6 +21,8 @@ const timeoutServiceCall = (
                     clearTimeout(timeoutId); // Clear the timeout if the service responds
                     if ((result as any).success) {
                         resolve(result);
+                    } else if (result) {
+                        resolve(result);
                     } else {
                         reject(
                             `Service call failure: ${(result as any).message ?? 'Unkown error.'}`

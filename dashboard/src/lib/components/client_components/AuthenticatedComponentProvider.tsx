@@ -9,6 +9,7 @@ import { SimpleDataUpdater } from '@/lib/components/client_components/DataUpdate
 import { IOPointContextProvider } from '@/lib/components/client_components/IOPointContext';
 import { WebSocketProvider } from '@/lib/components/client_components/WebsocketSubscriptionProvider';
 import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
+import { RARosWebsocket } from './WebsocketClient';
 
 interface AuthenticatedComponentProviderProps {
     children: ReactNode;
@@ -50,7 +51,11 @@ export default function AuthenticatedComponentProvider({
     // If authenticated, render all providers and components that require authentication
     return (
         <WebSocketProvider>
-            <SimpleDataUpdater />{' '}
+            <SimpleDataUpdater />
+            <RARosWebsocket
+                websocketUrl={`/api/socket?target=ros`}
+                reconnectInterval={3000}
+            />
             {/* This likely depends on WebSocketProvider */}
             <IOPointContextProvider>
                 {children} {/* Your page content */}
