@@ -17,6 +17,7 @@ export const chartTraceMetadataSchema = z.array(
     z.object({
         table_name: z.string(),
         column: z.string(),
+        color: z.string(),
     })
 );
 
