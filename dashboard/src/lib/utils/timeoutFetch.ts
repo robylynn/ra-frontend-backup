@@ -88,6 +88,28 @@ export async function timeoutFetchWithErrors(
 }
 
 
+/**
+ * Retries a promise-based async function with exponential backoff.
+ * @param {Function} apiCall The async function to retry.
+ * @param {number} maxRetries The maximum number of retries.
+ * @param {number} initialDelay The initial delay in milliseconds.
+ * @returns {Promise<any>} The result of the successful API call.
+ */
+export const asyncExponentialBackoffRetry = async (apiCall, maxRetries = 3, initialDelay = 1000) => {
+    let lastError = null;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await apiCall();
+        } catch (err) {
+            lastError = err;
+            const delay = initialDelay * Math.pow(2, attempt);
+            console.warn(`Attempt ${attempt + 1} failed. Retrying in ${delay / 1000}s...`);
+            await new Promise(res => setTimeout(res, delay));
+        }
+    }
+    // If all attempts fail, re-throw the last error
+    throw lastError;
+};
 
 
 /**

@@ -133,7 +133,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         newWs.onmessage = (event) => {
             const data: WebSocketMessage = JSON.parse(event.data);
-            console.log('Provider received:', data);
+            // console.log('Provider received:', data);
+            logMessage(`Provider received: ${JSON.stringify(data)}`, 'debug')
             // New: Distribute message to all registered listeners that match the filter
             messageListeners.current.forEach(({ callback, filter }) => {
                 let matches = true;
@@ -213,12 +214,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                     historical_limit: historicalLimit,
                 };
                 wsRef.current.send(JSON.stringify(message));
-                // messageListeners.current.forEach(({ callback }) =>
-                //     callback({
-                //         type: 'status',
-                //         message: `Sent subscribe for ${tableName}`,
-                //     })
-                // );
+
                 setSubscribedTables((prev) => new Set(prev).add(tableName));
             } else {
                 console.warn('WebSocket not connected. Cannot subscribe.');
@@ -238,12 +234,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             if (wsRef.current && isConnected) {
                 const message = { type: 'unsubscribe', table_name: tableName };
                 wsRef.current.send(JSON.stringify(message));
-                // messageListeners.current.forEach(({ callback }) =>
-                //     callback({
-                //         type: 'status',
-                //         message: `Sent unsubscribe for ${tableName}`,
-                //     })
-                // );
+
                 setSubscribedTables((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(tableName);

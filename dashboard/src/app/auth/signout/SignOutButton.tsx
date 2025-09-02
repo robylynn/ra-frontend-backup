@@ -1,14 +1,8 @@
 'use client';
 
-// import { auth } from "@/auth"
 import { signOut } from 'next-auth/react';
-import { useFormStatus } from 'react-dom';
 
 export function SignOutButton() {
-    // const {data: session} = useSession
-    // const { status, signOut } = useSession();
-    const formStatus = useFormStatus();
-
     return (
         <button
             type="submit"

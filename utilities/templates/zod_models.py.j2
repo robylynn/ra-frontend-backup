@@ -16,6 +16,13 @@ export type {{ model.camel_case_name }} = z.infer<typeof {{ model.camel_case_nam
 export type {{ model.camel_case_name }}Batch = z.infer<typeof {{ model.camel_case_name }}BatchSchema>
 {% endfor %}
 
+export const DatabaseDataSchemas = z.union([
+{%- for model in schemas_to_generate %}
+{{ model.camel_case_name }}BatchSchema,
+{%- endfor %}
+]);
+export type DatabaseData = z.infer<typeof DatabaseDataSchemas>;
+
 // TypeScript interfaces derived from the Zod schemas
 // These interfaces provide type safety for your data.
 {% for model in schemas_to_generate %}

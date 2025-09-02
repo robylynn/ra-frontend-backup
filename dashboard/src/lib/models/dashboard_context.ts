@@ -877,7 +877,7 @@ export class ApplicationContext {
     // latest_document: DatabaseDocument | null = null;
     messages: DatabaseMessageArray | null = null;
     // configuration: UIConfiguration | null = null;
-    ui_configuration: UiConfig;
+    ui_configuration: UiConfig = null;
     // io_state: DatabaseIOStateDocumentArray | null = null;
     hardware_configuration: HardwareConfiguration | null = null;
     heartbeat: boolean = false;
@@ -910,7 +910,7 @@ export class ApplicationContext {
     constructor() {
         // this.latest_document = new DatabaseDocument();
         // this.configuration = new UIConfiguration();
-        this.ui_configuration = null;
+        // this.ui_configuration = null;
         this.messages = new DatabaseMessageArray();
         // this.io_state = new DatabaseIOStateDocumentArray();
         this.io_configuration_services = new IOConfigurationServices();

@@ -5,11 +5,11 @@ import { useSession } from 'next-auth/react'; // For checking authentication sta
 import { ReactNode } from 'react';
 
 // Import your authenticated-only providers/components
-import { SimpleDataUpdater } from '@/lib/components/client_components/DataUpdater';
+import { DataUpdater } from '@/lib/components/client_components/DataUpdater';
 import { IOPointContextProvider } from '@/lib/components/client_components/IOPointContext';
+import { RosWebsocket } from '@/lib/components/client_components/RosWebsocketClient';
 import { WebSocketProvider } from '@/lib/components/client_components/WebsocketSubscriptionProvider';
 import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
-import { RARosWebsocket } from './WebsocketClient';
 
 interface AuthenticatedComponentProviderProps {
     children: ReactNode;
@@ -51,8 +51,8 @@ export default function AuthenticatedComponentProvider({
     // If authenticated, render all providers and components that require authentication
     return (
         <WebSocketProvider>
-            <SimpleDataUpdater />
-            <RARosWebsocket
+            <DataUpdater />
+            <RosWebsocket
                 websocketUrl={`/api/socket?target=ros`}
                 reconnectInterval={3000}
             />

@@ -2,11 +2,12 @@
 tables:
   sensor_data:
     columns:
-      time: TIMESTAMPTZ NOT NULL
+      # time: TIMESTAMPTZ NOT NULL
+      stamp: TIMESTAMPTZ NOT NULL
       device_id: TEXT NOT NULL
       temperature: DOUBLE PRECISION
       humidity: DOUBLE PRECISION
-    hypertable_column: time
+    hypertable_column: stamp
 
   logs:
     columns:

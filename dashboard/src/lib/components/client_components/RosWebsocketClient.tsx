@@ -23,6 +23,7 @@ import {
     IRosTypeStdMsgsString,
 } from '@/lib/models/ros_types';
 import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
+import { logMessage } from '@/lib/utils/utilities';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import ROSLIB from 'roslib';
 
@@ -198,14 +199,14 @@ function initializeAxisServices(
     return axis_command_services;
 }
 
-export const RARosWebsocket: React.FC<WebsocketProps> = ({
+export const RosWebsocket: React.FC<WebsocketProps> = ({
     websocketUrl,
     reconnectInterval = 3000,
     //   children,
 }) => {
     const [isConnected, setIsConnected] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-    const [debugLog, setDebugLog] = useState<string[]>([]); // To log connection events
+    // const [error, setError] = useState<string | null>(null);
+    // const [debugLog, setDebugLog] = useState<string[]>([]); // To log connection events
     const { dashboardContext, setDashboardContext } =
         useContext(DashboardContext);
 
@@ -214,17 +215,17 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
     const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
     // const subscriptions = useRef<Subscriptions | null>(null);
 
-    // --- Utility for logging events ---
-    const logDebugMessage = useCallback((message: string) => {
-        setDebugLog((prevLogs) => {
-            const newLogs = [
-                ...prevLogs,
-                `[${new Date().toLocaleTimeString()}] ${message}`,
-            ];
-            return newLogs.slice(-10); // Keep last 10 log entries
-        });
-        console.log(`Rosbridge: ${message}`);
-    }, []);
+    // // --- Utility for logging events ---
+    // const logDebugMessage = useCallback((message: string) => {
+    //     setDebugLog((prevLogs) => {
+    //         const newLogs = [
+    //             ...prevLogs,
+    //             `[${new Date().toLocaleTimeString()}] ${message}`,
+    //         ];
+    //         return newLogs.slice(-10); // Keep last 10 log entries
+    //     });
+    //     console.log(`Rosbridge: ${message}`);
+    // }, []);
 
     const setRosContext = (
         config_services: IOConfigurationServices,
@@ -242,14 +243,19 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 // ra_ros_websocket: ros.current,
                 ros_state: {
                     ros: ros.current,
-                    connected: connected ?? isConnected
-                }
+                    connected: connected ?? isConnected,
+                },
             },
             type: 'ros/set',
         });
     };
 
     const clearRosContext = () => {
+        if (ros.current) {
+            ros.current.removeAllListeners(); // Clean up listeners associated with this instance
+            ros.current = null; // Allow a new ROSLIB.Ros instance to be created on next attempt
+        }
+
         setDashboardContext({
             payload: {
                 ros_config_services: null,
@@ -409,14 +415,18 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
         // It's either connected, in the process of connecting, or handling a recent disconnection.
         // The reconnection timer will take care of creating a new instance if needed.
         if (ros.current) {
-            logDebugMessage(
-                'ROSLIB instance already exists; connection state managed internally.'
+            logMessage(
+                'ROSLIB instance already exists; connection state managed internally.',
+                'debug'
             );
             return;
         }
 
-        setError(null); // Clear previous errors
-        logDebugMessage(`Attempting to connect to Rosbridge: ${websocketUrl}`);
+        // setError(null); // Clear previous errors
+        logMessage(
+            `Attempting to connect to Rosbridge: ${websocketUrl}`,
+            'debug'
+        );
 
         // Create a new ROSLIB.Ros instance
         const newRos = new ROSLIB.Ros({
@@ -434,46 +444,55 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                     clearTimeout(reconnectTimer.current);
                     reconnectTimer.current = null;
                 }
-                // const a = newRos.getTopics(
-                //     (nodes) => {
-                //         let b = 5;
-                //     },
-                //     (error) => {
-                //         let c = 5;
-                //     }
-                // );
-                // const b = newRos.waitFor('service', 1)
-                
+
                 // Check available nodes to see if we are connected
                 const nodes_service = new ROSLIB.Service({
                     ros: newRos,
                     name: '/rosapi/nodes',
                     serviceType: 'rosapi_msgs/srv/Nodes',
                 });
-                timeoutServiceCall(nodes_service, {}, reconnectInterval / 2).then(
-                    (nodes) => {
-                        logDebugMessage(`Found ROS nodes: ${JSON.stringify(nodes)}`);
-                    },
-                    (error) => {
-                        logDebugMessage(
-                            `Failed to find any ROS nodes. Is the ROS backend running? Error: ${error}.`
-                        );
-                        return;
-                    }
-                );
+                timeoutServiceCall(nodes_service, {}, reconnectInterval / 2)
+                    .then(
+                        (nodes) => {
+                            logMessage(
+                                `Found ROS nodes: ${JSON.stringify(nodes)}`,
+                                'info'
+                            );
+                            return true;
+                        },
+                        (error) => {
+                            logMessage(
+                                `Failed to find any ROS nodes. Is the ROS backend running? Error: ${error}`,
+                                'error'
+                            );
+                            return false;
+                        }
+                    )
+                    .then((res) => {
+                        if (res) {
+                            setIsConnected(true);
+                            logMessage('Connected to Rosbridge successfully.');
 
-                setIsConnected(true);
-                logDebugMessage('Connected to Rosbridge successfully.');
+                            configureSubscriptions();
 
-                configureSubscriptions();
+                            setRosContext(
+                                initializeIOConfigurationServices(ros.current),
+                                initializeIOCommandServices(ros.current),
+                                initializeApplicationServices(ros.current),
+                                initializeAxisServices(ros.current),
+                                true
+                            );
+                        } else {
+                            clearRosContext();
 
-                setRosContext(
-                    initializeIOConfigurationServices(ros.current),
-                    initializeIOCommandServices(ros.current),
-                    initializeApplicationServices(ros.current),
-                    initializeAxisServices(ros.current),
-                    true
-                );
+                            if (reconnectTimer.current) {
+                                clearTimeout(reconnectTimer.current);
+                            }
+                            reconnectTimer.current = setTimeout(() => {
+                                connectRosbridge(); // Reattempt connection by calling this function again
+                            }, reconnectInterval);
+                        }
+                    });
             }
         });
 
@@ -483,8 +502,14 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 console.error('ROSLIB.Ros error:', rosError);
                 // ROSLIB.js errors often lead to a 'close' event, so we rely on 'close' for reconnection.
                 // Just log the error here.
-                setError('ROSLIB connection error. Check console for details.');
-                logDebugMessage(`ROSLIB error: ${JSON.stringify(rosError)}`);
+                // setError('ROSLIB connection error. Check console for details.');
+                logMessage(
+                    `ROSLIB error: ${JSON.stringify(rosError)}`,
+                    'error'
+                );
+
+                setIsConnected(false);
+                clearRosContext();
             }
         });
 
@@ -493,10 +518,10 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
             if (isMounted.current) {
                 setIsConnected(false);
                 clearRosContext();
-                logDebugMessage(
+                logMessage(
                     `Disconnected from Rosbridge. Reconnecting in ${reconnectInterval / 1000}s...`
                 );
-                setError(`Disconnected from ROSbridge.`);
+                // setError(`Disconnected from ROSbridge.`);
 
                 // Clear the current ROSLIB instance so a new one can be created for reconnection
                 if (ros.current) {
@@ -513,7 +538,7 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 }, reconnectInterval);
             }
         });
-    }, [websocketUrl, reconnectInterval, logDebugMessage]);
+    }, [websocketUrl, reconnectInterval]);
 
     // --- Effect for mounting and unmounting ---
     useEffect(() => {
@@ -523,8 +548,9 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
         // Cleanup function when component unmounts
         return () => {
             isMounted.current = false; // Mark as unmounted
-            logDebugMessage(
-                'Component unmounted. Cleaning up ROSLIB.Ros connection.'
+            logMessage(
+                'Component unmounted. Cleaning up ROSLIB.Ros connection.',
+                'debug'
             );
             if (ros.current) {
                 ros.current.close(); // Close the ROSLIB.Ros connection
@@ -537,13 +563,16 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 reconnectTimer.current = null;
             }
         };
-    }, [connectRosbridge, logDebugMessage]);
+    }, [connectRosbridge]);
 
     // --- Functions to manage Subscriptions and Service Clients ---
     const addSubscription = useCallback(
         (sub: RosSubscription) => {
             if (ros.current && ros.current.isConnected) {
-                logDebugMessage(`Adding subscription to topic: ${sub.topic}`);
+                logMessage(
+                    `Adding subscription to topic: ${sub.topic}`,
+                    'debug'
+                );
                 const listener = new ROSLIB.Topic({
                     ros: ros.current,
                     name: sub.topic,
@@ -552,25 +581,29 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 listener.subscribe(sub.callback);
                 return listener; // Return the listener to allow for unsubscribing
             } else {
-                logDebugMessage(
-                    `Cannot add subscription for ${sub.topic}: Not connected.`
+                logMessage(
+                    `Cannot add subscription for ${sub.topic}: Not connected.`,
+                    'warning'
                 );
                 return null;
             }
         },
-        [logDebugMessage]
+        // [logDebugMessage]
+        []
     );
 
     const removeSubscription = useCallback(
         (listener: ROSLIB.Topic) => {
             if (listener) {
-                logDebugMessage(
-                    `Removing subscription from topic: ${listener.name}`
+                logMessage(
+                    `Removing subscription from topic: ${listener.name}`,
+                    'debug'
                 );
                 listener.unsubscribe();
             }
         },
-        [logDebugMessage]
+        // [logDebugMessage]
+        []
     );
 
     const callServiceClient = useCallback(
@@ -581,7 +614,7 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
             onError: (errorMsg: string) => void
         ) => {
             if (ros.current && ros.current.isConnected) {
-                logDebugMessage(`Calling service: ${client.name}`);
+                logMessage(`Calling service: ${client.name}`, 'debug');
                 const serviceClient = new ROSLIB.Service({
                     ros: ros.current,
                     name: client.name,
@@ -590,13 +623,15 @@ export const RARosWebsocket: React.FC<WebsocketProps> = ({
                 const rosRequest = new ROSLIB.ServiceRequest(request);
                 serviceClient.callService(rosRequest, onResponse, onError);
             } else {
-                logDebugMessage(
-                    `Cannot call service ${client.name}: Not connected.`
+                logMessage(
+                    `Cannot call service ${client.name}: Not connected.`,
+                    'error'
                 );
                 onError('Not connected to Rosbridge.');
             }
         },
-        [logDebugMessage]
+        // [logDebugMessage]
+        []
     );
 
     return <></>;
