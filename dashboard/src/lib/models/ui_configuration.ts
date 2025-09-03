@@ -24,16 +24,36 @@ export const chartTraceMetadataSchema = z.array(
 export type chartTraceMetadata = z.infer<typeof chartTraceMetadataSchema>;
 
 // Schema for the 'chart' component's metadata
-export const chartMetadataSchema = z.object({
-    // dataset: z.array(z.number()),
-    // chartType: z.enum(['bar', 'line', 'pie']),
-    label: z.string().min(1, 'Chart label cannot be empty.'),
-    // column: z.string(),
-    max_length: z.number(),
-    traces: z.array(z.object({
-        table_name: z.string(), column: z.string()
-    }))
+// export const chartMetadataSchema = z.object({
+//     // dataset: z.array(z.number()),
+//     // chartType: z.enum(['bar', 'line', 'pie']),
+//     label: z.string().min(1, 'Chart label cannot be empty.'),
+//     // column: z.string(),
+//     max_length: z.number(),
+//     traces: z.array(z.object({
+//         table_name: z.string(), column: z.string()
+//     }))
+// });
+
+// export interface PlotConfiguration {
+//     id: string;
+//     name: string;
+//     type: 'line' | 'bar' | 'scatter';
+//     traces: chartTraceMetadata;
+//     max_length?: number;
+// }
+
+export const PlotConfigurationSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.literal(['line', 'bar', 'scatter']),
+    traces: chartTraceMetadataSchema,
+    max_length: z.number().optional(),
 });
+
+export const PlotConfigurationsSchema = z.array(PlotConfigurationSchema);
+
+export type PlotConfiguration = z.infer<typeof PlotConfigurationSchema>;
 
 // Schema for the 'image' component's metadata
 export const imageMetadataSchema = z.object({
@@ -64,7 +84,7 @@ export const uiComponentSchema = z.discriminatedUnion('type', [
     }),
     uiComponentSchemaBase.extend({
         type: z.literal('charts'),
-        metadata: chartMetadataSchema,
+        metadata: PlotConfigurationSchema,
     }),
     uiComponentSchemaBase.extend({
         type: z.literal('image'),
@@ -76,27 +96,6 @@ export const uiComponentSchema = z.discriminatedUnion('type', [
     }),
 ]);
 
-// Step 1: Define the Zod schema for the UI configuration.
-// This schema strictly defines the shape, types, and constraints of our data.
-// export const uiConfigSchema = z.object({
-//     theme: z.enum(['light', 'dark', 'system']).default('system'),
-//     layout: z.object({
-//         sidebarEnabled: z.boolean().default(true),
-//         headerHeight: z.number().min(50).max(200).default(80),
-//     }),
-//     components: z
-//         .array(
-//             z.object({
-//                 id: z.uuid(),
-//                 type: z.string(),
-//                 label: z.string().min(1, 'Component label cannot be empty.'),
-//                 metadata: z.record(z.string(), z.any()).optional(), // A record for flexible key-value pairs
-//             })
-//         )
-//         .min(1, 'At least one component is required.'),
-//     lastUpdated: z.string().datetime(),
-// });
-
 export const uiConfigSchema = z.object({
     theme: z.enum(['light', 'dark', 'system']).default('system'),
     layout: z.object({
@@ -106,6 +105,7 @@ export const uiConfigSchema = z.object({
     components: z
         .array(uiComponentSchema)
         .min(1, 'At least one component is required.'),
+    plots: PlotConfigurationsSchema,
     lastUpdated: z.string().datetime(),
 });
 
@@ -143,6 +143,7 @@ export const DEFAULT_UI_CONFIG: UiConfig = {
             },
         },
     ],
+    plots: [],
     lastUpdated: new Date().toISOString(), // Current timestamp in ISO format
 };
 

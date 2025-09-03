@@ -8,7 +8,7 @@ import {
 } from '@/lib/models/ros_types';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import {z} from 'zod';
+import { z } from 'zod';
 
 export interface BackendAPIResponseInterface {
     error: boolean;
@@ -52,34 +52,34 @@ export class DataSource implements DataSourceInterface {
     }
 }
 
-export interface PlotConfigurationInterface {
-    enabled: boolean;
-    plot_data_name?: string;
-    data_sources: Array<number>;
-    length: number;
-    update_rate: number;
-    plot_type?: string;
-}
+// export interface PlotConfigurationInterface {
+//     enabled: boolean;
+//     plot_data_name?: string;
+//     data_sources: Array<number>;
+//     length: number;
+//     update_rate: number;
+//     plot_type?: string;
+// }
 
-export class PlotConfiguration implements PlotConfigurationInterface {
-    enabled: boolean;
-    plot_data_name?: string;
-    data_sources: Array<number> = [];
-    length: number;
-    update_rate: number;
-    plot_type?: string;
+// export class PlotConfiguration implements PlotConfigurationInterface {
+//     enabled: boolean;
+//     plot_data_name?: string;
+//     data_sources: Array<number> = [];
+//     length: number;
+//     update_rate: number;
+//     plot_type?: string;
 
-    constructor(input?: PlotConfigurationInterface) {
-        this.enabled = input.enabled;
-        this.plot_data_name = input.plot_data_name;
-        this.length = input?.length;
-        this.update_rate = input.update_rate;
-        input.data_sources.forEach((d) => {
-            this.data_sources.push(d);
-        });
-        this.plot_type = input.plot_type;
-    }
-}
+//     constructor(input?: PlotConfigurationInterface) {
+//         this.enabled = input.enabled;
+//         this.plot_data_name = input.plot_data_name;
+//         this.length = input?.length;
+//         this.update_rate = input.update_rate;
+//         input.data_sources.forEach((d) => {
+//             this.data_sources.push(d);
+//         });
+//         this.plot_type = input.plot_type;
+//     }
+// }
 
 // export interface UIConfigurationInterface {
 //     client_id: number | undefined;
@@ -929,13 +929,13 @@ export class HardwareConfiguration implements HardwareConfigurationInterface {
 
 // BEGIN NEW
 
-const basicApiResponseSchema = z.object({
+export const basicApiResponseSchema = z.object({
     success: z.boolean(),
     message: z.string(),
 });
 
-export const createApiResponseSchema = <T>(schema: z.ZodSchema<T>) =>
-    z.object({
+export const createApiResponseSchema = <T>(schema?: z.ZodSchema<T>) => {
+    const baseSchema = z.object({
         authenticated: z.boolean(),
         // backend_response: z.object({
         //     success: z.boolean(),
@@ -943,9 +943,28 @@ export const createApiResponseSchema = <T>(schema: z.ZodSchema<T>) =>
         //     // The 'data' field's schema is now dynamic.
         //     data: schema.nullable(),
         // }),
-        backend_response: basicApiResponseSchema.extend({
-            data: schema.nullable(),
-        }),
+        // backend_response: basicApiResponseSchema.extend({
+        //     data: schema.nullable(),
+        // }),
         proxy_error: z.boolean(),
         proxy_error_string: z.string(),
     });
+
+    if (schema)
+        return baseSchema.extend({
+            backend_response: basicApiResponseSchema.extend({
+                data: schema.nullable(),
+            }),
+        });
+    else
+        return baseSchema.extend({
+            backend_response: basicApiResponseSchema.extend({
+                data: z.any().optional(),
+            }),
+        });
+};
+
+export const availableTablesSchema = z.array(
+    z.object({ table_name: z.string(), columns: z.array(z.string()) })
+);
+export type availableTables = z.infer<typeof availableTablesSchema>;

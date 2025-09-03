@@ -9,12 +9,19 @@ import { useContext, useEffect } from 'react'; // useState is still used for int
 import { useAlert } from '@/lib/components/client_components/AlertContext'; // NEW: Import useAlert hook
 import { AlertType } from '@/lib/components/client_components/AlertPopup';
 import {
+    availableTables,
+    availableTablesSchema,
+} from '@/lib/models/api_models';
+import {
     DEFAULT_UI_CONFIG,
     UiConfig,
     UiConfigApiResponse,
     uiConfigApiResponseSchema,
 } from '@/lib/models/ui_configuration';
-import { fetchFromBackendApi, asyncExponentialBackoffRetry } from '@/lib/utils/timeoutFetch';
+import {
+    asyncExponentialBackoffRetry,
+    fetchFromBackendApi,
+} from '@/lib/utils/timeoutFetch';
 import { logMessage } from '@/lib/utils/utilities';
 
 export const DataUpdater = () => {
@@ -29,19 +36,24 @@ export const DataUpdater = () => {
             let type: AlertType = 'warning'; // Default alert type
 
             try {
-                const apiResponse: UiConfigApiResponse = await asyncExponentialBackoffRetry(
-                    () =>
+                const apiResponse: UiConfigApiResponse =
+                    await asyncExponentialBackoffRetry(() =>
                         fetchFromBackendApi<UiConfigApiResponse>(
                             '/api/backend/ui/config/abc',
+                            'GET',
+                            null,
                             uiConfigApiResponseSchema
                         )
-                );
+                    );
 
                 if (apiResponse && apiResponse.config_data) {
                     configToSet = apiResponse.config_data;
                     message = `UI configuration successfully loaded. Client ID: ${apiResponse.client_id}, Last Updated: ${new Date(apiResponse.last_updated).toLocaleString()}.`;
                     type = 'success';
-                    logMessage(`Got UI configuration: ${JSON.stringify(configToSet)}`, 'info')
+                    logMessage(
+                        `Got UI configuration: ${JSON.stringify(configToSet)}`,
+                        'info'
+                    );
                 } else {
                     message =
                         'No UI configuration detected in the backend. Default configuration has been loaded.';
@@ -61,83 +73,52 @@ export const DataUpdater = () => {
                     showAlert(message, type, undefined, 'Configuration Alert:');
                 }
             }
-            
-            // try {
-            //     const apiResponse: UiConfigApiResponse =
-            //         await fetchFromBackendApi<UiConfigApiResponse>(
-            //             '/api/backend/ui/config/abc',
-            //             uiConfigApiResponseSchema // Pass the schema for the *entire API response*
-            //         );
-
-            //     // If we reach here, apiResponse is a valid UiConfigApiResponse object.
-            //     // Now, check if the actual config_data is present and valid within this response.
-            //     if (apiResponse && apiResponse.config_data) {
-            //         configToSet = apiResponse.config_data;
-            //         message = `UI configuration successfully loaded. Client ID: ${apiResponse.client_id}, Last Updated: ${new Date(apiResponse.last_updated).toLocaleString()}.`;
-            //         type = 'success'; // Set alert type to success
-            //         console.log(
-            //             `Got UI configuration: ${JSON.stringify(configToSet)}`
-            //         );
-            //     }
-            //     // Scenario 2: API call successful, but no config_data returned (e.g., config not found in DB)
-            //     // This means apiResponse was valid, but its config_data field was empty or null.
-            //     else if (apiResponse && !apiResponse.config_data) {
-            //         message =
-            //             'No UI configuration detected in the backend. Default configuration has been loaded.';
-            //         type = 'warning'; // Set alert type to warning
-            //         console.warn(message);
-            //         // configToSet is already DEFAULT_UI_CONFIG
-            //     }
-            // } catch (err: any) {
-            //     if (
-            //         err.message &&
-            //         err.message.includes('API returned a failure:')
-            //     ) {
-            //         message = `No UI configuration detected in the backend. Default configuration has been loaded. Error: ${err.message}`;
-            //         type = 'warning'; // Still a warning if no config, even if API reported failure
-            //         console.warn(message);
-            //     } else {
-            //         message = `Failed to fetch UI configuration from the backend. Default configuration has been loaded. Error: ${err.message || String(err)}.`;
-            //         type = 'error'; // Set alert type to error for general failures
-            //         console.error(`Error loading UI configuration: ${err}`);
-            //     }
-            //     // configToSet remains DEFAULT_UI_CONFIG in all catch scenarios.
-            // } finally {
-            //     // Always set a configuration (either fetched or default)
-            //     setDashboardContext({
-            //         payload: { configuration: configToSet },
-            //         type: 'ui_config/set',
-            //     });
-            //     if (message) {
-            //         showAlert(message, type, undefined, 'Configuration Alert:'); // NEW: Call showAlert from context
-            //     }
-            // }
         };
 
-        // const fetchFromDatabase = async () => {
-        //     // type a = z.infer<typeof z.array(digitalOutData)>
-        //     try {
-        //         const apiResponse = await fetchFromBackendApi<
-        //             digitalOutDataBatch
-        //         >(
-        //             '/api/backend/database/get_data/digital_out_data?limit=10',
-        //             digitalOutDataBatchSchema // Pass the schema for the *entire API response*
-        //         );
-        //         let b = 5;
-        //     } catch (err: any) {
-        //         if (
-        //             err.message &&
-        //             err.message.includes('API returned a failure:')
-        //         ) {
-        //             let a = 5;
-        //         }
-        //         // configToSet remains DEFAULT_UI_CONFIG in all catch scenarios.
-        //     }
-        // }
+        const fetchTables = async () => {
+            let message: string | null = null; // Message for potential alerts
+            let type: AlertType = 'warning'; // Default alert type
+
+            try {
+                const apiResponse: availableTables =
+                    await asyncExponentialBackoffRetry(() =>
+                        fetchFromBackendApi<availableTables>(
+                            '/api/backend/status/tables',
+                            'GET',
+                            null,
+                            availableTablesSchema
+                        )
+                    );
+
+                if (apiResponse) {
+                    message = `Got available tables: ${apiResponse.map((table_def) => `${table_def.table_name}`).join(', ')}`;
+                    type = 'success';
+                    logMessage(message, 'info');
+
+                    setDashboardContext({
+                        payload: { tables: apiResponse },
+                        type: 'database/tables/set',
+                    });
+                } else {
+                    message = `Backend has no available database tables`;
+                    type = 'warning';
+                    logMessage(message, type);
+                }
+            } catch (err: any) {
+                message = `Failed to fetch available database tables from the backend after multiple retries. Error: ${err.message || String(err)}.`;
+                type = 'error';
+                logMessage(message, type);
+                // console.error(`Final error loading UI configuration: ${err}`);
+            } finally {
+                if (message) {
+                    showAlert(message, type, undefined, 'Database Alert:');
+                }
+            }
+        };
 
         // Call the async function when the component mounts
         fetchConfig();
-        
+        fetchTables();
     }, [setDashboardContext]);
 
     return <></>; // This component no longer renders the alert UI directly

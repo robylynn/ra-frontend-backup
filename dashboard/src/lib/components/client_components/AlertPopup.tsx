@@ -58,7 +58,7 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
         >
             <div>
                 <strong className="font-bold">{alertHeader}</strong>{' '}
-                <span className="block sm:inline ml-2">{message}</span>
+                <span className="block sm:inline ml-2 text-wrap wrap-break-word">{message}</span>
             </div>
             <button
                 onClick={onDismiss} // onDismiss now comes from the provider

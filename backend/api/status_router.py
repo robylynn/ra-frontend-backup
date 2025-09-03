@@ -46,14 +46,8 @@ async def get_available_tables():
     """
     logger.info("Endpoint /tables called to retrieve available table names.")
     if LOADED_RAW_SCHEMA and LOADED_RAW_SCHEMA.tables:
-        all_tables = list(LOADED_RAW_SCHEMA.tables.keys())
-        # Ensure 'frontend_configs' is always an option if it's not a hypertable with time column
-        if "frontend_configs" not in all_tables:
-            all_tables.append("frontend_configs")
-        if "users" not in all_tables:  # NEW: Also ensure 'users' table is an option
-            all_tables.append("users")
         return ApiResponse(
-            success=True, message="Available tables retrieved.", data=all_tables
+            success=True, message="Available tables retrieved.", data=[{"table_name": table_name, "columns": list(LOADED_RAW_SCHEMA.tables[table_name].columns.keys())} for table_name in LOADED_RAW_SCHEMA.tables.keys()]
         )
     else:
         logger.warning("No schema loaded or no tables defined in schema.yml.")

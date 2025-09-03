@@ -7,6 +7,7 @@ import ROSLIB from 'roslib';
 import { DatabaseMessageArray } from '@/lib/models/database_models';
 
 import {
+    availableTables,
     AxisServiceType,
     HardwareConfiguration,
     IOPointConfiguration,
@@ -42,7 +43,7 @@ import {
 } from '@/lib/models/ros_types';
 
 import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
-import { UiConfig } from './ui_configuration';
+import { PlotConfiguration, UiConfig } from './ui_configuration';
 
 type IOServicesMap = Record<IOPointType, ROSLIB.Service | null>;
 type IOConfigurationRequest =
@@ -889,6 +890,8 @@ export class ApplicationContext {
         ros: null,
         connected: false
     };
+    available_database_tables: availableTables | null = null;
+    // plot_configuration: PlotConfiguration[] = [];
     io_configuration_services: IOConfigurationServices;
     io_command_services: IOCommandServices;
     application_services: ApplicationServices;

@@ -37,6 +37,7 @@ tables:
     columns:
       client_id: TEXT NOT NULL UNIQUE
       config_data: JSONB
+      # chart_configuration: JSONB
       last_updated: TIMESTAMPTZ NOT NULL
     hypertable_column: null # Not used for hypertable creation for this table
 

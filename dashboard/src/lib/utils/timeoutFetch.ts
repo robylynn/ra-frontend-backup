@@ -1,4 +1,4 @@
-import { NextAPIResponseInterface } from '@/lib/models/api_models';
+import { basicApiResponseSchema, NextAPIResponseInterface } from '@/lib/models/api_models';
 import { z, ZodError } from 'zod';
 import { createApiResponseSchema } from '@/lib/models/api_models';
 import { FetchError } from '@/lib/models/errors';
@@ -121,16 +121,32 @@ export const asyncExponentialBackoffRetry = async (apiCall, maxRetries = 3, init
  */
 export async function fetchFromBackendApi<T = unknown>(
     url: string,
+    method: 'GET' | 'POST' = 'GET',
+    body: unknown = null,
     schema: z.ZodSchema<T> | null = null,
     timeoutMs: number = 5000
 ): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    const options: RequestInit = {
+        method,
+        signal: controller.signal,
+    };
+
+    // Conditionally add the body and Content-Type header for POST requests
+    if (method === 'POST') {
+        options.headers = {
+            'Content-Type': 'application/json',
+        };
+        options.body = JSON.stringify(body);
+    }
+
     try {
-        const response = await fetch(url, {
-            signal: controller.signal,
-        });
+        // const response = await fetch(url, {
+        //     signal: controller.signal,
+        // });
+        const response = await fetch(url, options);
 
         // Clear the timeout if the request completes before the timer.
         clearTimeout(timeoutId);
@@ -159,22 +175,18 @@ export async function fetchFromBackendApi<T = unknown>(
             return validatedResponse.backend_response.data;
         } else {
             // Case 2: No schema provided, so perform minimal validation.
-            const apiResponseSchema = z.object({
-                success: z.boolean(),
-                message: z.string(),
-                // We use z.any() since we don't know the structure.
-                data: z.any().optional(),
-            });
-            const validatedResponse = apiResponseSchema.parse(rawData);
+            const schema = createApiResponseSchema();
+            const validatedResponse =
+                createApiResponseSchema().parse(rawData);
 
-            if (!validatedResponse.success) {
+            if (!validatedResponse.backend_response.success) {
                 throw new FetchError(
-                    `API returned a failure: ${validatedResponse.message}`
+                    `API returned a failure: ${validatedResponse.backend_response.message}`
                 );
             }
 
             // Return the data as-is without further validation.
-            return validatedResponse.data as T;
+            return validatedResponse.backend_response.data as T;
         }
     } catch (error) {
         if (error instanceof ZodError) {

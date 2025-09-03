@@ -6,9 +6,9 @@
 import { createContext, Dispatch, ReactNode, useReducer } from 'react';
 
 import {
+    availableTables,
     HardwareConfiguration,
     IOPointType,
-    PlotConfiguration,
     // UIConfiguration,
 } from '@/lib/models/api_models';
 import {
@@ -30,8 +30,7 @@ import {
     IRosTypeR2CInterfacesTorques,
 } from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
-import ROSLIB from 'roslib';
-import { UiConfig } from '@/lib/models/ui_configuration';
+import { UiConfig, PlotConfiguration } from '@/lib/models/ui_configuration';
 
 interface ModifyPlotInterface {
     plot_index: number;
@@ -61,6 +60,10 @@ export default function DashboardContextProvider(props: {
     const setUIConfigurationAction = createAction<{
         configuration: UiConfig;
     }>('ui_config/set');
+    const setAvailableDatabaseTablesAction = createAction<{
+        tables: availableTables;
+    }>('database/tables/set');
+    const setPlotConfigurationAction = createAction<PlotConfiguration[]>('ui_config/set_plot_config');
     const incrementHeartbeatAction = createAction<{ heartbeat_valid: boolean }>(
         'heartbeat/rx'
     );
@@ -131,33 +134,33 @@ export default function DashboardContextProvider(props: {
         state_values: Record<string, number | string>;
     }>('app/application_states');
 
-    function updatePlot(
-        plot_configurations: PlotConfiguration[],
-        payload: ModifyPlotInterface
-    ): PlotConfiguration[] {
-        if (payload.data_sources)
-            plot_configurations[payload.plot_index].data_sources =
-                payload.data_sources;
+    // function updatePlot(
+    //     plot_configurations: PlotConfiguration[],
+    //     payload: ModifyPlotInterface
+    // ): PlotConfiguration[] {
+    //     if (payload.data_sources)
+    //         plot_configurations[payload.plot_index].data_sources =
+    //             payload.data_sources;
 
-        if (payload.update_rate)
-            plot_configurations[payload.plot_index].update_rate =
-                payload.update_rate;
+    //     if (payload.update_rate)
+    //         plot_configurations[payload.plot_index].update_rate =
+    //             payload.update_rate;
 
-        if (payload.length)
-            plot_configurations[payload.plot_index].length = payload.length;
+    //     if (payload.length)
+    //         plot_configurations[payload.plot_index].length = payload.length;
 
-        return plot_configurations;
-    }
+    //     return plot_configurations;
+    // }
 
-    function deletePlot(
-        plot_configurations: PlotConfiguration[],
-        payload: ModifyPlotInterface
-    ): PlotConfiguration[] {
-        delete plot_configurations[payload.plot_index];
-        plot_configurations = plot_configurations.filter((plot) => plot);
+    // function deletePlot(
+    //     plot_configurations: PlotConfiguration[],
+    //     payload: ModifyPlotInterface
+    // ): PlotConfiguration[] {
+    //     delete plot_configurations[payload.plot_index];
+    //     plot_configurations = plot_configurations.filter((plot) => plot);
 
-        return plot_configurations;
-    }
+    //     return plot_configurations;
+    // }
 
     const setDashboardContextReducer = createReducer(
         initialDashboardContext,
@@ -166,6 +169,12 @@ export default function DashboardContextProvider(props: {
                 .addCase(setUIConfigurationAction, (state, action) => {
                     state.ui_configuration = action.payload.configuration;
                     return state;
+                })
+                .addCase(setAvailableDatabaseTablesAction, (state, action) => {
+                    state.available_database_tables = action.payload.tables
+                })
+                .addCase(setPlotConfigurationAction, (state, action) => {
+                    state.ui_configuration.plots = action.payload
                 })
                 .addCase(incrementHeartbeatAction, (state, action) => {
                     state.heartbeat = action.payload.heartbeat_valid;
