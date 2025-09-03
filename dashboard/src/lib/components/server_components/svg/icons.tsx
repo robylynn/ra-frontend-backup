@@ -38,6 +38,20 @@ export const TrashIcon = ({ size = 12 }) => (
 );
 
 export const SpinnerIcon = () => (
+    // <svg
+    //     xmlns="http://www.w3.org/2000/svg"
+    //     width="24"
+    //     height="24"
+    //     viewBox="0 0 24 24"
+    //     fill="none"
+    //     stroke="currentColor"
+    //     strokeWidth="2"
+    //     strokeLinecap="round"
+    //     strokeLinejoin="round"
+    //     className="lucide lucide-loader-2"
+    // >
+    //     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    // </svg>
     <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
@@ -48,7 +62,7 @@ export const SpinnerIcon = () => (
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="lucide lucide-loader-2"
+        className="lucide lucide-loader-2 animate-spin"
     >
         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
@@ -235,5 +249,80 @@ export const CloseIcon = () => (
             strokeWidth={2}
             d="M6 18L18 6M6 6l12 12"
         />
+    </svg>
+);
+
+export const PlusIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucide-plus"
+    >
+        <line x1="12" x2="12" y1="5" y2="19" />
+        <line x1="5" x2="19" y1="12" y2="12" />
+    </svg>
+);
+
+export const PlusSquareIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucide-plus-square"
+    >
+        <rect width="18" height="18" x="3" y="3" rx="2" />
+        <path d="M12 8v8" />
+        <path d="M8 12h8" />
+    </svg>
+);
+
+export const UploadIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucude-upload"
+    >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" x2="12" y1="3" y2="15" />
+    </svg>
+);
+
+export const DownloadIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucide-download"
+    >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 8 12 13 17 8"></polyline>
+        <line x1="12" x2="12" y1="13" y2="3"></line>
     </svg>
 );

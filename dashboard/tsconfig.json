@@ -20,6 +20,8 @@
         "name": "next"
       }
     ],
+    "rootDir": "./",
+    "baseUrl": "./", // Set the base URL for module resolution to the project root.
     "paths": {
       "@/*": ["./src/*"]
       // "@/*": ["./src/**"]

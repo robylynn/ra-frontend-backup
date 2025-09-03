@@ -3,6 +3,7 @@
 
 import Image from 'next/image';
 import React from 'react';
+import { CloseIcon } from '../server_components/svg/icons';
 
 // Define alert types for styling
 export type AlertType = 'success' | 'warning' | 'error';
@@ -65,13 +66,14 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
                 className="ml-4 text-current hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-current rounded-full p-1 transition-opacity duration-200"
                 aria-label="Dismiss alert"
             >
-                <Image
+                <CloseIcon/>
+                {/* <Image
                     src="/icons/close.svg"
                     alt="Close"
                     width={16}
                     height={16}
                     className="fill-current"
-                />
+                /> */}
             </button>
         </div>
     );

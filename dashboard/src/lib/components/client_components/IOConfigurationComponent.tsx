@@ -1,213 +1,47 @@
-import { initializeApp } from 'firebase/app';
+'use client';
+
+// import { initializeApp } from 'firebase/app';
+// import {
+//     getAuth,
+//     onAuthStateChanged,
+//     signInAnonymously,
+//     signInWithCustomToken,
+// } from 'firebase/auth';
+// import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore';
+import { useAlert } from '@/lib/components/client_components/AlertContext';
 import {
-    getAuth,
-    onAuthStateChanged,
-    signInAnonymously,
-    signInWithCustomToken,
-} from 'firebase/auth';
-import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore';
-import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
+    DownloadIcon,
+    GripIcon,
+    PlusIcon,
+    PlusSquareIcon,
+    SettingsIcon,
+    SpinnerIcon,
+    TrashIcon,
+    SaveIcon,
+    UploadIcon,
+} from '@/lib/components/server_components/svg/icons';
+import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { IOModule, ioModuleTypes, IOPoint, IORack, IOConfigurationSchema } from '@/lib/models/io_configuration';
 
-// --- CONTEXTS ---
-const FirebaseContext = createContext(null);
-const AlertContext = createContext(null);
-
-// --- FIREBASE PROVIDER ---
-const FirebaseProvider = ({ children }: { children: React.ReactNode }) => {
-    const [db, setDb] = useState<any>(null);
-    const [auth, setAuth] = useState<any>(null);
-    const [userId, setUserId] = useState<string | null>(null);
-    const [isAuthReady, setIsAuthReady] = useState(false);
-
-    useEffect(() => {
-        try {
-            const app = initializeApp(firebaseConfig);
-            const firestoreDb = getFirestore(app);
-            const firebaseAuth = getAuth(app);
-            setDb(firestoreDb);
-            setAuth(firebaseAuth);
-
-            const unsubscribe = onAuthStateChanged(
-                firebaseAuth,
-                async (user) => {
-                    if (user) {
-                        setUserId(user.uid);
-                    } else {
-                        try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(
-                                    firebaseAuth,
-                                    initialAuthToken
-                                );
-                            } else {
-                                await signInAnonymously(firebaseAuth);
-                            }
-                        } catch (error) {
-                            console.error('Firebase auth error:', error);
-                        }
-                    }
-                    setIsAuthReady(true);
-                }
-            );
-            return () => unsubscribe();
-        } catch (error) {
-            console.error('Firebase initialization failed:', error);
-        }
-    }, []);
-
-    return (
-        <FirebaseContext.Provider value={{ db, auth, userId, isAuthReady }}>
-            {children}
-        </FirebaseContext.Provider>
-    );
-};
-
-// --- ALERT PROVIDER (CUSTOM MESSAGE BOX) ---
-const AlertProvider = ({ children }: { children: React.ReactNode }) => {
-    const [alert, setAlert] = useState<{
-        message: string;
-        type: string;
-    } | null>(null);
-    const showAlert = (
-        message: string,
-        type: string = 'info',
-        duration: number = 3000
-    ) => {
-        setAlert({ message, type });
-        setTimeout(() => setAlert(null), duration);
-    };
-    const alertClasses: { [key: string]: string } = {
-        info: 'bg-blue-500',
-        success: 'bg-green-500',
-        error: 'bg-red-500',
-    };
-    return (
-        <AlertContext.Provider value={{ showAlert }}>
-            {children}
-            {alert && (
-                <div
-                    className={`fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-xl text-white shadow-lg z-50 transition-all duration-300 ${alertClasses[alert.type]}`}
-                >
-                    {alert.message}
-                </div>
-            )}
-        </AlertContext.Provider>
-    );
-};
-
-// --- GLOBAL VARIABLES & FIREBASE CONFIG ---
-const firebaseConfig =
-    typeof __firebase_config !== 'undefined'
-        ? JSON.parse(__firebase_config)
-        : {};
-const initialAuthToken =
-    typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-// --- INLINE SVG ICONS (Lucide) ---
-const PlusIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-plus"
-    >
-        <line x1="12" x2="12" y1="5" y2="19" />
-        <line x1="5" x2="19" y1="12" y2="12" />
-    </svg>
-);
-const TrashIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-trash-2"
-    >
-        <path d="M3 6h18" />
-        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-        <line x1="10" x2="10" y1="11" y2="17" />
-        <line x1="14" x2="14" y1="11" y2="17" />
-    </svg>
-);
-const GripVerticalIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-grip-vertical"
-    >
-        <circle cx="9" cy="12" r="1" />
-        <circle cx="9" cy="5" r="1" />
-        <circle cx="9" cy="19" r="1" />
-        <circle cx="15" cy="12" r="1" />
-        <circle cx="15" cy="5" r="1" />
-        <circle cx="15" cy="19" r="1" />
-    </svg>
-);
-const SettingsIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-settings-2"
-    >
-        <path d="M20 7h-9" />
-        <path d="M14 17h-5" />
-        <circle cx="17" cy="17" r="3" />
-        <circle cx="7" cy="7" r="3" />
-        <circle cx="12" cy="12" r="3" />
-    </svg>
-);
-const SaveIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-save"
-    >
-        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-        <polyline points="17 21 17 13 7 13 7 21" />
-        <polyline points="7 3 7 8 15 8" />
-    </svg>
-);
+// const SaveIcon = () => (
+//     <svg
+//         xmlns="http://www.w3.org/2000/svg"
+//         width="24"
+//         height="24"
+//         viewBox="0 0 24 24"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth="2"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//         className="lucide lucide-save"
+//     >
+//         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+//         <polyline points="17 21 17 13 7 13 7 21" />
+//         <polyline points="7 3 7 8 15 8" />
+//     </svg>
+// );
 const CloudDownloadIcon = () => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -227,40 +61,40 @@ const CloudDownloadIcon = () => (
         <path d="M20 16.5A5 5 0 0 0 18 7h-1.5a4 4 0 0 0-8-.5 4 4 0 0 0-4 4" />
     </svg>
 );
-const UploadIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucude-upload"
-    >
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="17 8 12 3 7 8" />
-        <line x1="12" x2="12" y1="3" y2="15" />
-    </svg>
-);
-const SpinnerIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-loader-2 animate-spin"
-    >
-        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-);
+// const UploadIcon = () => (
+//     <svg
+//         xmlns="http://www.w3.org/2000/svg"
+//         width="24"
+//         height="24"
+//         viewBox="0 0 24 24"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth="2"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//         className="lucide lucude-upload"
+//     >
+//         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+//         <polyline points="17 8 12 3 7 8" />
+//         <line x1="12" x2="12" y1="3" y2="15" />
+//     </svg>
+// );
+// const SpinnerIcon = () => (
+//     <svg
+//         xmlns="http://www.w3.org/2000/svg"
+//         width="24"
+//         height="24"
+//         viewBox="0 0 24 24"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth="2"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//         className="lucide lucide-loader-2 animate-spin"
+//     >
+//         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+//     </svg>
+// );
 const CloudIcon = () => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -355,191 +189,8 @@ const SignalIcon = () => (
         <path d="M22 20h.01" />
     </svg>
 );
-const PlusSquareIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-plus-square"
-    >
-        <rect width="18" height="18" x="3" y="3" rx="2" />
-        <path d="M12 8v8" />
-        <path d="M8 12h8" />
-    </svg>
-);
 
-// --- ZOD LOADER COMPONENT ---
-const ZodLoader = ({ children }: { children: React.ReactNode }) => {
-    const [isZodLoaded, setIsZodLoaded] = useState(false);
-    useEffect(() => {
-        if (window.z) {
-            setIsZodLoaded(true);
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/zod@3.22.4/lib/index.umd.js';
-        script.onload = () => {
-            setIsZodLoaded(true);
-        };
-        document.head.appendChild(script);
-        return () => {
-            document.head.removeChild(script);
-        };
-    }, []);
-    if (!isZodLoaded) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <SpinnerIcon />
-                <p className="mt-4 text-gray-600">
-                    Loading PLC Configurator...
-                </p>
-            </div>
-        );
-    }
-    return <>{children}</>;
-};
-
-// --- MAIN APP COMPONENT ---
-const App: React.FC = () => {
-    const z = window.z;
-    // --- ZOD SCHEMAS ---
-    const IOPointSchema = z.object({
-        id: z.string(),
-        label: z.string(),
-        type: z.enum(['DI', 'DO', 'AI', 'AO']),
-        value: z.union([z.boolean(), z.number()]),
-    });
-
-    const ModuleTypeSchema = z.object({
-        name: z.string(),
-        icon: z.string(),
-        points: z.array(
-            z.object({
-                label: z.string(),
-                type: z.enum(['DI', 'DO', 'AI', 'AO']),
-            })
-        ),
-    });
-
-    const ModuleSchema = z.object({
-        id: z.string(),
-        name: z.string(),
-        type: ModuleTypeSchema,
-        points: z.array(IOPointSchema),
-    });
-
-    const RackConfigSchema = z.object({
-        name: z.string(),
-        address: z.string(),
-        maxModules: z.number().int().min(1),
-    });
-
-    const RackSchema = z.object({
-        id: z.string(),
-        modules: z.array(ModuleSchema),
-        rackConfig: RackConfigSchema,
-    });
-
-    const ConfigurationSchema = z.array(RackSchema);
-    // --- END ZOD SCHEMAS ---
-
-    // --- TYPESCRIPT INTERFACES ---
-    interface IOPoint {
-        id: string;
-        label: string;
-        type: 'DI' | 'DO' | 'AI' | 'AO';
-        value: boolean | number;
-    }
-    interface ModuleType {
-        name: string;
-        icon: string;
-        points: Omit<IOPoint, 'id' | 'value'>[];
-    }
-    interface Module {
-        id: string;
-        name: string;
-        type: ModuleType;
-        points: IOPoint[];
-    }
-    interface RackConfig {
-        name: string;
-        address: string;
-        maxModules: number;
-    }
-    interface Rack {
-        id: string;
-        modules: Module[];
-        rackConfig: RackConfig;
-    }
-
-    // --- PREDEFINED MODULE TYPES ---
-    const moduleTypes: ModuleType[] = [
-        {
-            name: '4-Slot DIO',
-            icon: 'DigitalIOIcon',
-            points: [
-                { label: 'DI-1', type: 'DI' },
-                { label: 'DI-2', type: 'DI' },
-                { label: 'DO-1', type: 'DO' },
-                { label: 'DO-2', type: 'DO' },
-            ],
-        },
-        {
-            name: '8-Slot DI',
-            icon: 'DigitalInIcon',
-            points: [
-                { label: 'DI-1', type: 'DI' },
-                { label: 'DI-2', type: 'DI' },
-                { label: 'DI-3', type: 'DI' },
-                { label: 'DI-4', type: 'DI' },
-                { label: 'DI-5', type: 'DI' },
-                { label: 'DI-6', type: 'DI' },
-                { label: 'DI-7', type: 'DI' },
-                { label: 'DI-8', type: 'DI' },
-            ],
-        },
-        {
-            name: '4-Slot AIO',
-            icon: 'AnalogIOIcon',
-            points: [
-                { label: 'AI-1', type: 'AI' },
-                { label: 'AI-2', type: 'AI' },
-                { label: 'AO-1', type: 'AO' },
-                { label: 'AO-2', type: 'AO' },
-            ],
-        },
-        {
-            name: '2-Slot AI',
-            icon: 'AnalogInIcon',
-            points: [
-                { label: 'AI-1', type: 'AI' },
-                { label: 'AI-2', type: 'AI' },
-            ],
-        },
-        {
-            name: 'Temperature',
-            icon: 'TempIcon',
-            points: [
-                { label: 'Temp-1', type: 'AI' },
-                { label: 'Temp-2', type: 'AI' },
-            ],
-        },
-        {
-            name: 'H.S. Counter',
-            icon: 'CounterIcon',
-            points: [
-                { label: 'Count-A', type: 'DI' },
-                { label: 'Count-B', type: 'DI' },
-            ],
-        },
-    ];
-
+export const IOConfigurationComponent: React.FC = () => {   
     // --- IO POINT COMPONENT (within Modal) ---
     interface IOPointProps {
         point: IOPoint;
@@ -609,8 +260,8 @@ const App: React.FC = () => {
     interface ModuleModalProps {
         isOpen: boolean;
         onClose: () => void;
-        module: Module | null;
-        onSave: (updatedModule: Module) => void;
+        module: IOModule | null;
+        onSave: (updatedModule: IOModule) => void;
     }
     const ModuleModal: React.FC<ModuleModalProps> = ({
         isOpen,
@@ -629,7 +280,7 @@ const App: React.FC = () => {
         };
         const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
             const selectedTypeName = e.target.value;
-            const newType = moduleTypes.find(
+            const newType = ioModuleTypes.find(
                 (t) => t.name === selectedTypeName
             );
             if (newType) {
@@ -715,7 +366,7 @@ const App: React.FC = () => {
                                 onChange={handleTypeChange}
                                 className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                {moduleTypes.map((type) => (
+                                {ioModuleTypes.map((type) => (
                                     <option key={type.name} value={type.name}>
                                         {type.name}
                                     </option>
@@ -752,8 +403,8 @@ const App: React.FC = () => {
     interface RackModalProps {
         isOpen: boolean;
         onClose: () => void;
-        rack: Rack | null;
-        onSave: (updatedRack: Rack) => void;
+        rack: IORack | null;
+        onSave: (updatedRack: IORack) => void;
         onDelete: () => void;
     }
     const RackModal: React.FC<RackModalProps> = ({
@@ -876,7 +527,7 @@ const App: React.FC = () => {
 
     // --- MODULE COMPONENT (on backplane) ---
     interface ModuleProps {
-        module: Module;
+        module: IOModule;
         index: number;
         onRemove: (id: string) => void;
         onEdit: (id: string) => void;
@@ -913,10 +564,11 @@ const App: React.FC = () => {
                             onClick={() => onRemove(module.id)}
                             className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                         >
-                            <TrashIcon />
+                            <TrashIcon size={20} />
                         </button>
                         <div className="p-1 text-gray-400 cursor-grab">
-                            <GripVerticalIcon />
+                            {/* <GripVerticalIcon /> */}
+                            <GripIcon />
                         </div>
                     </div>
                 </div>
@@ -948,13 +600,13 @@ const App: React.FC = () => {
 
     // --- RACK COMPONENT CONTAINER ---
     interface RackComponentProps {
-        rack: Rack;
+        rack: IORack;
         onAddModule: (rackId: string) => void;
         onDeleteRack: (rackId: string) => void;
-        onEditRack: (rack: Rack) => void;
+        onEditRack: (rack: IORack) => void;
         onRemoveModule: (rackId: string, moduleId: string) => void;
         onEditModule: (rackId: string, moduleId: string) => void;
-        onSaveModule: (rackId: string, updatedModule: Module) => void;
+        onSaveModule: (rackId: string, updatedModule: IOModule) => void;
         dragItem: React.MutableRefObject<any>;
         dragOverItem: React.MutableRefObject<any>;
         handleDragStart: (e: React.DragEvent, item: any) => void;
@@ -1013,6 +665,18 @@ const App: React.FC = () => {
                         >
                             <SettingsIcon />
                         </button>
+                        {/* <button
+                            onClick={() => onDeleteRack(rack.id)}
+                            className="text-gray-400 hover:text-gray-800"
+                        >
+                            <TrashIcon />
+                        </button> */}
+                        <button
+                            onClick={() => onDeleteRack(rack.id)}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                            <TrashIcon size={20} />
+                        </button>
                     </div>
                     <div className="flex gap-2">
                         <button
@@ -1028,7 +692,7 @@ const App: React.FC = () => {
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
                         >
-                            <PlusIcon className="w-4 h-4" /> Add Module
+                            <PlusIcon /> Add Module
                         </button>
                     </div>
                 </div>
@@ -1074,7 +738,7 @@ const App: React.FC = () => {
     };
 
     // --- MAIN APP COMPONENT ---
-    const [racks, setRacks] = useState<Rack[]>([]);
+    const [racks, setRacks] = useState<IORack[]>([]);
     const [editingModule, setEditingModule] = useState<{
         rackId: string;
         moduleId: string;
@@ -1082,8 +746,9 @@ const App: React.FC = () => {
     const [editingRack, setEditingRack] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { db, userId, isAuthReady } = useContext(FirebaseContext);
-    const { showAlert } = useContext(AlertContext);
+    // const { db, userId, isAuthReady } = useContext(FirebaseContext);
+    // const { showAlert } = useContext(AlertContext);
+    const { showAlert } = useAlert();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Drag and Drop State
@@ -1104,7 +769,7 @@ const App: React.FC = () => {
 
     // Rack and Module CRUD
     const handleAddRack = () => {
-        const newRack: Rack = {
+        const newRack: IORack = {
             id: uuidv4(),
             rackConfig: {
                 name: `Rack ${racks.length + 1}`,
@@ -1115,7 +780,7 @@ const App: React.FC = () => {
         };
         setRacks((prev) => [...prev, newRack]);
     };
-    const handleSaveRack = (updatedRack: Rack) => {
+    const handleSaveRack = (updatedRack: IORack) => {
         setRacks((prev) =>
             prev.map((r) => (r.id === updatedRack.id ? updatedRack : r))
         );
@@ -1132,8 +797,8 @@ const App: React.FC = () => {
                     rack.id === rackId &&
                     rack.modules.length < rack.rackConfig.maxModules
                 ) {
-                    const defaultType = moduleTypes[0];
-                    const newModule: Module = {
+                    const defaultType = ioModuleTypes[0];
+                    const newModule: IOModule = {
                         id: uuidv4(),
                         name: `Module_${rack.modules.length + 1}`,
                         type: defaultType,
@@ -1171,7 +836,7 @@ const App: React.FC = () => {
     const handleEditModule = (rackId: string, moduleId: string) => {
         setEditingModule({ rackId, moduleId });
     };
-    const handleSaveModule = (updatedModule: Module) => {
+    const handleSaveModule = (updatedModule: IOModule) => {
         if (!editingModule) return;
         setRacks((prev) =>
             prev.map((rack) =>
@@ -1189,24 +854,24 @@ const App: React.FC = () => {
     };
 
     // Firebase Save & Load
-    const saveConfigToCloud = async () => {
-        if (!isAuthReady || !userId) {
-            showAlert('Authentication in progress. Please wait.', 'error');
-            return;
-        }
+    const saveConfig = async () => {
+        // if (!isAuthReady || !userId) {
+        //     showAlert('Authentication in progress. Please wait.', 'error');
+        //     return;
+        // }
         setIsSaving(true);
-        showAlert('Saving configuration...', 'info');
+        showAlert('Saving configuration...', 'success');
         try {
-            const userDocRef = doc(
-                db,
-                'artifacts',
-                appId,
-                'users',
-                userId,
-                'config',
-                'plc_config'
-            );
-            await setDoc(userDocRef, { racks: JSON.stringify(racks) });
+            // const userDocRef = doc(
+            //     db,
+            //     'artifacts',
+            //     appId,
+            //     'users',
+            //     userId,
+            //     'config',
+            //     'plc_config'
+            // );
+            // await setDoc(userDocRef, { racks: JSON.stringify(racks) });
             showAlert('Configuration saved to the cloud!', 'success');
         } catch (error) {
             console.error('Error saving config:', error);
@@ -1216,39 +881,39 @@ const App: React.FC = () => {
         }
     };
     const loadConfigFromCloud = async () => {
-        if (!isAuthReady || !userId) {
-            showAlert('Authentication in progress. Please wait.', 'error');
-            return;
-        }
+        // if (!isAuthReady || !userId) {
+        //     showAlert('Authentication in progress. Please wait.', 'error');
+        //     return;
+        // }
         setIsLoading(true);
-        showAlert('Loading configuration...', 'info');
+        showAlert('Loading configuration...', 'success');
         try {
-            const userDocRef = doc(
-                db,
-                'artifacts',
-                appId,
-                'users',
-                userId,
-                'config',
-                'plc_config'
-            );
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.racks) {
-                    const parsedRacks = JSON.parse(data.racks);
-                    ConfigurationSchema.parse(parsedRacks); // Zod validation
-                    setRacks(parsedRacks);
-                    showAlert(
-                        'Configuration loaded from the cloud!',
-                        'success'
-                    );
-                } else {
-                    throw new Error('No racks data found.');
-                }
-            } else {
-                showAlert('No saved configuration found.', 'info');
-            }
+            // const userDocRef = doc(
+            //     db,
+            //     'artifacts',
+            //     appId,
+            //     'users',
+            //     userId,
+            //     'config',
+            //     'plc_config'
+            // );
+            // const docSnap = await getDoc(userDocRef);
+            // if (docSnap.exists()) {
+            //     const data = docSnap.data();
+            //     if (data.racks) {
+            //         const parsedRacks = JSON.parse(data.racks);
+            //         ConfigurationSchema.parse(parsedRacks); // Zod validation
+            //         setRacks(parsedRacks);
+            //         showAlert(
+            //             'Configuration loaded from the cloud!',
+            //             'success'
+            //         );
+            //     } else {
+            //         throw new Error('No racks data found.');
+            //     }
+            // } else {
+            //     showAlert('No saved configuration found.', 'info');
+            // }
         } catch (error) {
             console.error('Error loading config:', error);
             showAlert(
@@ -1274,6 +939,7 @@ const App: React.FC = () => {
         URL.revokeObjectURL(url);
         showAlert('Configuration exported as JSON!', 'success');
     };
+
     const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) {
@@ -1284,7 +950,7 @@ const App: React.FC = () => {
         reader.onload = (event) => {
             try {
                 const importedData = JSON.parse(event.target?.result as string);
-                ConfigurationSchema.parse(importedData); // Zod validation
+                IOConfigurationSchema.parse(importedData); // Zod validation
                 setRacks(importedData);
                 showAlert('Configuration imported successfully!', 'success');
             } catch (error: any) {
@@ -1304,14 +970,96 @@ const App: React.FC = () => {
         ? racks.find((r) => r.id === editingRack) || null
         : null;
 
-    return (
-        <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center font-sans">
-            <div className="w-full max-w-7xl flex flex-col items-center mb-6">
-                <div className="flex items-center justify-between w-full mb-4">
-                    <h1 className="text-3xl font-extrabold text-gray-900">
+    const ToolTipButton = (props: {
+        svgIcon: () => React.JSX.Element;
+        bgColor: string,
+        onHoverBgColor: string,
+        isLoading: boolean;
+        onClick?: () => void;
+        text?: string;
+        tooltipText?: string;
+    }) => {
+        return (
+            <div className="relative group">
+                <button
+                    onClick={props.onClick}
+                    // disabled={isSaving || isLoading}
+                    className={`flex items-center gap-2 px-4 py-2 ${props.bgColor} text-white font-bold rounded-lg shadow hover:${props.onHoverBgColor} transition-colors`}
+                >
+                    {props.isLoading ? <SpinnerIcon /> : props.svgIcon()}{' '}
+                    {props.text ?? null}
+                </button>
+                {/* The tooltip itself */}
+                {props.tooltipText ? (
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                        <div className="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                            {props.tooltipText}
+                        </div>
+                        {/* A small triangle for the tooltip's arrow */}
+                        <svg
+                            className="absolute text-gray-800 h-2 w-full left-0 top-full"
+                            x="0px"
+                            y="0px"
+                            viewBox="0 0 255 255"
+                            fill="currentColor"
+                        >
+                            <polygon points="0,0 127.5,127.5 255,0" />
+                        </svg>
+                    </div>
+                ) : (
+                    <></>
+                )}
+            </div>
+        );
+    };
+
+    const ButtonsColumn = () => {
+        return (
+            <div className="w-full max-w-7xl flex flex-col items-center h-full py-10">
+                {/* <div className="flex flex-col items-center justify-between h-full w-full mb-4"> */}
+                {/* <h1 className="text-3xl font-extrabold text-gray-900">
                         PLC Configurator
-                    </h1>
-                    <div className="flex gap-2 items-center">
+                    </h1> */}
+                <div className="flex flex-col h-full justify-between items-center">
+                    {/* <button
+                        onClick={handleAddRack}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white font-bold rounded-lg shadow hover:bg-gray-700 transition-colors"
+                    >
+                        <PlusSquareIcon /> Add Rack
+                    </button> */}
+                    <ToolTipButton
+                        svgIcon={PlusSquareIcon}
+                        onClick={handleAddRack}
+                        tooltipText="Add New Rack"
+                        isLoading={false}
+                        bgColor="bg-gray-600"
+                        onHoverBgColor="bg-gray-700"
+                    />
+                    <ToolTipButton
+                        svgIcon={SaveIcon}
+                        onClick={saveConfig}
+                        tooltipText="Save IO Configuration"
+                        isLoading={false}
+                        bgColor="bg-gray-600"
+                        onHoverBgColor="bg-gray-700"
+                    />
+                    <ToolTipButton
+                        svgIcon={UploadIcon}
+                        onClick={() => fileInputRef.current?.click()}
+                        tooltipText="Upload IO Configuration"
+                        isLoading={false}
+                        bgColor="bg-gray-600"
+                        onHoverBgColor="bg-gray-700"
+                    />
+                    <ToolTipButton
+                        svgIcon={DownloadIcon}
+                        onClick={exportConfig}
+                        tooltipText="Export IO Configuration"
+                        isLoading={false}
+                        bgColor="bg-gray-600"
+                        onHoverBgColor="bg-gray-700"
+                    />
+                    {/* <div className="relative group">
                         <button
                             onClick={saveConfigToCloud}
                             disabled={isSaving || isLoading}
@@ -1319,108 +1067,135 @@ const App: React.FC = () => {
                         >
                             {isSaving ? <SpinnerIcon /> : <CloudIcon />} Save
                         </button>
-                        <button
-                            onClick={loadConfigFromCloud}
-                            disabled={isSaving || isLoading}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold rounded-lg shadow hover:bg-green-700 transition-colors"
-                        >
-                            {isLoading ? (
-                                <SpinnerIcon />
-                            ) : (
-                                <CloudDownloadIcon />
-                            )}{' '}
-                            Load
-                        </button>
-                        <button
-                            onClick={exportConfig}
-                            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white font-bold rounded-lg shadow hover:bg-teal-700 transition-colors"
-                        >
-                            <SaveIcon /> Export
-                        </button>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white font-bold rounded-lg shadow hover:bg-orange-700 transition-colors"
-                        >
-                            <UploadIcon /> Import
-                        </button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={importConfig}
-                            className="hidden"
-                            accept=".json"
-                        />
-                        <button
-                            onClick={handleAddRack}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white font-bold rounded-lg shadow hover:bg-gray-700 transition-colors"
-                        >
-                            <PlusSquareIcon /> Add Rack
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="w-full max-w-7xl">
-                {racks.map((rack) => (
-                    <RackComponent
-                        key={rack.id}
-                        rack={rack}
-                        onAddModule={handleAddModule}
-                        onDeleteRack={() => handleDeleteRack(rack.id)}
-                        onEditRack={() => setEditingRack(rack.id)}
-                        onRemoveModule={handleRemoveModule}
-                        onEditModule={handleEditModule}
-                        onSaveModule={(rackId, updatedModule) => {
-                            if (updatedModule) {
-                                setRacks((prev) =>
-                                    prev.map((r) =>
-                                        r.id === rackId
-                                            ? {
-                                                  ...r,
-                                                  modules: r.modules.map((m) =>
-                                                      m.id === updatedModule.id
-                                                          ? updatedModule
-                                                          : m
-                                                  ),
-                                              }
-                                            : r
-                                    )
-                                );
-                            }
-                        }}
-                        dragItem={dragItem}
-                        dragOverItem={dragOverItem}
-                        handleDragStart={handleDragStart}
-                        handleDragEnd={handleDragEnd}
+                        {/* The tooltip itself 
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <div className="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                                Save config to cloud
+                            </div>
+                            {/* A small triangle for the tooltip's arrow 
+                            <svg
+                                className="absolute text-gray-800 h-2 w-full left-0 top-full"
+                                x="0px"
+                                y="0px"
+                                viewBox="0 0 255 255"
+                                fill="currentColor"
+                            >
+                                <polygon points="0,0 127.5,127.5 255,0" />
+                            </svg>
+                        </div>
+                    </div> */}
+                    {/* <button
+                        onClick={loadConfigFromCloud}
+                        disabled={isSaving || isLoading}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold rounded-lg shadow hover:bg-green-700 transition-colors"
+                    >
+                        {isLoading ? <SpinnerIcon /> : <CloudDownloadIcon />}{' '}
+                        Load
+                    </button> */}
+                    {/* <button
+                        onClick={exportConfig}
+                        className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white font-bold rounded-lg shadow hover:bg-teal-700 transition-colors"
+                    >
+                        <SaveIcon /> Export
+                    </button>
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white font-bold rounded-lg shadow hover:bg-orange-700 transition-colors"
+                    >
+                        <UploadIcon /> Import
+                    </button>
+                    <button
+                        onClick={saveConfig}
+                        disabled={isSaving || isLoading}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-bold rounded-lg shadow hover:bg-purple-700 transition-colors"
+                    >
+                        {isSaving ? <SpinnerIcon /> : <CloudIcon />} Save
+                    </button> */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={importConfig}
+                        className="hidden"
+                        accept=".json"
                     />
-                ))}
+                </div>
+                {/* </div> */}
             </div>
+        );
+    };
 
-            <ModuleModal
-                isOpen={!!currentModule}
-                onClose={() => setEditingModule(null)}
-                module={currentModule}
-                onSave={handleSaveModule}
-            />
-            <RackModal
-                isOpen={!!currentRack}
-                onClose={() => setEditingRack(null)}
-                rack={currentRack}
-                onSave={handleSaveRack}
-                onDelete={() => handleDeleteRack(editingRack)}
-            />
+    return (
+        <div className="grid grid-cols-[10%_90%] h-full">
+            {/* <div className="flex flex-col"> */}
+            {/* <button>test button</button>
+                <p>test</p> */}
+            {ButtonsColumn()}
+            {/* </div> */}
+            <div className="h-full bg-gray-100 p-4 flex flex-col items-center font-sans overflow-y-scroll">
+                <div className="w-full max-w-7xl">
+                    {racks.map((rack) => (
+                        <RackComponent
+                            key={rack.id}
+                            rack={rack}
+                            onAddModule={handleAddModule}
+                            onDeleteRack={() => handleDeleteRack(rack.id)}
+                            onEditRack={() => setEditingRack(rack.id)}
+                            onRemoveModule={handleRemoveModule}
+                            onEditModule={handleEditModule}
+                            onSaveModule={(rackId, updatedModule) => {
+                                if (updatedModule) {
+                                    setRacks((prev) =>
+                                        prev.map((r) =>
+                                            r.id === rackId
+                                                ? {
+                                                      ...r,
+                                                      modules: r.modules.map(
+                                                          (m) =>
+                                                              m.id ===
+                                                              updatedModule.id
+                                                                  ? updatedModule
+                                                                  : m
+                                                      ),
+                                                  }
+                                                : r
+                                        )
+                                    );
+                                }
+                            }}
+                            dragItem={dragItem}
+                            dragOverItem={dragOverItem}
+                            handleDragStart={handleDragStart}
+                            handleDragEnd={handleDragEnd}
+                        />
+                    ))}
+                </div>
+
+                <ModuleModal
+                    isOpen={!!currentModule}
+                    onClose={() => setEditingModule(null)}
+                    module={currentModule}
+                    onSave={handleSaveModule}
+                />
+                <RackModal
+                    isOpen={!!currentRack}
+                    onClose={() => setEditingRack(null)}
+                    rack={currentRack}
+                    onSave={handleSaveRack}
+                    onDelete={() => handleDeleteRack(editingRack)}
+                />
+            </div>
         </div>
     );
 };
 
-export default function Root() {
-    return (
-        <FirebaseProvider>
-            <AlertProvider>
-                <ZodLoader>
-                    <App />
-                </ZodLoader>
-            </AlertProvider>
-        </FirebaseProvider>
-    );
-}
+// export default function Root() {
+//     return (
+//         <FirebaseProvider>
+//             <AlertProvider>
+//                 <ZodLoader>
+//                     <App />
+//                 </ZodLoader>
+//             </AlertProvider>
+//         </FirebaseProvider>
+//     );
+// }

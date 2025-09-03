@@ -1,0 +1,26 @@
+<svg width="100%" height="100%" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Main PLC body -->
+                <rect x="10" y="10" width="30" height="60" rx="3" stroke="black" stroke-width="3" />
+
+                <!-- Detail lines on the CPU module -->
+                <line x1="15" y1="18" x2="35" y2="18" stroke="black" stroke-width="1.5" />
+                <line x1="15" y1="23" x2="35" y2="23" stroke="black" stroke-width="1.5" />
+                
+                <!-- I/O Module 1 -->
+                <rect x="42" y="10" width="18" height="60" rx="3" stroke="black" stroke-width="3" />
+                <!-- Terminal block detail, corrected alignment -->
+                <line x1="47" y1="18" x2="57" y2="18" stroke="black" stroke-width="1.5" />
+                <line x1="47" y1="23" x2="57" y2="23" stroke="black" stroke-width="1.5" />
+                <line x1="47" y1="28" x2="57" y2="28" stroke="black" stroke-width="1.5" />
+                
+                <!-- I/O Module 2 -->
+                <rect x="62" y="10" width="18" height="60" rx="3" stroke="black" stroke-width="3" />
+                <!-- Terminal block detail, corrected alignment -->
+                <line x1="67" y1="18" x2="77" y2="18" stroke="black" stroke-width="1.5" />
+                <line x1="67" y1="23" x2="77" y2="23" stroke="black" stroke-width="1.5" />
+                <line x1="67" y1="28" x2="77" y2="28" stroke="black" stroke-width="1.5" />
+                
+                <!-- Connection lines/dividers -->
+                <line x1="40" y1="10" x2="40" y2="70" stroke="black" stroke-width="2" />
+                <line x1="60" y1="10" x2="60" y2="70" stroke="black" stroke-width="2" />
+            </svg>

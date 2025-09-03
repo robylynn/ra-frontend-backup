@@ -812,7 +812,7 @@ const ModuleComponent: React.FC<ModuleProps> = ({
 };
 
 // --- MAIN APP COMPONENT ---
-const App: React.FC = () => {
+const IOConfigurationPanel: React.FC = () => {
     const [modules, setModules] = useState<Module[]>([]);
     const [rackConfig, setRackConfig] = useState<RackConfig>({
         name: 'Main PLC',
