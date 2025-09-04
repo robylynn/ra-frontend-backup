@@ -43,7 +43,8 @@ import {
 } from '@/lib/models/ros_types';
 
 import timeoutServiceCall from '@/lib/utils/timeoutServiceCall';
-import { PlotConfiguration, UiConfig } from './ui_configuration';
+import { UiConfig } from '@/lib/models/ui_configuration';
+import { IOConfiguration } from '@/lib/models/io_configuration';
 
 type IOServicesMap = Record<IOPointType, ROSLIB.Service | null>;
 type IOConfigurationRequest =
@@ -879,6 +880,7 @@ export class ApplicationContext {
     messages: DatabaseMessageArray | null = null;
     // configuration: UIConfiguration | null = null;
     ui_configuration: UiConfig = null;
+    io_configuration: IOConfiguration = null;
     // io_state: DatabaseIOStateDocumentArray | null = null;
     hardware_configuration: HardwareConfiguration | null = null;
     heartbeat: boolean = false;

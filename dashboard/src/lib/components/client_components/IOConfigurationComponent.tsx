@@ -1,30 +1,31 @@
 'use client';
 
-// import { initializeApp } from 'firebase/app';
-// import {
-//     getAuth,
-//     onAuthStateChanged,
-//     signInAnonymously,
-//     signInWithCustomToken,
-// } from 'firebase/auth';
-// import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore';
 import { useAlert } from '@/lib/components/client_components/AlertContext';
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import {
+    CloseIcon,
     DownloadIcon,
     GripIcon,
     PlusIcon,
     PlusSquareIcon,
+    SaveIcon,
     SettingsIcon,
     SpinnerIcon,
     TrashIcon,
-    SaveIcon,
     UploadIcon,
 } from '@/lib/components/server_components/svg/icons';
-import React, { useEffect, useRef, useState } from 'react';
+import {
+    IOConfigurationSchema,
+    IOModule,
+    ioModuleTypes,
+    IOPoint,
+    IORack,
+} from '@/lib/models/io_configuration';
+import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { IOModule, ioModuleTypes, IOPoint, IORack, IOConfigurationSchema } from '@/lib/models/io_configuration';
 
-// const SaveIcon = () => (
+// const CloudDownloadIcon = () => (
 //     <svg
 //         xmlns="http://www.w3.org/2000/svg"
 //         width="24"
@@ -35,32 +36,14 @@ import { IOModule, ioModuleTypes, IOPoint, IORack, IOConfigurationSchema } from 
 //         strokeWidth="2"
 //         strokeLinecap="round"
 //         strokeLinejoin="round"
-//         className="lucide lucide-save"
+//         className="lucide lucide-cloud-download"
 //     >
-//         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-//         <polyline points="17 21 17 13 7 13 7 21" />
-//         <polyline points="7 3 7 8 15 8" />
+//         <path d="M4 14.5V14a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v.5" />
+//         <path d="M12 10V20" />
+//         <path d="m15 17-3 3-3-3" />
+//         <path d="M20 16.5A5 5 0 0 0 18 7h-1.5a4 4 0 0 0-8-.5 4 4 0 0 0-4 4" />
 //     </svg>
 // );
-const CloudDownloadIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-cloud-download"
-    >
-        <path d="M4 14.5V14a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v.5" />
-        <path d="M12 10V20" />
-        <path d="m15 17-3 3-3-3" />
-        <path d="M20 16.5A5 5 0 0 0 18 7h-1.5a4 4 0 0 0-8-.5 4 4 0 0 0-4 4" />
-    </svg>
-);
 // const UploadIcon = () => (
 //     <svg
 //         xmlns="http://www.w3.org/2000/svg"
@@ -95,44 +78,44 @@ const CloudDownloadIcon = () => (
 //         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
 //     </svg>
 // );
-const CloudIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-cloud"
-    >
-        <path d="M4 14.5a5 5 0 0 1 1.5-9.4M17 14.5a5 5 0 0 1 1.5-9.4M10 14a6 6 0 0 1 6-6h1a4 4 0 0 1 4 4v2.5M10 14a6 6 0 0 0 6 6h1a4 4 0 0 0 4-4v-2.5M10 14a6 6 0 0 1-6-6h-1a4 4 0 0 1-4 4v2.5" />
-    </svg>
-);
-const ServerIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-server-cog"
-    >
-        <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
-        <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
-        <path d="M6 6h.01" />
-        <path d="M6 18h.01" />
-        <path d="M13 18h.01" />
-        <path d="M16 18h.01" />
-        <path d="M19 18h.01" />
-    </svg>
-);
+// const CloudIcon = () => (
+//     <svg
+//         xmlns="http://www.w3.org/2000/svg"
+//         width="24"
+//         height="24"
+//         viewBox="0 0 24 24"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth="2"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//         className="lucide lucide-cloud"
+//     >
+//         <path d="M4 14.5a5 5 0 0 1 1.5-9.4M17 14.5a5 5 0 0 1 1.5-9.4M10 14a6 6 0 0 1 6-6h1a4 4 0 0 1 4 4v2.5M10 14a6 6 0 0 0 6 6h1a4 4 0 0 0 4-4v-2.5M10 14a6 6 0 0 1-6-6h-1a4 4 0 0 1-4 4v2.5" />
+//     </svg>
+// );
+// const ServerIcon = () => (
+//     <svg
+//         xmlns="http://www.w3.org/2000/svg"
+//         width="24"
+//         height="24"
+//         viewBox="0 0 24 24"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth="2"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//         className="lucide lucide-server-cog"
+//     >
+//         <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+//         <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+//         <path d="M6 6h.01" />
+//         <path d="M6 18h.01" />
+//         <path d="M13 18h.01" />
+//         <path d="M16 18h.01" />
+//         <path d="M19 18h.01" />
+//     </svg>
+// );
 const InputIcon = () => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -190,7 +173,10 @@ const SignalIcon = () => (
     </svg>
 );
 
-export const IOConfigurationComponent: React.FC = () => {   
+export const IOConfigurationComponent: React.FC = () => {
+    const { dashboardContext, setDashboardContext } =
+        useContext(DashboardContext);
+
     // --- IO POINT COMPONENT (within Modal) ---
     interface IOPointProps {
         point: IOPoint;
@@ -202,12 +188,15 @@ export const IOConfigurationComponent: React.FC = () => {
     }) => {
         const isDigital = point.type.startsWith('D');
         const isInput = point.type.endsWith('I');
+        
         const handleDigitalToggle = () => onUpdateValue(point.id, !point.value);
+        
         const handleAnalogChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.target.value === '' ? '' : Number(e.target.value);
             if (value !== '' && isNaN(value)) return;
             onUpdateValue(point.id, value);
         };
+        
         return (
             <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 rounded-lg min-h-[48px]">
                 <div className="flex items-center gap-2">
@@ -229,8 +218,9 @@ export const IOConfigurationComponent: React.FC = () => {
                     </span>
                 </div>
                 {isDigital ? (
-                    <button
+                    <button    
                         onClick={isInput ? undefined : handleDigitalToggle}
+                        type="button"
                         className={`h-6 w-12 rounded-full p-0.5 transition-colors duration-200 relative flex items-center justify-center ${isInput ? 'bg-gray-200 cursor-not-allowed' : point.value ? 'bg-green-500' : 'bg-gray-400'}`}
                         disabled={isInput}
                     >
@@ -271,13 +261,16 @@ export const IOConfigurationComponent: React.FC = () => {
     }) => {
         if (!isOpen || !module) return null;
         const [formData, setFormData] = useState(module);
+        
         useEffect(() => {
             setFormData(module);
         }, [module]);
+
         const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const { name, value } = e.target;
             setFormData((prev) => ({ ...prev, [name]: value }));
         };
+        
         const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
             const selectedTypeName = e.target.value;
             const newType = ioModuleTypes.find(
@@ -300,6 +293,7 @@ export const IOConfigurationComponent: React.FC = () => {
                 }));
             }
         };
+        
         const handleUpdatePointValue = (pointId: string, value: any) => {
             setFormData((prev) => ({
                 ...prev,
@@ -308,10 +302,12 @@ export const IOConfigurationComponent: React.FC = () => {
                 ),
             }));
         };
+
         const handleSave = () => {
             onSave(formData);
             onClose();
         };
+
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -323,7 +319,8 @@ export const IOConfigurationComponent: React.FC = () => {
                             onClick={onClose}
                             className="p-2 text-gray-500 hover:text-gray-800"
                         >
-                            <svg
+                            <CloseIcon/>
+                            {/* <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-6 w-6"
                                 fill="none"
@@ -336,7 +333,7 @@ export const IOConfigurationComponent: React.FC = () => {
                                     strokeWidth={2}
                                     d="M6 18L18 6M6 6l12 12"
                                 />
-                            </svg>
+                            </svg> */}
                         </button>
                     </div>
                     <form
@@ -382,6 +379,7 @@ export const IOConfigurationComponent: React.FC = () => {
                                     key={point.id}
                                     point={point}
                                     onUpdateValue={handleUpdatePointValue}
+                                    // onUpdateValue={() => {}}
                                 />
                             ))}
                         </div>
@@ -415,10 +413,13 @@ export const IOConfigurationComponent: React.FC = () => {
         onDelete,
     }) => {
         if (!isOpen || !rack) return null;
+        
         const [formData, setFormData] = useState(rack);
+        
         useEffect(() => {
             setFormData(rack);
         }, [rack]);
+        
         const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const { name, value } = e.target;
             setFormData((prev) => ({
@@ -430,10 +431,12 @@ export const IOConfigurationComponent: React.FC = () => {
                 },
             }));
         };
+        
         const handleSave = () => {
             onSave(formData);
             onClose();
         };
+        
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
@@ -445,7 +448,8 @@ export const IOConfigurationComponent: React.FC = () => {
                             onClick={onClose}
                             className="p-2 text-gray-500 hover:text-gray-800"
                         >
-                            <svg
+                            <CloseIcon/>
+                            {/* <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-6 w-6"
                                 fill="none"
@@ -458,7 +462,7 @@ export const IOConfigurationComponent: React.FC = () => {
                                     strokeWidth={2}
                                     d="M6 18L18 6M6 6l12 12"
                                 />
-                            </svg>
+                            </svg> */}
                         </button>
                     </div>
                     <form
@@ -598,6 +602,11 @@ export const IOConfigurationComponent: React.FC = () => {
         );
     };
 
+    interface DragItem {
+        rackId: string;
+        moduleIndex: number;
+    }
+
     // --- RACK COMPONENT CONTAINER ---
     interface RackComponentProps {
         rack: IORack;
@@ -607,9 +616,12 @@ export const IOConfigurationComponent: React.FC = () => {
         onRemoveModule: (rackId: string, moduleId: string) => void;
         onEditModule: (rackId: string, moduleId: string) => void;
         onSaveModule: (rackId: string, updatedModule: IOModule) => void;
-        dragItem: React.MutableRefObject<any>;
-        dragOverItem: React.MutableRefObject<any>;
-        handleDragStart: (e: React.DragEvent, item: any) => void;
+        // dragItem: React.MutableRefObject<any>;
+        // dragOverItem: React.MutableRefObject<any>;
+        dragItem: React.MutableRefObject<DragItem>;
+        dragOverItem: React.MutableRefObject<DragItem>;
+        // handleDragStart: (e: React.DragEvent, item: any) => void;
+        handleDragStart: (e: React.DragEvent, item: DragItem) => void;
         handleDragEnd: () => void;
     }
     const RackComponent: React.FC<RackComponentProps> = ({
@@ -646,7 +658,15 @@ export const IOConfigurationComponent: React.FC = () => {
                 0,
                 reorderedItem
             );
-            onSaveModule(rack.id, null); // Placeholder to trigger re-render
+
+            // onSaveModule(rack.id, null); // Placeholder to trigger re-render
+            // onSaveModule(rack.id, rack.modules[dragItem.current.moduleIndex]); // Placeholder to trigger re-render
+            setRacks((racks) => {
+                const newRacks = [...racks];
+                const rack_index = newRacks.findIndex((r) => r.id === rack.id);
+                newRacks[rack_index].modules = newModules;
+                return newRacks;
+            });
         };
 
         return (
@@ -746,6 +766,8 @@ export const IOConfigurationComponent: React.FC = () => {
     const [editingRack, setEditingRack] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     // const { db, userId, isAuthReady } = useContext(FirebaseContext);
     // const { showAlert } = useContext(AlertContext);
     const { showAlert } = useAlert();
@@ -767,6 +789,12 @@ export const IOConfigurationComponent: React.FC = () => {
         }
     }, []);
 
+    useEffect(() => {
+        if (dashboardContext?.io_configuration) {
+            setRacks(dashboardContext.io_configuration)
+        }
+    }, [dashboardContext?.io_configuration !== null])
+
     // Rack and Module CRUD
     const handleAddRack = () => {
         const newRack: IORack = {
@@ -780,16 +808,19 @@ export const IOConfigurationComponent: React.FC = () => {
         };
         setRacks((prev) => [...prev, newRack]);
     };
+    
     const handleSaveRack = (updatedRack: IORack) => {
         setRacks((prev) =>
             prev.map((r) => (r.id === updatedRack.id ? updatedRack : r))
         );
         setEditingRack(null);
     };
+    
     const handleDeleteRack = (rackId: string) => {
         setRacks((prev) => prev.filter((r) => r.id !== rackId));
         setEditingRack(null);
     };
+
     const handleAddModule = (rackId: string) => {
         setRacks((prev) =>
             prev.map((rack) => {
@@ -819,6 +850,7 @@ export const IOConfigurationComponent: React.FC = () => {
             })
         );
     };
+
     const handleRemoveModule = (rackId: string, moduleId: string) => {
         setRacks((prev) =>
             prev.map((rack) =>
@@ -833,9 +865,11 @@ export const IOConfigurationComponent: React.FC = () => {
             )
         );
     };
+    
     const handleEditModule = (rackId: string, moduleId: string) => {
         setEditingModule({ rackId, moduleId });
     };
+
     const handleSaveModule = (updatedModule: IOModule) => {
         if (!editingModule) return;
         setRacks((prev) =>
@@ -860,8 +894,33 @@ export const IOConfigurationComponent: React.FC = () => {
         //     return;
         // }
         setIsSaving(true);
-        showAlert('Saving configuration...', 'success');
+        // showAlert('Saving configuration...', 'success');
+
+        // const updatedConfig = { ...dashboardContext.io_configuration };
+        // updatedConfig.io_configuration = racks;
+
         try {
+            fetchFromBackendApi(`/api/backend/ui/io_config/${'abc'}`, 'POST', {
+                config_json: {racks: racks},
+            })
+                .then(() => {
+                    setDashboardContext({
+                        payload: racks,
+                        type: 'io/config/set',
+                    });
+                    showAlert(
+                        'IO configuration saved successfully!',
+                        'success'
+                    );
+                })
+                .catch((error) => {
+                    showAlert(
+                        `Failed to save IO configuration: ${error}`,
+                        'error'
+                    );
+                })
+                .finally(() => setIsSaving(false));
+
             // const userDocRef = doc(
             //     db,
             //     'artifacts',
@@ -872,12 +931,12 @@ export const IOConfigurationComponent: React.FC = () => {
             //     'plc_config'
             // );
             // await setDoc(userDocRef, { racks: JSON.stringify(racks) });
-            showAlert('Configuration saved to the cloud!', 'success');
+            // showAlert('Configuration saved to the cloud!', 'success');
         } catch (error) {
             console.error('Error saving config:', error);
             showAlert('Failed to save configuration.', 'error');
         } finally {
-            setIsSaving(false);
+            // setIsSaving(false);
         }
     };
     const loadConfigFromCloud = async () => {
@@ -972,8 +1031,8 @@ export const IOConfigurationComponent: React.FC = () => {
 
     const ToolTipButton = (props: {
         svgIcon: () => React.JSX.Element;
-        bgColor: string,
-        onHoverBgColor: string,
+        bgColor: string;
+        onHoverBgColor: string;
         isLoading: boolean;
         onClick?: () => void;
         text?: string;
@@ -1016,17 +1075,7 @@ export const IOConfigurationComponent: React.FC = () => {
     const ButtonsColumn = () => {
         return (
             <div className="w-full max-w-7xl flex flex-col items-center h-full py-10">
-                {/* <div className="flex flex-col items-center justify-between h-full w-full mb-4"> */}
-                {/* <h1 className="text-3xl font-extrabold text-gray-900">
-                        PLC Configurator
-                    </h1> */}
                 <div className="flex flex-col h-full justify-between items-center">
-                    {/* <button
-                        onClick={handleAddRack}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white font-bold rounded-lg shadow hover:bg-gray-700 transition-colors"
-                    >
-                        <PlusSquareIcon /> Add Rack
-                    </button> */}
                     <ToolTipButton
                         svgIcon={PlusSquareIcon}
                         onClick={handleAddRack}
@@ -1039,13 +1088,14 @@ export const IOConfigurationComponent: React.FC = () => {
                         svgIcon={SaveIcon}
                         onClick={saveConfig}
                         tooltipText="Save IO Configuration"
-                        isLoading={false}
+                        isLoading={isSaving}
                         bgColor="bg-gray-600"
                         onHoverBgColor="bg-gray-700"
                     />
                     <ToolTipButton
                         svgIcon={UploadIcon}
-                        onClick={() => fileInputRef.current?.click()}
+                        // onClick={() => fileInputRef.current?.click()}
+                        onClick={() => setIsImportModalOpen(true)}
                         tooltipText="Upload IO Configuration"
                         isLoading={false}
                         bgColor="bg-gray-600"
@@ -1053,64 +1103,13 @@ export const IOConfigurationComponent: React.FC = () => {
                     />
                     <ToolTipButton
                         svgIcon={DownloadIcon}
-                        onClick={exportConfig}
+                        // onClick={exportConfig}
+                        onClick={() => setIsExportModalOpen(true)}
                         tooltipText="Export IO Configuration"
                         isLoading={false}
                         bgColor="bg-gray-600"
                         onHoverBgColor="bg-gray-700"
                     />
-                    {/* <div className="relative group">
-                        <button
-                            onClick={saveConfigToCloud}
-                            disabled={isSaving || isLoading}
-                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-bold rounded-lg shadow hover:bg-purple-700 transition-colors"
-                        >
-                            {isSaving ? <SpinnerIcon /> : <CloudIcon />} Save
-                        </button>
-                        {/* The tooltip itself 
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                            <div className="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                                Save config to cloud
-                            </div>
-                            {/* A small triangle for the tooltip's arrow 
-                            <svg
-                                className="absolute text-gray-800 h-2 w-full left-0 top-full"
-                                x="0px"
-                                y="0px"
-                                viewBox="0 0 255 255"
-                                fill="currentColor"
-                            >
-                                <polygon points="0,0 127.5,127.5 255,0" />
-                            </svg>
-                        </div>
-                    </div> */}
-                    {/* <button
-                        onClick={loadConfigFromCloud}
-                        disabled={isSaving || isLoading}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold rounded-lg shadow hover:bg-green-700 transition-colors"
-                    >
-                        {isLoading ? <SpinnerIcon /> : <CloudDownloadIcon />}{' '}
-                        Load
-                    </button> */}
-                    {/* <button
-                        onClick={exportConfig}
-                        className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white font-bold rounded-lg shadow hover:bg-teal-700 transition-colors"
-                    >
-                        <SaveIcon /> Export
-                    </button>
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white font-bold rounded-lg shadow hover:bg-orange-700 transition-colors"
-                    >
-                        <UploadIcon /> Import
-                    </button>
-                    <button
-                        onClick={saveConfig}
-                        disabled={isSaving || isLoading}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-bold rounded-lg shadow hover:bg-purple-700 transition-colors"
-                    >
-                        {isSaving ? <SpinnerIcon /> : <CloudIcon />} Save
-                    </button> */}
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -1119,18 +1118,111 @@ export const IOConfigurationComponent: React.FC = () => {
                         accept=".json"
                     />
                 </div>
-                {/* </div> */}
+            </div>
+        );
+    };
+
+    const ImportModal = ({ isOpen, onClose, onImport }) => {
+        if (!isOpen) return null;
+        const [importText, setImportText] = useState('');
+
+        const handleImport = () => {
+            try {
+                const parsedPlots = IOConfigurationSchema.parse(
+                    JSON.parse(importText)
+                );
+                onImport(parsedPlots);
+                onClose();
+            } catch (error) {
+                console.error('Import error:', error);
+                alert(
+                    'Failed to import IO configuration. The data format is invalid.'
+                );
+            }
+        };
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
+                <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-2xl font-bold text-gray-800">
+                            Import IO Configuration
+                        </h3>
+                        <button
+                            onClick={onClose}
+                            className="p-2 text-gray-500 hover:text-gray-800"
+                        >
+                            <CloseIcon />
+                        </button>
+                    </div>
+                    <p className="mb-4 text-gray-700">
+                        Paste your exported JSON here to import IO
+                        configuration.
+                    </p>
+                    <textarea
+                        value={importText}
+                        onChange={(e) => setImportText(e.target.value)}
+                        className="w-full h-64 p-4 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none"
+                        placeholder="Paste your JSON here..."
+                    />
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={handleImport}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-semibold"
+                        >
+                            Import IO Configuration
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const ExportModal = ({ isOpen, onClose, configuration }) => {
+        if (!isOpen) return null;
+        const exportText = JSON.stringify(configuration, null, 2);
+
+        const handleCopyToClipboard = () => {
+            navigator.clipboard.writeText(exportText);
+        };
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
+                <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-2xl font-bold text-gray-800">
+                            Export IO Configuration
+                        </h3>
+                        <button
+                            onClick={onClose}
+                            className="p-2 text-gray-500 hover:text-gray-800"
+                        >
+                            <CloseIcon />
+                        </button>
+                    </div>
+                    <p className="mb-4 text-gray-700">
+                        Copy the JSON below to export your IO configuration.
+                    </p>
+                    <textarea
+                        readOnly
+                        value={exportText}
+                        className="w-full h-64 p-4 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none"
+                    />
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={handleCopyToClipboard}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-semibold"
+                        >
+                            Copy to Clipboard
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     };
 
     return (
-        <div className="grid grid-cols-[10%_90%] h-full">
-            {/* <div className="flex flex-col"> */}
-            {/* <button>test button</button>
-                <p>test</p> */}
-            {ButtonsColumn()}
-            {/* </div> */}
+        <div className="grid grid-cols-[93%_7%] h-full">
             <div className="h-full bg-gray-100 p-4 flex flex-col items-center font-sans overflow-y-scroll">
                 <div className="w-full max-w-7xl">
                     {racks.map((rack) => (
@@ -1172,10 +1264,13 @@ export const IOConfigurationComponent: React.FC = () => {
 
                 <ModuleModal
                     isOpen={!!currentModule}
+                    // isOpen={true}
                     onClose={() => setEditingModule(null)}
+                    // onClose={() => {}}
                     module={currentModule}
                     onSave={handleSaveModule}
                 />
+
                 <RackModal
                     isOpen={!!currentRack}
                     onClose={() => setEditingRack(null)}
@@ -1183,7 +1278,20 @@ export const IOConfigurationComponent: React.FC = () => {
                     onSave={handleSaveRack}
                     onDelete={() => handleDeleteRack(editingRack)}
                 />
+
+                <ExportModal
+                    isOpen={isExportModalOpen}
+                    onClose={() => setIsExportModalOpen(false)}
+                    configuration={racks}
+                />
+
+                <ImportModal
+                    isOpen={isImportModalOpen}
+                    onClose={() => setIsImportModalOpen(false)}
+                    onImport={() => {}}
+                />
             </div>
+            {ButtonsColumn()}
         </div>
     );
 };

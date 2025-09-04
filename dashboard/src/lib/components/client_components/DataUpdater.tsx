@@ -119,6 +119,7 @@ export const DataUpdater = () => {
         // Call the async function when the component mounts
         fetchConfig();
         fetchTables();
+        fetchConfigs();
     }, [setDashboardContext]);
 
     return <></>; // This component no longer renders the alert UI directly

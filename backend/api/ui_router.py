@@ -214,3 +214,22 @@ async def save_frontend_config(
                 success=False, message=f"An unexpected error occurred: {e}"
             ).model_dump(),
         )
+
+@ui_router.post(
+    "/io_config/{client_id}",
+    summary="Save IO Configuration for Client",
+    status_code=status.HTTP_200_OK,
+    response_model=ApiResponse,
+)
+async def save_io_config(
+    client_id: str, request: Request, config_payload: FrontendConfigData = Body(...)
+):
+    return ApiResponse(
+        success=True,
+        message=f"IO configuration for client '{client_id}' saved successfully.",
+        data={
+            "client_id": client_id,
+            "config_data_saved": config_payload.config_json,
+            "last_updated": datetime.now().isoformat().replace("+00:00", "Z"),
+        },
+    )

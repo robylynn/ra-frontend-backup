@@ -31,6 +31,7 @@ import {
 } from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
 import { UiConfig, PlotConfiguration } from '@/lib/models/ui_configuration';
+import { IOConfiguration } from '@/lib/models/io_configuration';
 
 interface ModifyPlotInterface {
     plot_index: number;
@@ -64,6 +65,7 @@ export default function DashboardContextProvider(props: {
         tables: availableTables;
     }>('database/tables/set');
     const setPlotConfigurationAction = createAction<PlotConfiguration[]>('ui_config/set_plot_config');
+    const setIOConfigurationAction = createAction<IOConfiguration>('io/config/set');
     const incrementHeartbeatAction = createAction<{ heartbeat_valid: boolean }>(
         'heartbeat/rx'
     );
@@ -175,6 +177,9 @@ export default function DashboardContextProvider(props: {
                 })
                 .addCase(setPlotConfigurationAction, (state, action) => {
                     state.ui_configuration.plots = action.payload
+                })
+                .addCase(setIOConfigurationAction, (state, action) => {
+                    state.io_configuration = action.payload
                 })
                 .addCase(incrementHeartbeatAction, (state, action) => {
                     state.heartbeat = action.payload.heartbeat_valid;

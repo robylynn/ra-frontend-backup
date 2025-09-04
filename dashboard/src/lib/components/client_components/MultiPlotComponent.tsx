@@ -778,15 +778,6 @@ const PlotComponent = ({
 };
 
 export const MultiPlotComponent = () => {
-    // const [plots, setPlots] = useState<PlotConfiguration[]>([
-    //     {
-    //         id: uuidv4(),
-    //         name: 'New Plot',
-    //         type: 'line',
-    //         traces: [],
-    //         max_length: 100,
-    //     },
-    // ]);
     const [plots, setPlots] = useState<PlotConfiguration[]>([]);
     const [editingPlotId, setEditingPlotId] = useState(null);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
