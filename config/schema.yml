@@ -49,6 +49,16 @@ tables:
       # chart_configuration: JSONB
       last_updated: TIMESTAMPTZ NOT NULL
     hypertable_column: null # Not used for hypertable creation for this table
+  
+  # configurations: # For IO configurations
+  #   columns:
+  #     client_id: TEXT NOT NULL UNIQUE
+  #     ui_config_data: JSONB
+  #     io_config_fata: JSONB
+  #     # io_config: JSONB
+  #     # chart_configuration: JSONB
+  #     last_updated: TIMESTAMPTZ NOT NULL
+  #   hypertable_column: null # Not used for hypertable creation for this table
 
   users: # NEW: Table for storing user credentials
     columns:

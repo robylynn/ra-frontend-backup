@@ -1,0 +1,60 @@
+# This YAML defines the structure and validation rules for the schema.
+# The Python script will use this to generate code for both TypeScript (Zod) and Python (Pydantic).
+schemas:  
+  io_point_description:
+    type: object
+    properties:
+      label: { type: string }
+      type:
+        type: enum
+        valid_values: [DI, DO, AI, AO]
+
+  io_point:
+    type: object
+    properties:
+      id: { type: string }
+      point_type: { ref: io_point_description }
+      point_value:
+          type: union
+          variants: [float, boolean]
+
+  io_module_description:
+    type: object
+    properties:
+      name: { type: string }
+      icon: { type: string }
+      points:
+        type: array
+        elements: { ref: io_point_description }
+
+  io_module:
+    type: object
+    properties:
+      id: { type: string }
+      name: { type: string }
+      type: { ref: io_module_description }
+      points:
+        type: array
+        elements: { ref: io_point }
+  
+  io_rack_config:
+    type: object
+    properties:
+      name: { type: string }
+      address: { type: string }
+      max_modules:
+        type: integer
+        validations: { minimum: 1 }
+  
+  io_rack:
+    type: object
+    properties:
+      id: { type: string }
+      modules:
+        type: array
+        elements: {ref: io_module}
+        rack_config: { ref: io_rack_config }
+  
+  io_configuration:
+    type: array
+    elements: {ref: io_rack}

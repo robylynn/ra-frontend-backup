@@ -23,26 +23,6 @@ export const chartTraceMetadataSchema = z.array(
 
 export type chartTraceMetadata = z.infer<typeof chartTraceMetadataSchema>;
 
-// Schema for the 'chart' component's metadata
-// export const chartMetadataSchema = z.object({
-//     // dataset: z.array(z.number()),
-//     // chartType: z.enum(['bar', 'line', 'pie']),
-//     label: z.string().min(1, 'Chart label cannot be empty.'),
-//     // column: z.string(),
-//     max_length: z.number(),
-//     traces: z.array(z.object({
-//         table_name: z.string(), column: z.string()
-//     }))
-// });
-
-// export interface PlotConfiguration {
-//     id: string;
-//     name: string;
-//     type: 'line' | 'bar' | 'scatter';
-//     traces: chartTraceMetadata;
-//     max_length?: number;
-// }
-
 export const PlotConfigurationSchema = z.object({
     id: z.string(),
     name: z.string(),

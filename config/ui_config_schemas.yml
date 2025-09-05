@@ -1,0 +1,169 @@
+# This YAML defines the structure and validation rules for the schema.
+# The Python script will use this to generate code for both TypeScript (Zod) and Python (Pydantic).
+schemas:
+  jogging_metadata:
+    type: object
+    properties:
+      message: { type: string }
+      version: { type: string }
+      pace:
+        type: float
+        validations: { min: 5 }
+
+  chart_trace_metadata:
+    # type: array
+    # elements:
+    type: object
+    properties:
+      table_name: { type: string }
+      column: { type: string }
+      color: { type: string }
+
+  plot_configuration:
+    type: object
+    properties:
+      id: { type: string }
+      name: { type: string }
+      type:
+        type: enum
+        valid_values: [line, bar, scatter]
+      traces: 
+        type: array
+        elements: { ref: chart_trace_metadata }
+      max_length:
+        type: number
+        optional: true
+
+  plot_configurations:
+    type: array
+    elements: { ref: plot_configuration }
+
+  image_metadata:
+    type: object
+    properties:
+      src:
+        type: string
+        validations: { url: true }
+      altText:
+        type: string
+        validations: { minlength: 1 }
+      caption:
+        type: string
+        optional: true
+
+  camera_metadata:
+    type: object
+    properties:
+      source: { type: string }
+
+  # uiComponentSchemaBase:
+  #   type: object
+  #   properties:
+  #     id: { type: uuid }
+  #     label:
+  #       type: string
+  #       validations: { minlength: 1 }
+
+  jogging_component:
+    type: object
+    properties:
+      id: { type: uuid }
+      label:
+        type: string
+        validations: { minlength: 1 }
+      type: { type: literal, value: jogging }
+      metadata: { ref: jogging_metadata }
+  
+  chart_component:
+    type: object
+    properties:
+      id: { type: uuid }
+      label:
+        type: string
+        validations: { minlength: 1 }
+      type: { type: literal, value: charts }
+      metadata: { ref: plot_configuration }
+
+  image_component:
+    type: object
+    properties:
+      id: { type: uuid }
+      label:
+        type: string
+        validations: { minlength: 1 }
+      type: { type: literal, value: image }
+      metadata: { ref: image_metadata }
+
+  camera_component:
+    type: object
+    properties:
+      id: { type: uuid }
+      label:
+        type: string
+        validations: { minlength: 1 }
+      type: { type: literal, value: camera }
+      metadata: { ref: camera_metadata }
+
+  ui_component:
+    type: union
+    discriminator: type
+    variants:
+      - jogging_component
+      - chart_component
+      - image_component
+      - camera_component
+      # - type: object
+      #   extends: uiComponentSchemaBase
+      #   properties:
+      #     type: { type: literal, value: jogging }
+      #     metadata: { ref: joggingMetadataSchema }
+      # - type: object
+      #   extends: uiComponentSchemaBase
+      #   properties:
+      #     type: { type: literal, value: charts }
+      #     metadata: { ref: PlotConfigurationSchema }
+      # - type: object
+      #   extends: uiComponentSchemaBase
+      #   properties:
+      #     type: { type: literal, value: image }
+      #     metadata: { ref: imageMetadataSchema }
+      # - type: object
+      #   extends: uiComponentSchemaBase
+      #   properties:
+      #     type: { type: literal, value: camera }
+      #     metadata: { ref: cameraMetadataSchema }
+
+  ui_config:
+    type: object
+    properties:
+      theme:
+        type: enum
+        valid_values: [light, dark, system]
+        default: system
+      layout:
+        type: object
+        properties:
+          sidebarEnabled:
+            type: boolean
+            default: true
+          headerHeight:
+            type: number
+            validations: { min: 50, max: 200 }
+            default: 80
+      components:
+        type: array
+        elements: { ref: ui_component }
+        validations: { min_items: 1 }
+      plots: { ref: plot_configurations }
+      lastUpdated:
+        type: string
+        validations: { datetime: true }
+
+  ui_config_api_response:
+    type: object
+    properties:
+      client_id: { type: string }
+      config_data: { ref: ui_config }
+      last_updated:
+        type: string
+        validations: { datetime: true, precision: 6 }

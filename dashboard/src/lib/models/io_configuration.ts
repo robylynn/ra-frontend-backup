@@ -12,23 +12,8 @@ export const IOModuleTypeSchema = z.object({
     name: z.string(),
     icon: z.string(),
     points: z.array(IOPointSchema.omit({id: true, value: true}))
-    // points: z.array(
-    //     z.object({
-    //         label: z.string(),
-    //         type: z.enum(['DI', 'DO', 'AI', 'AO']),
-    //     })
-    // ),
 });
 type IOModuleType = z.infer<typeof IOModuleTypeSchema>;
-
-// const ModuleTypeDefinitionSchema = ModuleTypeSchema.extend({points: z.array(IOPointSchema.omit({id: true, value: true}))});
-// type ModuleTypeDefinition = z.infer<typeof ModuleTypeDefinitionSchema>;
-
-// interface ModuleType {
-//     name: string;
-//     icon: string;
-//     points: Omit<IOPoint, 'id' | 'value'>[];
-// }
 
 export const IOModuleSchema = z.object({
     id: z.string(),
@@ -54,32 +39,6 @@ export type IORack = z.infer<typeof IORackSchema>;
 
 export const IOConfigurationSchema = z.array(IORackSchema);
 export type IOConfiguration = z.infer<typeof IOConfigurationSchema>;
-// --- END ZOD SCHEMAS ---
-
-// --- TYPESCRIPT INTERFACES ---
-// interface IOPoint {
-//     id: string;
-//     label: string;
-//     type: 'DI' | 'DO' | 'AI' | 'AO';
-//     value: boolean | number;
-// }
-
-// interface Module {
-//     id: string;
-//     name: string;
-//     type: ModuleType;
-//     points: IOPoint[];
-// }
-// interface RackConfig {
-//     name: string;
-//     address: string;
-//     maxModules: number;
-// }
-// interface Rack {
-//     id: string;
-//     modules: Module[];
-//     rackConfig: RackConfig;
-// }
 
 // --- PREDEFINED MODULE TYPES ---
 export const ioModuleTypes: IOModuleType[] = [

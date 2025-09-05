@@ -1,0 +1,69 @@
+# pydantic_template.jinja
+from __future__ import annotations
+from typing import Literal, Union, List, Optional
+from pydantic import BaseModel, Field
+import uuid
+
+# MODELS FOR {{ schema_name.upper() }}
+
+{%- macro write_properties(schema) %}
+{%- for prop_name, prop_data in schema.properties.items() %}
+    {%- if prop_data.ref is defined %}
+    {{ prop_name }}: {{ prop_data.ref | pascalcase }} = Field(...)
+    {%- elif prop_data.type == 'object' %}
+    {%- if prop_data.properties is defined %}
+    class {{ prop_name|capitalize }}Nested(BaseModel):
+        {%- for nested_prop, nested_data in prop_data.properties.items() %}
+        {{ nested_prop }}: {%- if nested_data.type == 'number' -%} float {%- elif nested_data.type == 'boolean' %} bool {%- else %} any {%- endif %}
+        {%- if nested_data.default is defined -%}
+         = {{ nested_data.default }}
+        {%- else -%}
+         = Field(...)
+        {%- endif -%}
+        {%- endfor %}
+    {{ prop_name }}: {{ prop_name|capitalize }}Nested = Field(...)
+    {%- else %}
+    {{ prop_name }}: {{ prop_data.ref | pascalcase }} = Field(...)
+    {%- endif %}
+    {%- elif prop_data.type == 'array' %}
+    {{ prop_name }}: List[{{ prop_data.elements.ref | pascalcase }}] = Field(...)
+    {%- elif prop_data.type == 'union' %}
+    {{ prop_name }}: Union[
+        {% for value in prop_data.valid_values -%}
+        {{type_mappings[value]}},
+        {% endfor -%}
+    ]
+    {%- elif prop_data.type == 'enum' %}
+    {{ prop_name }}: Literal['{{ "','".join(prop_data.valid_values) }}'] = '{{ prop_data.default }}'
+    {%- elif prop_data.type == 'uuid' %}
+    {{ prop_name }}: uuid.UUID = Field(...)
+    {%- elif prop_data.type == 'string' %}
+    {{ prop_name }}: str = Field(...)
+    {%- elif prop_data.type == 'literal' %}
+    {{ prop_name }}: Literal['{{prop_data.value}}'] = Field(...)
+    {%- elif prop_data.type == 'integer' or prop_data.type == 'float' or prop_data.type == 'number' %}
+    {{ prop_name }}: {{type_mappings[prop_data.type]}} = Field(...)
+    {%- elif prop_data.type == 'boolean' %}
+    {{ prop_name }}: bool = Field(...)
+    {%- else %}
+    {{ prop_name }}: any = Field(...)
+    {%- endif %}
+    {%- endfor %}
+{% endmacro %}
+
+{% for name, schema in schemas.items() %}
+{%- if schema.type == 'object' %}
+class {{ name | pascalcase }}(BaseModel):
+    {{- write_properties(schema) }}
+{%- elif schema.type == 'union' %}
+{{ name | pascalcase }} = Union[
+        {%- for variant in schema.variants %}
+        {{ variant | pascalcase }},
+        {%- endfor %}
+    ]
+{%- elif schema.type == 'array' %}
+{% if schema.elements['ref'] is defined %}
+{{ name | pascalcase }} = List[{{ schema.elements.ref | pascalcase }}]
+{% endif %}
+{%- endif %}
+{%- endfor %}

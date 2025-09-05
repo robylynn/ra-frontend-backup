@@ -77,7 +77,7 @@ class DeploymentConfig(BaseModel):
 
 
 # --- Frontend Configuration Table Model (Moved from data_router.py) ---
-class FrontendConfigData(BaseModel):
+class ConfigData(BaseModel):
     """
     Pydantic model for frontend configuration data.
     Define your actual configuration schema here for strong validation.
@@ -88,8 +88,11 @@ class FrontendConfigData(BaseModel):
     """
 
     config_json: Dict[str, Any] = Field(
-        ..., description="The actual JSON object containing frontend UI configurations."
+        ..., description="The actual JSON object containing frontend UI configurations."#, default_factory=dict
     )
+    # io_config_json: Dict[str, Any] = Field(
+    #     ..., description="The actual JSON object containing IO configurations.", default_factory=dict
+    # )
 
 
 # ---------------------------------------------------------------------------------------------------------------------
