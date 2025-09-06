@@ -53,7 +53,7 @@ schemas:
       modules:
         type: array
         elements: {ref: io_module}
-        rack_config: { ref: io_rack_config }
+      rack_config: { ref: io_rack_config }
   
   io_configuration:
     type: array

@@ -36,6 +36,7 @@ class IoRackConfig(BaseModel):
 class IoRack(BaseModel):
     id: str = Field(...)
     modules: List[IoModule] = Field(...)
+    rack_config: IoRackConfig = Field(...)
 
 
 IoConfiguration = List[IoRack]

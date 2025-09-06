@@ -42,7 +42,9 @@ export type ioRackConfigType = z.infer<typeof ioRackConfig>;
 
 export const ioRack = z.object({
     id: z.string(),
-    modules: z.array(ioModule)
+    modules: z.array(ioModule),
+    rack_config: 
+        ioRackConfig
 });
 export type ioRackType = z.infer<typeof ioRack>;
 
