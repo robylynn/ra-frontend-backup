@@ -1,6 +1,10 @@
 # This YAML defines the structure and validation rules for the schema.
 # The Python script will use this to generate code for both TypeScript (Zod) and Python (Pydantic).
 schemas:
+  #############
+  ## UI Schemas
+  #############
+
   jogging_metadata:
     type: object
     properties:
@@ -22,7 +26,7 @@ schemas:
   plot_configuration:
     type: object
     properties:
-      id: { type: string }
+      id: { type: uuid }
       name: { type: string }
       type:
         type: enum
@@ -34,9 +38,9 @@ schemas:
         type: number
         optional: true
 
-  plot_configurations:
-    type: array
-    elements: { ref: plot_configuration }
+  # plot_configurations:
+  #   type: array
+  #   elements: { ref: plot_configuration }
 
   image_metadata:
     type: object
@@ -55,14 +59,6 @@ schemas:
     type: object
     properties:
       source: { type: string }
-
-  # uiComponentSchemaBase:
-  #   type: object
-  #   properties:
-  #     id: { type: uuid }
-  #     label:
-  #       type: string
-  #       validations: { minlength: 1 }
 
   jogging_component:
     type: object
@@ -133,37 +129,119 @@ schemas:
       #     type: { type: literal, value: camera }
       #     metadata: { ref: cameraMetadataSchema }
 
-  ui_config:
+  ui_configuration:
     type: object
     properties:
       theme:
         type: enum
         valid_values: [light, dark, system]
         default: system
-      layout:
-        type: object
-        properties:
-          sidebarEnabled:
-            type: boolean
-            default: true
-          headerHeight:
-            type: number
-            validations: { min: 50, max: 200 }
-            default: 80
+      # layout:
+      #   type: object
+      #   properties:
+      #     sidebarEnabled:
+      #       type: boolean
+      #       default: true
+      #     headerHeight:
+      #       type: number
+      #       validations: { min: 50, max: 200 }
+      #       default: 80
       components:
         type: array
         elements: { ref: ui_component }
         validations: { min_items: 1 }
-      plots: { ref: plot_configurations }
+      # plots: { ref: plot_configurations }
+      plots:
+        type: array
+        elements: { ref: plot_configuration }
       lastUpdated:
         type: string
         validations: { datetime: true }
 
-  ui_config_api_response:
+  # ui_config_api_response:
+  #   type: object
+  #   properties:
+  #     client_id: { type: string }
+  #     config_data: { ref: ui_configuration }
+  #     last_updated:
+  #       type: string
+  #       validations: { datetime: true, precision: 6 }
+  
+  #############
+  ## IO Schemas
+  #############
+  io_point_description:
+    type: object
+    properties:
+      label: { type: string }
+      type:
+        type: enum
+        valid_values: [DI, DO, AI, AO]
+
+  io_point:
+    type: object
+    properties:
+      id: { type: string }
+      point_type: { ref: io_point_description }
+      point_value:
+          type: union
+          variants: [float, boolean]
+
+  io_module_description:
+    type: object
+    properties:
+      name: { type: string }
+      icon: { type: string }
+      points:
+        type: array
+        elements: { ref: io_point_description }
+
+  io_module:
+    type: object
+    properties:
+      id: { type: string }
+      name: { type: string }
+      type: { ref: io_module_description }
+      points:
+        type: array
+        elements: { ref: io_point }
+  
+  io_rack_config:
+    type: object
+    properties:
+      name: { type: string }
+      address: { type: string }
+      max_modules:
+        type: integer
+        validations: { minimum: 1 }
+  
+  io_rack:
+    type: object
+    properties:
+      id: { type: string }
+      modules:
+        type: array
+        elements: {ref: io_module}
+      rack_config: { ref: io_rack_config }
+  
+  io_configuration:
+    type: object
+    
+    properties:
+      racks:
+        type: array
+        elements: {ref: io_rack}
+      lastUpdated:
+        type: string
+        validations: { datetime: true }
+
+  ###################
+  ## Combined Schemas
+  ###################
+
+  full_configuration:
     type: object
     properties:
       client_id: { type: string }
-      config_data: { ref: ui_config }
-      last_updated:
-        type: string
-        validations: { datetime: true, precision: 6 }
+      ui_configuration: { ref: ui_configuration }
+      io_configuration: { ref: io_configuration }

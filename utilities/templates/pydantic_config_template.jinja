@@ -29,7 +29,7 @@ import uuid
     {{ prop_name }}: List[{{ prop_data.elements.ref | pascalcase }}] = Field(...)
     {%- elif prop_data.type == 'union' %}
     {{ prop_name }}: Union[
-        {% for value in prop_data.valid_values -%}
+        {% for value in prop_data.variants -%}
         {{type_mappings[value]}},
         {% endfor -%}
     ]
@@ -63,7 +63,8 @@ class {{ name | pascalcase }}(BaseModel):
     ]
 {%- elif schema.type == 'array' %}
 {% if schema.elements['ref'] is defined %}
-{{ name | pascalcase }} = List[{{ schema.elements.ref | pascalcase }}]
+class {{ name | pascalcase }}(BaseModel):
+    {{schema.elements.ref}}s: List[{{schema.elements.ref | pascalcase}}] = Field(...)
 {% endif %}
 {%- endif %}
 {%- endfor %}

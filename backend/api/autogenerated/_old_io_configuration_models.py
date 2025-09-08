@@ -15,6 +15,8 @@ class IoPoint(BaseModel):
     id: str = Field(...)
     point_type: IoPointDescription = Field(...)
     point_value: Union[
+        float,
+        bool,
         ]
 
 class IoModuleDescription(BaseModel):
@@ -39,4 +41,5 @@ class IoRack(BaseModel):
     rack_config: IoRackConfig = Field(...)
 
 
-IoConfiguration = List[IoRack]
+class IoConfiguration(BaseModel):
+    io_racks: List[IoRack] = Field(...)

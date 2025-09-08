@@ -25,7 +25,8 @@ class PlotConfiguration(BaseModel):
     max_length: float = Field(...)
 
 
-PlotConfigurations = List[PlotConfiguration]
+class PlotConfigurations(BaseModel):
+    plot_configurations: List[PlotConfiguration] = Field(...)
 
 class ImageMetadata(BaseModel):
     src: str = Field(...)

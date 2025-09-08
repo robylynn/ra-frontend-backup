@@ -68,7 +68,7 @@ from api.models import SchemaConfig
 LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
 
 # Schema file path is now relative to the container's root working directory /app/config/schema.yml
-SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "..", "config", "schema.yml")
+SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "..", "config", "database_schema.yml")
 
 
 def load_raw_schema():

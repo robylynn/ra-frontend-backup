@@ -187,31 +187,6 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
                         "ts_type": f"{types['inner_ts']} | undefined",
                     })
 
-        # models.append({
-        #     "name": to_pascal_case(table_name),
-        #     "table_name": table_name,
-        #     "camel_case_name": to_camel_case(table_name),
-        #     "fields": fields
-        # })
-
-        # # --- NEW LOGIC FOR NUMBERED TABLES ---
-        # if "number_of_tables" in table_def:
-        #     for i in range(table_def["number_of_tables"]):
-        #         dynamic_table_name = f"{table_name}_{i}"
-        #         models.append({
-        #             "name": to_pascal_case(table_name), # The name of the Zod model remains the same
-        #             "table_name": dynamic_table_name,   # But the table name in the map is specific
-        #             "camel_case_name": to_camel_case(table_name),
-        #             "fields": fields
-        #         })
-        # else:
-        #     # Original logic for single tables
-        #     models.append({
-        #         "name": to_pascal_case(table_name),
-        #         "table_name": table_name,
-        #         "camel_case_name": to_camel_case(table_name),
-        #         "fields": fields
-        #     })
         # --- ADDED: Logic to populate the two new lists instead ---
         # Create a single model object to generate schema/types
         model_object = {
