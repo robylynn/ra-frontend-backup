@@ -5,8 +5,6 @@
 
 import { useContext, useState } from 'react';
 
-// import { PlotPanel } from '@/app/charts/PlotPanel';
-// import JogPanel from '@/lib/components/tiles/JogPanel';
 import { ComponentMap } from '@/lib/utils/ComponentMap';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
@@ -78,22 +76,6 @@ export default function DashboardMainPanel(props: { className?: string }) {
                     </div>
                 </>
             )}
-
-            {/* <IOPlotPanel
-                id="io_plot"
-                className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                    'io_plot'
-                )}`}
-                fill_tile_callback={setFillTile}
-            />
-
-            <MotionPlotPanel
-                id="motion_plot"
-                className={`peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                    'motion_plot'
-                )}`}
-                fill_tile_callback={setFillTile}
-            /> */}
         </PagePanel>
     );
 }

@@ -1,5 +1,5 @@
 // Frontend Web Application for RA Products
-// Developed by R2 Labs for Seabound Carbon
+// Developed by R2 Labs
 
 import {
     IRosTypeR2CInterfacesAnalogInConfigConst,
@@ -33,24 +33,24 @@ export function createAPIResponse(res: NextAPIResponseInterface) {
     return NextResponse.json(res);
 }
 
-export type LogMessage = {
-    timestamp: Date;
-    message_text: string;
-};
+// export type LogMessage = {
+//     timestamp: Date;
+//     message_text: string;
+// };
 
-export interface DataSourceInterface {
-    data_source_name: string;
-}
+// export interface DataSourceInterface {
+//     data_source_name: string;
+// }
 
-export class DataSource implements DataSourceInterface {
-    data_source_name: string;
+// export class DataSource implements DataSourceInterface {
+//     data_source_name: string;
 
-    constructor(input?: DataSourceInterface) {
-        if (input != undefined) {
-            this.data_source_name = input.data_source_name;
-        }
-    }
-}
+//     constructor(input?: DataSourceInterface) {
+//         if (input != undefined) {
+//             this.data_source_name = input.data_source_name;
+//         }
+//     }
+// }
 
 // export interface PlotConfigurationInterface {
 //     enabled: boolean;

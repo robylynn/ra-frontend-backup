@@ -4,7 +4,7 @@
 import { immerable } from 'immer';
 import ROSLIB from 'roslib';
 
-import { DatabaseMessageArray } from '@/lib/models/database_models';
+// import { DatabaseMessageArray } from '@/lib/models/database_models';
 
 import {
     availableTables,
@@ -879,7 +879,7 @@ export class ApplicationContext {
     [immerable] = true;
 
     // latest_document: DatabaseDocument | null = null;
-    messages: DatabaseMessageArray | null = null;
+    // messages: DatabaseMessageArray | null = null;
     // configuration: UIConfiguration | null = null;
     ui_configuration: uiConfigurationType = null;
     io_configuration: ioConfigurationType = null;
@@ -890,7 +890,7 @@ export class ApplicationContext {
     heartbeat_counter: number = 0;
     database_online: boolean = false;
     // ra_websocket: WebSocket | null = null;
-    ra_ros_websocket: ROSLIB.Ros | null = null;
+    // ra_ros_websocket: ROSLIB.Ros | null = null;
     ros_state: RosState = {
         ros: null,
         connected: false
@@ -919,15 +919,15 @@ export class ApplicationContext {
         // this.latest_document = new DatabaseDocument();
         // this.configuration = new UIConfiguration();
         // this.ui_configuration = null;
-        this.messages = new DatabaseMessageArray();
+        // this.messages = new DatabaseMessageArray();
         // this.io_state = new DatabaseIOStateDocumentArray();
         this.io_configuration_services = new IOConfigurationServices();
         this.io_command_services = new IOCommandServices();
         this.application_state = new ApplicationState();
-        this.ros_state = {
-            ros: null,
-            connected: false,
-        };
+        // this.ros_state = {
+        //     ros: null,
+        //     connected: false,
+        // };
     }
 
     public getIOState(point_type: IOPointType) {

@@ -18,7 +18,6 @@ export default function Dashboard() {
                 </div>
                 <AxisPositionContainer />
                 <DashboardMainPanel className="h-full grow overflow-y-auto" />
-                {/* <MessageContainer className="h-[15%]" /> */}
             </div>
         </ProtectedPage>
     );

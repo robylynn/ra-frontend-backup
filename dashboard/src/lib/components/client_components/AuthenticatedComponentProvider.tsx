@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 
 // Import your authenticated-only providers/components
 import { DataUpdater } from '@/lib/components/client_components/DataUpdater';
-import { IOPointContextProvider } from '@/lib/components/client_components/IOPointContext';
+// import { IOPointContextProvider } from '@/lib/components/client_components/IOPointContext';
 import { RosWebsocket } from '@/lib/components/client_components/RosWebsocketClient';
 import { WebSocketProvider } from '@/lib/components/client_components/WebsocketSubscriptionProvider';
 import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
@@ -40,11 +40,11 @@ export default function AuthenticatedComponentProvider({
         // If not authenticated, just render children (this will be your sign-in/register pages)
         // We don't want to load authenticated providers on unauthenticated routes.
         return (
-            <IOPointContextProvider>
-                {' '}
-                {/* IOPointContext might be needed even unauthenticated, depending on its dependencies */}
-                {children}
-            </IOPointContextProvider>
+            // <IOPointContextProvider>
+            // {' '}
+            //{/* IOPointContext might be needed even unauthenticated, depending on its dependencies */}
+            <>{children}</>
+            //{/* </IOPointContextProvider> */}
         );
     }
 
@@ -57,9 +57,9 @@ export default function AuthenticatedComponentProvider({
                 reconnectInterval={3000}
             />
             {/* This likely depends on WebSocketProvider */}
-            <IOPointContextProvider>
-                {children} {/* Your page content */}
-            </IOPointContextProvider>
+            {/* <IOPointContextProvider> */}
+            {children} {/* Your page content */}
+            {/* </IOPointContextProvider> */}
         </WebSocketProvider>
     );
 }

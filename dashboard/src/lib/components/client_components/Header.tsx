@@ -5,7 +5,7 @@
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
-import { DatabaseDocumentInterface } from '@/lib/models/database_models';
+// import { DatabaseDocumentInterface } from '@/lib/models/database_models';
 import { Icon } from '@blueprintjs/core';
 import { ReactNode, useContext } from 'react';
 
@@ -38,33 +38,10 @@ function RoundedContainer(props: { className?: string; children?: ReactNode }) {
 }
 
 export default function Header(props: {
-    data_sample?: DatabaseDocumentInterface;
+    // data_sample?: DatabaseDocumentInterface;
     className?: string;
 }) {
     const { dashboardContext: context } = useContext(DashboardContext);
-
-    // const send_estop_command = async (endpoint_slug: string) => {
-    //   const backend_response = await fetch(
-    //     `/api/command/estop/${endpoint_slug}`,
-    //     {
-    //       method: "POST",
-    //     },
-    //   ).then((res) => res.json());
-
-    //   console.log(backend_response);
-    // };
-
-    // const send_override_alarm_command = async (value: boolean) => {
-    //   console.log("Overriding global alarms");
-    //   const backend_response = await fetch(
-    //     `/api/command/alarm/global/override?enable=${value}`,
-    //     {
-    //       method: "POST",
-    //     },
-    //   ).then((res) => res.json());
-
-    //   console.log(backend_response);
-    // };
 
     return (
         <PagePanel
