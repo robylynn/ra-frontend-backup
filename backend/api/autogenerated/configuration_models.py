@@ -70,7 +70,7 @@ class UiConfiguration(BaseModel):
     theme: Literal['light','dark','system'] = 'system'
     components: List[UiComponent] = Field(...)
     plots: List[PlotConfiguration] = Field(...)
-    lastUpdated: str = Field(...)
+    last_updated: str = Field(...)
 
 class IoPointDescription(BaseModel):
     label: str = Field(...)
@@ -107,9 +107,27 @@ class IoRack(BaseModel):
 
 class IoConfiguration(BaseModel):
     racks: List[IoRack] = Field(...)
-    lastUpdated: str = Field(...)
+    last_updated: str = Field(...)
+
+class OpcDataPoint(BaseModel):
+    id: str = Field(...)
+    name: str = Field(...)
+    node_id: str = Field(...)
+    is_writable: bool = Field(...)
+
+class OpcSubscriptionGroup(BaseModel):
+    id: str = Field(...)
+    name: str = Field(...)
+    endpoint: str = Field(...)
+    interval: int = Field(...)
+    data_points: List[OpcDataPoint] = Field(...)
+
+class OpcConfiguration(BaseModel):
+    subscription_groups: List[OpcSubscriptionGroup] = Field(...)
+    last_updated: str = Field(...)
 
 class FullConfiguration(BaseModel):
     client_id: str = Field(...)
     ui_configuration: UiConfiguration = Field(...)
     io_configuration: IoConfiguration = Field(...)
+    opc_configuration: OpcConfiguration = Field(...)

@@ -89,7 +89,7 @@ export const uiConfiguration = z.object({
     theme: z.enum(['light','dark','system']),
     components: z.array(uiComponent).min(1),
     plots: z.array(plotConfiguration),
-    lastUpdated: z.string().datetime()
+    last_updated: z.string().datetime()
 });
 export type uiConfigurationType = z.infer<typeof uiConfiguration>;
 
@@ -141,15 +141,40 @@ export type ioRackType = z.infer<typeof ioRack>;
 
 export const ioConfiguration = z.object({
     racks: z.array(ioRack),
-    lastUpdated: z.string().datetime()
+    last_updated: z.string().datetime()
 });
 export type ioConfigurationType = z.infer<typeof ioConfiguration>;
+
+export const opcDataPoint = z.object({
+    id: z.string(),
+    name: z.string(),
+    node_id: z.string(),
+    is_writable: z.boolean()
+});
+export type opcDataPointType = z.infer<typeof opcDataPoint>;
+
+export const opcSubscriptionGroup = z.object({
+    id: z.string(),
+    name: z.string(),
+    endpoint: z.string(),
+    interval: z.any(),
+    data_points: z.array(opcDataPoint)
+});
+export type opcSubscriptionGroupType = z.infer<typeof opcSubscriptionGroup>;
+
+export const opcConfiguration = z.object({
+    subscription_groups: z.array(opcSubscriptionGroup),
+    last_updated: z.string().datetime()
+});
+export type opcConfigurationType = z.infer<typeof opcConfiguration>;
 
 export const fullConfiguration = z.object({
     client_id: z.string(),
     ui_configuration: 
         uiConfiguration,
     io_configuration: 
-        ioConfiguration
+        ioConfiguration,
+    opc_configuration: 
+        opcConfiguration
 });
 export type fullConfigurationType = z.infer<typeof fullConfiguration>;

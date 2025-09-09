@@ -238,7 +238,7 @@ const ModuleModal: React.FC<ModuleModalProps> = ({
                     e.preventDefault();
                     handleSave();
                 }}
-                className='flex flex-col h-full'
+                className="flex flex-col h-full"
             >
                 <div className="mb-4">
                     <label className="block text-gray-700 font-semibold mb-1">
@@ -653,11 +653,17 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
 };
 
 const ExportModal = ({ isOpen, onClose, configuration }) => {
+    const { showAlert } = useAlert();
+
     if (!isOpen) return null;
     const exportText = JSON.stringify(configuration, null, 2);
 
     const handleCopyToClipboard = () => {
-        navigator.clipboard.writeText(exportText);
+        if (!navigator.clipboard) {
+            showAlert('Clipboard API not available, copy manually', 'warning');
+        } else {
+            navigator.clipboard.writeText(exportText);
+        }
     };
 
     return (
@@ -837,7 +843,7 @@ export const IOConfigurationComponent: React.FC = () => {
         try {
             const configuration: ioConfigurationType = {
                 racks: racks,
-                lastUpdated: new Date().toISOString(),
+                last_updated: new Date().toISOString(),
             };
             fetchFromBackendApi(
                 `/api/backend/ui/io_config/${'abc'}`,
@@ -1033,6 +1039,7 @@ export const IOConfigurationComponent: React.FC = () => {
                         handleDragEnd={handleDragEnd}
                     />
                 ))}
+
                 <ModuleModal
                     isOpen={!!currentModule}
                     onClose={() => setEditingModule(null)}

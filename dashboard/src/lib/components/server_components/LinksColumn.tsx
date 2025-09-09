@@ -85,7 +85,7 @@ export default async function LinksColumn(props: { className?: string }) {
         `}
         >
             {/* Top section: Logo and User/Auth tab */}
-            <div className="flex flex-col items-center space-y-4">
+            <div className="flex flex-col h-full items-center space-y-4">
                 <div
                     className={`flex flex-row items-center justify-center w-full mb-4 px-2
                     ${props.className ?? ''}
@@ -126,7 +126,7 @@ export default async function LinksColumn(props: { className?: string }) {
 
                 {/* Authenticated Navigation Links */}
                 {session != null ? (
-                    <nav className="flex flex-col items-center w-full space-y-2">
+                    <nav className="flex flex-col items-center w-full space-y-2 flex-grow overflow-y-auto">
                         <PageTab
                             tab_text={'Dashboard'}
                             icon_path={'/icons/dashboard-gauge.svg'}
@@ -156,6 +156,11 @@ export default async function LinksColumn(props: { className?: string }) {
                             tab_text={'Diagnostics'}
                             icon_path={'/icons/stethoscope.svg'}
                             href={'/diagnostics'}
+                        />
+                        <PageTab
+                            tab_text={'OPC-UA'}
+                            icon_path={'/icons/globe.svg'}
+                            href={'/opc'}
                         />
                         <PageTab
                             tab_text={'IO Configuration'}

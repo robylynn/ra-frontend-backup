@@ -36,7 +36,7 @@ export default function RootLayout({
                             <AuthenticatedComponentProvider>
                                 <div className="flex flex-col w-screen h-screen bg-no-repeat bg-cover dark:bg-dark-background-image/50 dark:bg-zinc-700 dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-sky-900/50 overflow-clip">
                                     <div className="grid grid-cols-[15%_85%] grid-rows-1 h-[75%] grow w-full">
-                                        <div className="h-full">
+                                        <div className="flex flex-grow h-full">
                                             {/* LinksColumn should ideally only show authenticated links when authenticated */}
                                             <LinksColumn />
                                         </div>

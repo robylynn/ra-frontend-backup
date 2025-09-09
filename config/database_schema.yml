@@ -50,6 +50,15 @@ tables:
       last_updated: TIMESTAMPTZ NOT NULL
     hypertable_column: null # Not used for hypertable creation for this table
   
+  opc_configs: # For OPC configurations
+    columns:
+      client_id: TEXT NOT NULL UNIQUE
+      config_data: JSONB
+      # io_config: JSONB
+      # chart_configuration: JSONB
+      last_updated: TIMESTAMPTZ NOT NULL
+    hypertable_column: null # Not used for hypertable creation for this table
+
   # configurations: # For IO configurations
   #   columns:
   #     client_id: TEXT NOT NULL UNIQUE

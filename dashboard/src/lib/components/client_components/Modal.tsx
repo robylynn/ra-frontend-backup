@@ -40,14 +40,15 @@ export const Modal: React.FC<ModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg max-h-[80vh] flex flex-col overflow-y-auto">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-2xl font-bold text-gray-800">
+            {/* <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg max-h-[80vh] flex flex-col overflow-y-auto"> */}
+            <div className="bg-gray-800 text-white rounded-xl shadow-xl p-6 w-full max-w-lg max-h-[80vh] flex flex-col overflow-y-auto">
+                <div className="flex justify-between items-center mb-4 border-b border-gray-700">
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                         {modalTitle}
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-500 hover:text-gray-800"
+                        className="p-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
                     >
                         <CloseIcon />
                     </button>

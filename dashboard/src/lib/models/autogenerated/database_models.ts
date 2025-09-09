@@ -64,6 +64,15 @@ export const ioConfigsBatchSchema = z.array(ioConfigsSchema)
 export type ioConfigs = z.infer<typeof ioConfigsSchema>
 export type ioConfigsBatch = z.infer<typeof ioConfigsBatchSchema>
 
+export const opcConfigsSchema = z.object({
+client_id: z.string(),
+config_data: z.record(z.string(), z.unknown()).optional(),
+last_updated: z.string().datetime(),
+});
+export const opcConfigsBatchSchema = z.array(opcConfigsSchema)
+export type opcConfigs = z.infer<typeof opcConfigsSchema>
+export type opcConfigsBatch = z.infer<typeof opcConfigsBatchSchema>
+
 export const usersSchema = z.object({
 user_id: z.any(),
 username: z.string(),
@@ -263,6 +272,7 @@ projectMetricsBatchSchema,
 userActivityBatchSchema,
 frontendConfigsBatchSchema,
 ioConfigsBatchSchema,
+opcConfigsBatchSchema,
 usersBatchSchema,
 realtimeSysStateBatchSchema,
 analogInConfigBatchSchema,
@@ -315,6 +325,12 @@ last_updated: string;
 }
 
 export interface IIoConfigs {
+client_id: string;
+config_data: Record<string, unknown> | undefined;
+last_updated: string;
+}
+
+export interface IOpcConfigs {
 client_id: string;
 config_data: Record<string, unknown> | undefined;
 last_updated: string;
@@ -487,6 +503,7 @@ project_metrics: projectMetricsBatchSchema,
 user_activity: userActivityBatchSchema,
 frontend_configs: frontendConfigsBatchSchema,
 io_configs: ioConfigsBatchSchema,
+opc_configs: opcConfigsBatchSchema,
 users: usersBatchSchema,
 realtime_sys_state: realtimeSysStateBatchSchema,
 analog_in_config: analogInConfigBatchSchema,

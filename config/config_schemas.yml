@@ -154,7 +154,7 @@ schemas:
       plots:
         type: array
         elements: { ref: plot_configuration }
-      lastUpdated:
+      last_updated:
         type: string
         validations: { datetime: true }
 
@@ -231,7 +231,39 @@ schemas:
       racks:
         type: array
         elements: {ref: io_rack}
-      lastUpdated:
+      last_updated:
+        type: string
+        validations: { datetime: true }
+
+  ##############
+  ## OPC Schemas
+  ##############
+  opc_data_point:
+    type: object
+    properties:
+      id: { type: string }
+      name: { type: string }
+      node_id: { type: string }
+      is_writable: { type: boolean }
+  
+  opc_subscription_group:
+    type: object
+    properties:
+      id: { type: string }
+      name: { type: string }
+      endpoint: { type: string }
+      interval: { type: integer }
+      data_points:
+        type: array
+        elements: { ref: opc_data_point }
+  
+  opc_configuration:
+    type: object
+    properties:
+      subscription_groups:
+        type: array
+        elements: { ref: opc_subscription_group }
+      last_updated:
         type: string
         validations: { datetime: true }
 
@@ -245,3 +277,4 @@ schemas:
       client_id: { type: string }
       ui_configuration: { ref: ui_configuration }
       io_configuration: { ref: io_configuration }
+      opc_configuration: { ref: opc_configuration }
