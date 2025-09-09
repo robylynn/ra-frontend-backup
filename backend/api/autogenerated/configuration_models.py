@@ -24,6 +24,10 @@ class PlotConfiguration(BaseModel):
     traces: List[ChartTraceMetadata] = Field(...)
     max_length: float = Field(...)
 
+
+class PlotConfigurations(BaseModel):
+    plot_configurations: List[PlotConfiguration] = Field(...)
+
 class ImageMetadata(BaseModel):
     src: str = Field(...)
     altText: str = Field(...)

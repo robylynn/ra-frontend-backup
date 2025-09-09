@@ -38,9 +38,9 @@ schemas:
         type: number
         optional: true
 
-  # plot_configurations:
-  #   type: array
-  #   elements: { ref: plot_configuration }
+  plot_configurations:
+    type: array
+    elements: { ref: plot_configuration }
 
   image_metadata:
     type: object

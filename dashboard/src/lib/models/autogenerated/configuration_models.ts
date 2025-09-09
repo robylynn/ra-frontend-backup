@@ -25,6 +25,10 @@ export const plotConfiguration = z.object({
 });
 export type plotConfigurationType = z.infer<typeof plotConfiguration>;
 
+export const plotConfigurations = z.array(plotConfiguration);
+
+export type plotConfigurationsType = z.infer<typeof plotConfigurations>;
+
 export const imageMetadata = z.object({
     src: z.string().url(),
     altText: z.string().min(1),

@@ -323,79 +323,6 @@ async def save_frontend_config(
     )
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
     return await _save_config("frontend_configs", client_id=client_id, config_data=config_payload, model=UiConfiguration, local_db_pool=local_db_pool)
-    
-    # local_db_pool: AsyncpgPool = request.app.state.local_db_pool
-    # configurations_table_name = "configurations"  # Hardcoded table name for UI configurations
-    # # io_config_table_name = "io_config"
-
-    # if LOADED_RAW_SCHEMA is None or configurations_table_name not in LOADED_RAW_SCHEMA.tables:
-    #     logger.critical(
-    #         f"Configurations table '{configurations_table_name}' not defined in schema.yml. Cannot save config."
-    #     )
-    #     raise HTTPException(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         detail=ApiResponse(
-    #             success=False,
-    #             message=f"Internal server error: '{configurations_table_name}' table schema not found. Ensure schema.yml is updated.",
-    #         ).model_dump(),
-    #     )
-
-    # # SQL for upsert: INSERT if not exists, UPDATE if exists
-    # # Requires client_id to be a UNIQUE constraint in the table schema
-    # upsert_sql = f"""
-    #     INSERT INTO {configurations_table_name} (client_id, config_data, last_updated)
-    #     VALUES ($1, $2, $3)
-    #     ON CONFLICT (client_id) DO UPDATE
-    #     SET config_data = EXCLUDED.config_data,
-    #         last_updated = EXCLUDED.last_updated;
-    # """
-
-    # try:
-    #     # current_time = datetime.utcnow()
-    #     current_time = datetime.now(timezone.utc)
-    #     # NEW: Serialize the config_payload.config_json (which is a dict) to a JSON string
-    #     json_data_to_store = json.dumps(config_payload.config_json)
-    #     await local_db_pool.execute(
-    #         upsert_sql, client_id, json_data_to_store, current_time
-    #     )  # Pass serialized string
-
-    #     logger.info(
-    #         f"Successfully saved/updated frontend configuration for client '{client_id}'."
-    #     )
-    #     return ApiResponse(
-    #         success=True,
-    #         message=f"Configuration for client '{client_id}' saved successfully.",
-    #         data={
-    #             "client_id": client_id,
-    #             "config_data_saved": config_payload.config_json,
-    #             "last_updated": current_time.isoformat().replace("+00:00", "Z"),
-    #         },
-    #     )
-    # except ValidationError as e:
-    #     logger.error(
-    #         f"Validation error saving frontend config for client '{client_id}': {e.errors()}",
-    #         exc_info=True,
-    #     )
-    #     raise HTTPException(
-    #         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-    #         detail=ApiResponse(
-    #             success=False,
-    #             message="Invalid configuration data provided.",
-    #             data={"errors": e.errors()},
-    #         ).model_dump(),
-    #     )
-    # except Exception as e:
-    #     # NEW: Convert config_payload.config_json to string for logging to avoid f-string error
-    #     logger.error(
-    #         f"Unexpected error saving frontend configuration for client '{client_id}' with payload {str(config_payload.config_json)}: {e}",
-    #         exc_info=True,
-    #     )
-    #     raise HTTPException(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         detail=ApiResponse(
-    #             success=False, message=f"An unexpected error occurred: {e}"
-    #         ).model_dump(),
-    #     )
 
 @ui_router.post(
     "/io_config/{client_id}",
@@ -410,20 +337,8 @@ async def save_io_config(
         f"Attempting to save/update IO configuration for client: '{client_id}'."
     )
 
-    # config_data = IoConfiguration.model_validate(config_payload)
-
     local_db_pool: AsyncpgPool = request.app.state.local_db_pool
     return await _save_config("io_configs", client_id=client_id, model=IoConfiguration, config_data=config_payload, local_db_pool=local_db_pool)
-    
-    # return ApiResponse(
-    #     success=True,
-    #     message=f"IO configuration for client '{client_id}' saved successfully.",
-    #     data={
-    #         "client_id": client_id,
-    #         "config_data_saved": config_payload.config_json,
-    #         "last_updated": datetime.now().isoformat().replace("+00:00", "Z"),
-    #     },
-    # )
 
 T = TypeVar('T', bound=BaseModel)
 async def _get_config(table_name: str, client_id: str, model: T, local_db_pool: AsyncpgPool) -> T:

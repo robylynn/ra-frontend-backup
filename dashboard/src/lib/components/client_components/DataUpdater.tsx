@@ -227,11 +227,11 @@ export const DataUpdater = () => {
                 console.error(`Final error loading configurations: ${err}`);
             } finally {
                 setDashboardContext({
-                    payload: { configuration: uiConfigToSet },
+                    payload: uiConfigToSet,
                     type: 'ui_config/set',
                 });
                 setDashboardContext({
-                    payload: { configuration: ioConfigToSet },
+                    payload: ioConfigToSet,
                     type: 'io_config/set',
                 });
                 // if (message) {
