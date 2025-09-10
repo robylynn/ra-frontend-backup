@@ -3,7 +3,7 @@
 
 development:
   enable_cloud_db: false # Set to true to enable cloud sync for development
-  local_db_url: postgresql://user:password@localhost:5432/metrics_db_dev
+  local_db_url: postgresql://user:password@localhost:5432/rac_db_dev
   cloud_dbs:
     - name: dev_cloud_primary
       url: postgresql://dev_user:dev_password@dev-cloud-host-1:5432/dev_db_1

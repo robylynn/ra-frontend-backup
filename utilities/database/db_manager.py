@@ -97,10 +97,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 # Adjust sys.path to include the 'backend' directory for importing 'api' modules
-# Assuming this script is in 'backend/utilities/'
+# Assuming this script is in 'backend/utilities/database'
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(
-    current_dir, ".."
+    current_dir, "..", ".."
 )  # Go up one level from 'utilities' to 'backend'
 sys.path.insert(0, project_root)
 
@@ -111,8 +111,6 @@ from backend.api.models import (
     CloudDbInstance,
 )
 from backend.api.schema_models import load_raw_schema, LOADED_RAW_SCHEMA
-from backend.api.models import FrontendConfigData
-
 
 # --- Global Config for DB Manager ---
 DB_CONFIG_FILE_PATH = os.path.join(

@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: FastAPI (Run outside Docker)",
+            "name": "Python: FastAPI Backend (Run outside Docker)",
             "type": "debugpy",
             "request": "launch",
             "module": "backend.api.main", // Runs the __main__.py in the 'api' package
@@ -17,20 +17,6 @@
             // "args": [
             //     "--reload" 
             // ]
-        },
-        {
-            "name": "Host Services API",
-            "type": "python",
-            "request": "launch",
-            "module": "host_services",
-            "justMyCode": false,
-            "env": {
-                // "CONFIG_FILE_DIR": "${workspaceFolder}/config",
-                "HOST_SERVICES_PORT": "8001",
-                "CONTAINERIZED": "false",
-                // "CONFIG_FILE": "system_configuration.yaml",
-                // "PYTHONPATH": "${workspaceFolder}/backend",
-            }
         },
         {
             "name": "Next.js: debug server-side frontend app",
@@ -51,6 +37,20 @@
             "outFiles": [
                 "${workspaceFolder}/.next/server/**/*.js"
             ],
+        },
+        {
+            "name": "Host Services API",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "host_services",
+            "justMyCode": false,
+            "env": {
+                // "CONFIG_FILE_DIR": "${workspaceFolder}/config",
+                "HOST_SERVICES_PORT": "8001",
+                "CONTAINERIZED": "false",
+                // "CONFIG_FILE": "system_configuration.yaml",
+                // "PYTHONPATH": "${workspaceFolder}/backend",
+            }
         },
     ]
 }
