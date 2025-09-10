@@ -213,6 +213,10 @@ export default function DashboardContextProvider(props: {
                         action.payload.ros_application_services;
                     state.axis_command_services =
                         action.payload.ros_axis_command_services;
+                    state.camera_services =
+                        action.payload.ros_camera_command_services;
+                    state.ai_trainig_services =
+                        action.payload.ros_ai_training_command_services;
                     return state;
                 })
                 .addCase(setAnalogInDataAction, (state, action) => {

@@ -4,21 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        // {
-        //     "name": "Python Backend",
-        //     "type": "python",
-        //     "request": "launch",
-        //     "module": "backend",
-        //     "justMyCode": false,
-        //     "env": {
-        //         "CONFIG_FILE_DIR": "${workspaceFolder}/config",
-        //         "CONTAINERIZED": "false",
-        //         "CONFIG_FILE": "system_configuration.yaml",
-        //         "PYTHONPATH": "${workspaceFolder}/backend",
-        //         "HOST_SERVICES_API_PORT": "8001",
-        //         "SIMULATE_WIFI_CONNECTIONS": "false"
-        //     }
-        // },
         {
             "name": "Python: FastAPI (Run outside Docker)",
             "type": "debugpy",
@@ -67,57 +52,5 @@
                 "${workspaceFolder}/.next/server/**/*.js"
             ],
         },
-        {
-            "name": "Next.js: New debug server-side frontend app",
-            "type": "node",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/dashboard",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "dev"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "env": {
-                "NODE_OPTIONS": "--inspect=9230" // Changed port here
-            }
-        },
-        {
-            "name": "Next.js: Node (Server-side)",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "yarn", // Changed from "npm" to "yarn"
-            "runtimeArgs": [
-              "dev" // Assumes your package.json has a "dev" script, e.g., "dev": "next dev"
-            ],
-            "console": "integratedTerminal",
-            "stopOnEntry": false,
-            "cwd": "${workspaceFolder}/dashboard",
-            "skipFiles": [
-              "<node_internals>/**"
-            ],
-            "outputCapture": "std",
-            "env": {
-              "NODE_OPTIONS": "--inspect"
-            }
-          },
-        {
-            "name": "Next.js: start server-side frontend app",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "yarn start",
-            "cwd": "${workspaceFolder}/dashboard",
-            "serverReadyAction": {
-                "pattern": "started server on .+, url: (https?://.+)",
-                "uriFormat": "%s",
-                // "action": "debugWithChrome"
-            },
-            "outFiles": [
-                "${workspaceFolder}/.next/server/**/*.js"
-            ],
-        }
     ]
 }
