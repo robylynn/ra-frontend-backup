@@ -8,12 +8,11 @@ from fastapi import APIRouter, HTTPException, Request, status, Depends
 from asyncpg.pool import Pool as AsyncpgPool
 from loguru import logger
 
-from api.models import ApiResponse
 from api.schema_models import LOADED_RAW_SCHEMA
+from common_models.models import ApiResponse
 
 # Create an API Router for status and meta-information endpoints
 status_router = APIRouter(
-    prefix="/status",  # Keep prefix for consistent routing
     tags=["Status & Meta-Information"],  # CHANGED: Tag name
     responses={404: {"description": "Not found"}},
 )

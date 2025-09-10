@@ -4,10 +4,12 @@
 'use client';
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
-import { AxisServiceType, IOPointType } from '@/lib/models/api_models';
+import { AITrainingServiceType, AxisServiceType, CameraServiceType, IOPointType } from '@/lib/models/api_models';
 import {
+    AITrainingCommandServices,
     ApplicationServices,
     AxisCommandServices,
+    CameraCommandServices,
     IOCommandServices,
     IOConfigurationServices,
 } from '@/lib/models/dashboard_context';
@@ -131,15 +133,75 @@ function initializeIOCommandServices(
     return io_state_services;
 }
 
+function initializeCameraServices(
+    ros_websocket: ROSLIB.Ros
+): CameraCommandServices {
+    const camera_start_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/camera/start_stream',
+        serviceType: 'r2c_interfaces/ConfigureCameraStream',
+    });
+
+    const camera_stop_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/camera/stop_stream',
+        serviceType: 'r2c_interfaces/ConfigureCameraStream',
+    });
+
+    const camera_detect_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/camera/detect_cameras',
+        serviceType: 'r2c_interfaces/DetectCameras',
+    });
+
+    const camera_enable_ai_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/camera/enable_ai',
+        serviceType: 'r2c_interfaces/ToggleAI',
+    });
+
+    const camera_services = new CameraCommandServices();
+    camera_services.set_service(
+        CameraServiceType.START_STREAM,
+        camera_start_service
+    );
+    camera_services.set_service(
+        CameraServiceType.STOP_STREAM,
+        camera_stop_service
+    );
+    camera_services.set_service(
+        CameraServiceType.DETECT_CAMERAS,
+        camera_detect_service
+    );
+    camera_services.set_service(
+        CameraServiceType.ENABLE_AI,
+        camera_enable_ai_service
+    );
+
+    return camera_services;
+}
+
+function initializeAITrainingServices(
+    ros_websocket: ROSLIB.Ros
+): AITrainingCommandServices {
+    const ai_start_training_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/ai/train',
+        serviceType: 'r2c_interfaces/ConfigureAITraining',
+    });
+
+    const ai_training_services = new AITrainingCommandServices();
+    ai_training_services.set_service(
+        AITrainingServiceType.START_TRAINING,
+        ai_start_training_service
+    );
+
+    return ai_training_services;
+}
+
 function initializeApplicationServices(
     ros_websocket: ROSLIB.Ros
 ): ApplicationServices {
-    // const endpoint_string_service = new ROSLIB.Service({
-    //     ros: ros_websocket,
-    //     name: '/app/set_endpoint',
-    //     serviceType: 'r2c_interfaces/SetApplicationString',
-    // });
-
     const application_state_service = new ROSLIB.Service({
         ros: ros_websocket,
         name: '/app/set_state',
@@ -232,6 +294,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
         io_state_services: IOCommandServices,
         application_services: ApplicationServices,
         axis_command_services: AxisCommandServices,
+        camera_services: CameraCommandServices,
         connected?: boolean
     ) => {
         setDashboardContext({
@@ -240,6 +303,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                 ros_io_state_services: io_state_services,
                 ros_application_services: application_services,
                 ros_axis_command_services: axis_command_services,
+                ros_camera_services: camera_services,
                 // ra_ros_websocket: ros.current,
                 ros_state: {
                     ros: ros.current,
@@ -480,6 +544,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                                 initializeIOCommandServices(ros.current),
                                 initializeApplicationServices(ros.current),
                                 initializeAxisServices(ros.current),
+                                initializeCameraServices(ros.current),
                                 true
                             );
                         } else {

@@ -40,6 +40,8 @@ module.exports = {
         "r2-dark-background-300": "#434751",
         "r2-dark-background-400": "#333944",
         "r2-dark-background-500": "#262A37",
+        "r2-dark-modal-subtext": "oklch(87.2% 0.01 258.338)",
+        "r2-dark-modal-header": "oklch(96.7% 0.003 264.542)"
       },
       keyframes: {
         spin: {

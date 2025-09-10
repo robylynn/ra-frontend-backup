@@ -27,9 +27,10 @@ export default function ConnectionStateIndicator(props: {
     }, []);
 
     const connected_color = session ? 'bg-r2-green-500' : 'bg-r2-red-300';
-    const connection_text = session ? `APPLICATION SERVER ONLINE` : 'NOT LOGGED IN';
+    const connection_text = session
+        ? `APPLICATION SERVER ONLINE`
+        : 'NOT LOGGED IN';
 
-    let x = dashboardContext;
     const websocketText = useCallback(() => {
         const websocket_connected = dashboardContext?.ros_state?.connected
             ? true
@@ -37,28 +38,11 @@ export default function ConnectionStateIndicator(props: {
         return websocket_connected
             ? 'CONNECTED TO ROS'
             : 'WAITING FOR ROS BACKEND';
-    }, [dashboardContext])
+    }, [dashboardContext]);
 
     const websocketConnected = useCallback(() => {
         return dashboardContext?.ros_state?.connected ? true : false;
-    }, [dashboardContext])
-
-    // const websocket_text = () => {
-    //     const websocket_connected = dashboardContext?.ros_state?.connected
-    //         ? true
-    //         : false;
-    //     const text = websocket_connected
-    //         ? 'WEBSOCKET CONNECTED'
-    //         : 'WAITING FOR WEBSOCKET';
-
-    //     return (
-    //         <p
-    //             className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocket_connected ? 'bg-r2-green-500' : 'bg-r2-red-300'}`}
-    //         >
-    //             {text}
-    //         </p>
-    //     );
-    // };
+    }, [dashboardContext]);
 
     return (
         <div
@@ -66,12 +50,15 @@ export default function ConnectionStateIndicator(props: {
                 props.className ?? ''
             }`}
         >
-            {/* {websocket_text()} */}
-            <p
-                className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocketConnected() ? 'bg-r2-green-500' : 'bg-r2-red-300'}`}
-            >
-                {websocketText()}
-            </p>
+            {session ? (
+                <p
+                    className={`py-0 m-0 mx-2 font-bold text-center rounded-md text-r2-white ${websocketConnected() ? 'bg-r2-green-500' : 'bg-r2-red-300'}`}
+                >
+                    {websocketText()}
+                </p>
+            ) : (
+                <p></p>
+            )}
             <p
                 className={`px-2 text-center text-r2-white font-bold rounded-md py-0 m-0 ${connected_color}`}
             >

@@ -62,13 +62,13 @@ from typing import Dict, Any, Optional
 from loguru import logger  # Keep logger import, but remove configuration here
 
 # Import the new Pydantic model for schema configuration
-from api.models import SchemaConfig
+from backend.api.models import SchemaConfig
 
 # LOADED_RAW_SCHEMA will now be an instance of SchemaConfig
 LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
 
 # Schema file path is now relative to the container's root working directory /app/config/schema.yml
-SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "..", "config", "database_schema.yml")
+SCHEMA_FILE_PATH = os.path.join(os.getcwd(), "config", "database_schema.yml")
 
 
 def load_raw_schema():

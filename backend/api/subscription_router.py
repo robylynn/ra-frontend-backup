@@ -7,14 +7,13 @@ import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, status, Query
 from loguru import logger
 
-from api.data_router import _fetch_historical_data  # Reusing the existing helper
-from api.schema_models import (
+from backend.api.data_router import _fetch_historical_data  # Reusing the existing helper
+from backend.api.schema_models import (
     LOADED_RAW_SCHEMA,
 )  # To get table names for historical data
 
 # Create a new API Router for ZeroMQ-like WebSocket streaming
 subscription_router = APIRouter(
-    prefix="/zmq_database",
     tags=["ZeroMQ-like WebSockets"],
     responses={404: {"description": "Not found"}},
 )
@@ -204,7 +203,7 @@ class SubscriptionManager:
 
 
 # --- WebSocket Endpoint for ZeroMQ-like streaming ---
-@subscription_router.websocket("/ws/zmq_stream")
+@subscription_router.websocket("/ws")
 async def websocket_zmq_stream(websocket: WebSocket):
     """
     WebSocket endpoint for ZeroMQ-like subscription streaming.

@@ -12,7 +12,7 @@ export default function StateReadout(props: { className?: string }) {
     const { dashboardContext } = useContext(DashboardContext);
 
     return (
-        <div>
+        <div className='flex-none'>
             <p
                 className={`text-center font-bold m-2 p-2 dark:bg-green-400 bg-red-400 rounded-xl ${
                     props.className ?? ''

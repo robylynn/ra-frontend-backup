@@ -5,6 +5,8 @@ import { DashboardContext } from '@/lib/components/client_components/DashboardCo
 import {
     DownloadIcon,
     GripIcon,
+    InputIcon,
+    OutputIcon,
     PlusIcon,
     PlusSquareIcon,
     RobotIcon,
@@ -29,42 +31,6 @@ import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-const InputIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-arrow-down-to-dot"
-    >
-        <path d="M12 2v14" />
-        <path d="m15 13-3 3-3-3" />
-        <circle cx="12" cy="21" r="1" />
-    </svg>
-);
-const OutputIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-arrow-up-to-dot"
-    >
-        <path d="M12 16V2" />
-        <path d="m15 5-3-3-3 3" />
-        <circle cx="12" cy="21" r="1" />
-    </svg>
-);
 const SignalIcon = () => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -233,63 +199,65 @@ const ModuleModal: React.FC<ModuleModalProps> = ({
 
     return (
         <Modal onClose={onClose} isOpen={isOpen} modalTitle="Configure Module">
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSave();
-                }}
-                className="flex flex-col h-full"
-            >
-                <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">
-                        Module Name:
-                    </label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">
-                        Module Type:
-                    </label>
-                    <select
-                        value={formData.type.name}
-                        onChange={handleTypeChange}
-                        className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {ioModuleTypes.map((type) => (
-                            <option key={type.name} value={type.name}>
-                                {type.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <h4 className="text-lg font-bold text-gray-800 mt-6 mb-2">
-                    I/O Points
-                </h4>
-                <div className="space-y-2 flex-grow overflow-y-scroll">
-                    {formData.points.map((point) => (
-                        <IOPointComponent
-                            key={point.id}
-                            point={point}
-                            onUpdateValue={handleUpdatePointValue}
-                            // onUpdateValue={() => {}}
+            <div className="flex-grow">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSave();
+                    }}
+                    className="flex flex-col "
+                >
+                    <div className="mb-4">
+                        <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                            Module Name:
+                        </label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                    ))}
-                </div>
-                <div className="flex justify-end mt-6">
-                    <button
-                        type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
-                    >
-                        Save Changes
-                    </button>
-                </div>
-            </form>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                            Module Type:
+                        </label>
+                        <select
+                            value={formData.type.name}
+                            onChange={handleTypeChange}
+                            className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            {ioModuleTypes.map((type) => (
+                                <option key={type.name} value={type.name}>
+                                    {type.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <h4 className="text-lg font-bold text-r2-dark-modal-subtext-header mt-6 mb-2">
+                        I/O Points
+                    </h4>
+                    <div className="space-y-2 flex-grow overflow-y-scroll">
+                        {formData.points.map((point) => (
+                            <IOPointComponent
+                                key={point.id}
+                                point={point}
+                                onUpdateValue={handleUpdatePointValue}
+                                // onUpdateValue={() => {}}
+                            />
+                        ))}
+                    </div>
+                    <div className="flex justify-end mt-6">
+                        <button
+                            type="submit"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
         </Modal>
     );
 };
@@ -341,7 +309,7 @@ const RackModal: React.FC<RackModalProps> = ({
                 }}
             >
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">
+                    <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
                         Rack Name:
                     </label>
                     <input
@@ -353,7 +321,7 @@ const RackModal: React.FC<RackModalProps> = ({
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">
+                    <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
                         Address:
                     </label>
                     <input
@@ -365,7 +333,7 @@ const RackModal: React.FC<RackModalProps> = ({
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-1">
+                    <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
                         Max Modules:
                     </label>
                     <input
@@ -630,7 +598,7 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
             modalTitle="Import IO Configuration"
         >
             <>
-                <p className="mb-4 text-gray-700">
+                <p className="mb-4 text-r2-dark-modal-subtext">
                     Paste your exported JSON here to import IO configuration.
                 </p>
                 <textarea
@@ -642,7 +610,7 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
                 <div className="flex justify-end mt-4">
                     <button
                         onClick={handleImport}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-semibold"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-semibold"
                     >
                         Import IO Configuration
                     </button>
@@ -673,7 +641,7 @@ const ExportModal = ({ isOpen, onClose, configuration }) => {
             modalTitle="Export IO Configuration"
         >
             <>
-                <p className="mb-4 text-gray-700">
+                <p className="mb-4 text-r2-dark-modal-subtext">
                     Copy the JSON below to export your IO configuration.
                 </p>
                 <textarea

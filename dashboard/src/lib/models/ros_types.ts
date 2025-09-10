@@ -181,6 +181,24 @@ export interface IRosTypeR2CInterfacesClearErrorsResponse {
   success: boolean;
 }
 
+export interface IRosTypeR2CInterfacesConfigureAiTraining {
+  request: IRosTypeR2CInterfacesConfigureAiTrainingRequest;
+  response: IRosTypeR2CInterfacesConfigureAiTrainingResponse;
+}
+
+export interface IRosTypeR2CInterfacesConfigureAiTrainingRequest {
+  project_id: number;
+  model_type: string;
+  epochs: number;
+  batch_size: number;
+}
+
+export interface IRosTypeR2CInterfacesConfigureAiTrainingResponse {
+  success: boolean;
+  message: string;
+  job_id: string;
+}
+
 export interface IRosTypeR2CInterfacesConfigureAnalogIn {
   request: IRosTypeR2CInterfacesConfigureAnalogInRequest;
   response: IRosTypeR2CInterfacesConfigureAnalogInResponse;
@@ -209,6 +227,21 @@ export interface IRosTypeR2CInterfacesConfigureAnalogOutRequest {
 }
 
 export interface IRosTypeR2CInterfacesConfigureAnalogOutResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface IRosTypeR2CInterfacesConfigureCameraStream {
+  request: IRosTypeR2CInterfacesConfigureCameraStreamRequest;
+  response: IRosTypeR2CInterfacesConfigureCameraStreamResponse;
+}
+
+export interface IRosTypeR2CInterfacesConfigureCameraStreamRequest {
+  camera_id: number;
+  uvc_camera: boolean;
+}
+
+export interface IRosTypeR2CInterfacesConfigureCameraStreamResponse {
   success: boolean;
   message: string;
 }
@@ -327,6 +360,41 @@ export enum IRosTypeR2CInterfacesControllerErrorAxisIndex {
   ERROR_SPINOUT_DETECTED = 128,
 }
 
+export interface IRosTypeR2CInterfacesCreateOpcuaSubscription {
+  request: IRosTypeR2CInterfacesCreateOpcuaSubscriptionRequest;
+  response: IRosTypeR2CInterfacesCreateOpcuaSubscriptionResponse;
+}
+
+export interface IRosTypeR2CInterfacesCreateOpcuaSubscriptionRequest {
+  nodeid: string;
+  data_type: IRosTypeR2CInterfacesOpcuaDataType;
+}
+
+export interface IRosTypeR2CInterfacesCreateOpcuaSubscriptionResponse {
+  success: boolean;
+}
+
+export interface IRosTypeR2CInterfacesDetectCamerasResponse {
+  success: boolean;
+  message: string;
+  cameras_json: string;
+}
+
+export interface IRosTypeR2CInterfacesDetection {
+  class_name: string;
+  confidence: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface IRosTypeR2CInterfacesDetectionArray {
+  header: IRosTypeStdMsgsHeader;
+  image_id: number;
+  detections: IRosTypeR2CInterfacesDetection[];
+}
+
 export interface IRosTypeR2CInterfacesDigitalInConfig {
   channel: number;
   hardware_config: IRosTypeR2CInterfacesDigitalInHardwareConfig;
@@ -404,6 +472,20 @@ export interface IRosTypeR2CInterfacesError {
   axis_index: number;
   active_errors: IRosTypeR2CInterfacesAxisError;
   disarm_reason: IRosTypeR2CInterfacesAxisError;
+}
+
+export interface IRosTypeR2CInterfacesGetAiProjectsResponse {
+  success: boolean;
+  message: string;
+  projects: IRosTypeR2CInterfacesProjectInfo[];
+}
+
+export interface IRosTypeR2CInterfacesGetAiStatusRequest {
+  id: number;
+  title: string;
+  description: string;
+  total_annotations: number;
+  ground_truth_count: number;
 }
 
 export interface IRosTypeR2CInterfacesGetApplicationStringResponse {
@@ -564,6 +646,30 @@ export interface IRosTypeR2CInterfacesMotionControllerParams {
   vel_integrator_gain: number;
 }
 
+export interface IRosTypeR2CInterfacesOpcuaData {
+  stamp: { sec: number, nanosec: number };
+  nodeid: string;
+  data_type: IRosTypeR2CInterfacesOpcuaDataType;
+  string_value: string;
+  int_value: number;
+  float_value: number;
+}
+
+export interface IRosTypeR2CInterfacesOpcuaDataType {
+  type: IRosTypeR2CInterfacesOpcuaDataTypeType;
+}
+
+export enum IRosTypeR2CInterfacesOpcuaDataTypeType {
+  TYPE_INTEGER = 1,
+  TYPE_FLOAT = 2,
+  TYPE_STRING = 3,
+}
+
+export interface IRosTypeR2CInterfacesProjectInfo {
+  project_id: number;
+  project_name: string;
+}
+
 export interface IRosTypeR2CInterfacesRealtimeSysState {
   stamp: { sec: number, nanosec: number };
   state: IRosTypeR2CInterfacesRealtimeSysStateState;
@@ -661,6 +767,19 @@ export interface IRosTypeR2CInterfacesSetDigitalOutputStatesResponse {
   success: boolean;
 }
 
+export interface IRosTypeR2CInterfacesSetOpcuaVariable {
+  request: IRosTypeR2CInterfacesSetOpcuaVariableRequest;
+  response: IRosTypeR2CInterfacesSetOpcuaVariableResponse;
+}
+
+export interface IRosTypeR2CInterfacesSetOpcuaVariableRequest {
+  data: IRosTypeR2CInterfacesOpcuaData;
+}
+
+export interface IRosTypeR2CInterfacesSetOpcuaVariableResponse {
+  success: boolean;
+}
+
 export interface IRosTypeR2CInterfacesTemperature {
   stamp: { sec: number, nanosec: number };
   axis_index: number;
@@ -668,11 +787,35 @@ export interface IRosTypeR2CInterfacesTemperature {
   motor_temperature: number;
 }
 
+export interface IRosTypeR2CInterfacesToggleAi {
+  request: IRosTypeR2CInterfacesToggleAiRequest;
+  response: IRosTypeR2CInterfacesToggleAiResponse;
+}
+
+export interface IRosTypeR2CInterfacesToggleAiRequest {
+  enable: boolean;
+  inferencing_type: string;
+}
+
+export interface IRosTypeR2CInterfacesToggleAiResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface IRosTypeR2CInterfacesTorques {
   stamp: { sec: number, nanosec: number };
   axis_index: number;
   target: number;
   estimate: number;
+}
+
+export interface IRosTypeR2CInterfacesTrainingProgress {
+  epoch: number;
+  total_epochs: number;
+  train_loss: number;
+  val_loss: number;
+  val_map: number;
+  status: string;
 }
 
 export interface IRosTypeR2CInterfacesVersion {

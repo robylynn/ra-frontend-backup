@@ -7,7 +7,6 @@ from common_models.models import APIResponse, HostServicesError
 
 ra_host_service_server = FastAPI()
 
-
 def get_current_ssid() -> str | None:
     output = subprocess.check_output(["nmcli", "dev", "wifi", "show"], text=True)
     current_ssid = [

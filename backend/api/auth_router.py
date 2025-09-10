@@ -11,7 +11,8 @@ from loguru import logger
 import asyncpg
 from asyncpg.pool import Pool as AsyncpgPool
 
-from api.models import ApiResponse, UserCreate, User, UserInDB, Token, TokenData
+from api.models import UserCreate, User, UserInDB, Token, TokenData
+from common_models.models import ApiResponse
 from utilities.password_utils import verify_password, get_password_hash
 from api.schema_models import (
     LOADED_RAW_SCHEMA,
@@ -28,7 +29,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 # --- Create an API Router for Authentication ---
 auth_router = APIRouter(
-    prefix="/auth",
     tags=["Authentication"],
     responses={404: {"description": "Not found"}},
 )

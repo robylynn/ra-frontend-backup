@@ -410,6 +410,43 @@ export const BellIcon = () => (
     </svg>
 );
 
+export const InputIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucide-arrow-down-to-dot"
+    >
+        <path d="M12 2v14" />
+        <path d="m15 13-3 3-3-3" />
+        <circle cx="12" cy="21" r="1" />
+    </svg>
+);
+
+export const OutputIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lucide lucide-arrow-up-to-dot"
+    >
+        <path d="M12 16V2" />
+        <path d="m15 5-3-3-3 3" />
+        <circle cx="12" cy="21" r="1" />
+    </svg>
+);
 // export const PlusIcon = () => (
 //     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
 //         <path

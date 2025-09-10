@@ -313,7 +313,7 @@ const ExportModal = ({ isOpen, onClose, plots }) => {
     return (
         <Modal onClose={onClose} isOpen={isOpen} modalTitle="Export Plots">
             <>
-                <p className="mb-4 text-gray-700">
+                <p className="mb-4 text-r2-dark-modal-subtext">
                     Copy the JSON below to export your plot configurations.
                 </p>
                 <textarea
@@ -359,10 +359,12 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
         showAlert(message, log_level);
     };
 
+    useEffect(() => setImportText(''), [isOpen])
+
     return (
         <Modal onClose={onClose} isOpen={isOpen} modalTitle="Import Plots">
             <>
-                <p className="mb-4 text-gray-700">
+                <p className="mb-4 text-r2-dark-modal-subtext">
                     Paste your exported JSON here to import plot configurations.
                 </p>
                 <textarea
@@ -900,7 +902,6 @@ export const MultiPlotComponent = () => {
             svgIcon: SaveIcon,
             isLoading: isSaving,
             onClick: savePlots,
-            // text: 'Save',
             tooltipText: 'Save Plots',
         },
         {

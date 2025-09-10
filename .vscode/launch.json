@@ -23,8 +23,8 @@
             "name": "Python: FastAPI (Run outside Docker)",
             "type": "debugpy",
             "request": "launch",
-            "module": "api.main", // Runs the __main__.py in the 'api' package
-            "cwd": "${workspaceFolder}/backend", // Sets the current working directory for the launch process to 'backend/'
+            "module": "backend.api.main", // Runs the __main__.py in the 'api' package
+            "cwd": "${workspaceFolder}", // Sets the current working directory for the launch process to 'backend/'
             "envFile": "${workspaceFolder}/.env", // Loads environment variables from the root .env file
             "justMyCode": true, // Focuses debugging on your code, ignoring library code
             "console": "integratedTerminal" // Displays output in VS Code's integrated terminal

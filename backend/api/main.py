@@ -1,12 +1,20 @@
-# ./api/__main__.py
+## Backend API for RA Products
+## Developed by R2 Labs
+
 import os
 import sys
 import asyncio
+import json
 from contextlib import asynccontextmanager
 from typing import Dict, List, Any, Optional
 
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import FastAPI, Request, status, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.exception_handlers import (
+    http_exception_handler,
+    request_validation_exception_handler,
+)
 from loguru import logger
 import asyncpg
 from asyncpg.pool import Pool as AsyncpgPool
@@ -15,7 +23,7 @@ import uvicorn
 from pydantic import ValidationError
 
 from fastapi.middleware.cors import CORSMiddleware
-from api.subscription_router import SubscriptionManager, subscription_router
+from backend.api.subscription_router import SubscriptionManager, subscription_router
 
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,17 +31,19 @@ backend_root = os.path.join(current_dir, "..")
 sys.path.insert(0, backend_root)
 
 # Import necessary modules
-from api.models import (
-    ApiResponse,
+from common_models.models import ApiResponse
+from backend.api.models import (
     DeploymentConfig,
     SchemaConfig,
     DatabaseConnectionConfig,
 )
-from api.schema_models import LOADED_RAW_SCHEMA, SCHEMA_FILE_PATH, load_raw_schema
-from api.data_router import data_router
-from api.ui_router import ui_router
-from api.auth_router import auth_router
-from api.status_router import status_router  # Re-import status_router
+from backend.api.schema_models import LOADED_RAW_SCHEMA, SCHEMA_FILE_PATH, load_raw_schema
+from backend.api.data_router import data_router
+from backend.api.ui_router import ui_router
+from backend.api.auth_router import auth_router
+from backend.api.status_router import status_router
+from backend.api.system_router import system_router
+from backend.api.camera_router import camera_router
 
 # --- Loguru Configuration (Centralized) ---
 logger.remove()
@@ -45,7 +55,7 @@ logger.add(
 )
 
 # --- Configuration Loading ---
-DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "..", "config", "database_configs.yml")
+DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "config", "database_configs.yml")
 
 
 def load_database_configs() -> DeploymentConfig:
@@ -251,6 +261,14 @@ backend_api = FastAPI(
 )
 
 
+@backend_api.exception_handler(StarletteHTTPException)
+async def starlette_http_exception_handler(request: Request, exc: HTTPException):
+    api_response = json.dumps(ApiResponse(
+            success=False, message=f"Backend API exception: {exc.detail}"
+    ).model_dump())
+    exc.detail = api_response
+    return await http_exception_handler(request, exc)
+
 # Custom Exception Handler for HTTPException
 @backend_api.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
@@ -285,14 +303,15 @@ backend_api.add_middleware(
 
 
 # --- Register Routers ---
-backend_api.include_router(data_router)
-backend_api.include_router(ui_router)
-backend_api.include_router(auth_router)
-backend_api.include_router(status_router)  # ADDED: Register the status_router
-backend_api.include_router(subscription_router)
+backend_api.include_router(data_router, prefix="/database")
+backend_api.include_router(ui_router, prefix="/ui")
+backend_api.include_router(auth_router, prefix="/auth")
+backend_api.include_router(status_router, prefix="/status")
+backend_api.include_router(subscription_router, prefix="/database_stream")
+backend_api.include_router(system_router, prefix="/system")
+backend_api.include_router(camera_router, prefix="/camera")
 
 
-# --- New Root Endpoint for a simple message ---
 @backend_api.get("/", summary="Root API Message", response_model=ApiResponse)
 async def root_message():
     """
@@ -301,7 +320,6 @@ async def root_message():
     return ApiResponse(success=True, message="Welcome to the Time-Series Backend API!")
 
 
-# --- Re-introduced Health Check Endpoint ---
 @backend_api.get("/status", summary="API Health Check", response_model=ApiResponse)
 async def health_check_status():
     """

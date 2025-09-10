@@ -18,6 +18,8 @@ import {
     IOCommandServices,
     IOConfigurationServices,
     RosState,
+    CameraCommandServices,
+    AITrainingCommandServices,
 } from '@/lib/models/dashboard_context';
 import {
     IRosTypeR2CInterfacesAnalogInData,
@@ -78,6 +80,8 @@ export default function DashboardContextProvider(props: {
         ros_io_state_services: IOCommandServices;
         ros_application_services: ApplicationServices;
         ros_axis_command_services: AxisCommandServices;
+        ros_camera_command_services: CameraCommandServices;
+        ros_ai_training_command_services: AITrainingCommandServices;
         // ra_ros_websocket: ROSLIB.Ros;
         ros_state: RosState;
     }>('ros/set');

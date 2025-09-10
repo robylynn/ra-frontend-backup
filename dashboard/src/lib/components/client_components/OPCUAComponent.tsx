@@ -98,7 +98,7 @@ const SubscriptionGroupModal: React.FC<SubscriptionGroupModalProps> = ({
                 <div className="flex flex-col">
                     <label
                         htmlFor="name"
-                        className="text-sm font-medium text-gray-400"
+                        className="text-sm font-medium r2-dark-modal-subtext"
                     >
                         Group Name
                     </label>
@@ -114,7 +114,7 @@ const SubscriptionGroupModal: React.FC<SubscriptionGroupModalProps> = ({
                 <div className="flex flex-col">
                     <label
                         htmlFor="endpoint"
-                        className="text-sm font-medium text-gray-400"
+                        className="text-sm font-medium r2-dark-modal-subtext"
                     >
                         Endpoint URL
                     </label>
@@ -130,7 +130,7 @@ const SubscriptionGroupModal: React.FC<SubscriptionGroupModalProps> = ({
                 <div className="flex flex-col">
                     <label
                         htmlFor="interval"
-                        className="text-sm font-medium text-gray-400"
+                        className="text-sm font-medium r2-dark-modal-subtext"
                     >
                         Publishing Interval (ms)
                     </label>
@@ -754,7 +754,7 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
             modalTitle="Import IO Configuration"
         >
             <>
-                <p className="mb-4 text-gray-700">
+                <p className="mb-4 r2-dark-modal-subtext">
                     Paste your exported JSON here to import OPC-UA
                     configuration.
                 </p>
@@ -793,7 +793,7 @@ const ExportModal = ({ isOpen, onClose, opcConfiguration }) => {
     return (
         <Modal onClose={onClose} isOpen={isOpen} modalTitle="Export Plots">
             <>
-                <p className="mb-4 text-gray-700">
+                <p className="mb-4 text-r2-dark-modal-subtext">
                     Copy the JSON below to export your OPC-UA configurations.
                 </p>
                 <textarea

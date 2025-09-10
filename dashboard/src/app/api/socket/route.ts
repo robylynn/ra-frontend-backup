@@ -155,7 +155,7 @@ export async function SOCKET(
         case 'stream':
             // Build a base URL for the stream API
             //   let streamUrl = `${process.env.CONTROLLER_URI}/database/ws/data`;
-            let streamUrl = `${process.env.CONTROLLER_URI}/zmq_database/ws/zmq_stream`;
+            let streamUrl = `${process.env.CONTROLLER_URI}/database_stream/ws`;
             const streamParams = new URLSearchParams();
 
             // Append all query parameters from the original URL, except for 'target'

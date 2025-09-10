@@ -77,7 +77,7 @@ export default async function LinksColumn(props: { className?: string }) {
         // Enhanced overall container for the sidebar
         <div
             className={`
-            flex flex-col justify-between w-full h-full p-4 
+            flex flex-col flex-auto justify-between w-full h-full p-4 
             bg-white dark:bg-gray-800 
             rounded-2xl shadow-2xl 
             border border-gray-100 dark:border-gray-700
@@ -85,7 +85,7 @@ export default async function LinksColumn(props: { className?: string }) {
         `}
         >
             {/* Top section: Logo and User/Auth tab */}
-            <div className="flex flex-col h-full items-center space-y-4">
+            <div className="flex flex-col flex-auto items-center space-y-4">
                 <div
                     className={`flex flex-row items-center justify-center w-full mb-4 px-2
                     ${props.className ?? ''}
@@ -126,53 +126,66 @@ export default async function LinksColumn(props: { className?: string }) {
 
                 {/* Authenticated Navigation Links */}
                 {session != null ? (
-                    <nav className="flex flex-col items-center w-full space-y-2 flex-grow overflow-y-auto">
-                        <PageTab
-                            tab_text={'Dashboard'}
-                            icon_path={'/icons/dashboard-gauge.svg'}
-                            href={'/dashboard'}
-                        />
-                        <PageTab
-                            tab_text={'Application'}
-                            icon_path={'/icons/application.svg'}
-                            href={'/application_sandbox'}
-                        />
-                        <PageTab
-                            tab_text={'Data Charts'}
-                            icon_path={'/icons/data-chart.svg'}
-                            href={'/charts'}
-                        />
-                        <PageTab
-                            tab_text={'Training'}
-                            icon_path={'/icons/dumbell.svg'}
-                            href={'/training'}
-                        />
-                        <PageTab
-                            tab_text={'Jogging'}
-                            icon_path={'/icons/gears.svg'}
-                            href={'/jog'}
-                        />
-                        <PageTab
-                            tab_text={'Diagnostics'}
-                            icon_path={'/icons/stethoscope.svg'}
-                            href={'/diagnostics'}
-                        />
-                        <PageTab
-                            tab_text={'OPC-UA'}
-                            icon_path={'/icons/globe.svg'}
-                            href={'/opc'}
-                        />
-                        <PageTab
-                            tab_text={'IO Configuration'}
-                            icon_path={'/icons/plc.svg'}
-                            href={'/io_configuration'}
-                        />
-                        <PageTab
-                            tab_text={'Administration'}
-                            icon_path={'/icons/system-management.svg'}
-                            href={'/administration'}
-                        />
-                    </nav>
+                    <div className="flex flex-auto overflow-y-auto mt-4">
+                        <nav className="items-center w-full space-y-2">
+                            <PageTab
+                                tab_text={'Dashboard'}
+                                icon_path={'/icons/dashboard-gauge.svg'}
+                                href={'/dashboard'}
+                            />
+                            <PageTab
+                                tab_text={'Application'}
+                                icon_path={'/icons/application.svg'}
+                                href={'/application_sandbox'}
+                            />
+                            <PageTab
+                                tab_text={'Data Charts'}
+                                icon_path={'/icons/data-chart.svg'}
+                                href={'/charts'}
+                            />
+                            <PageTab
+                                tab_text={'Training'}
+                                icon_path={'/icons/dumbell.svg'}
+                                href={'/training'}
+                            />
+                            <PageTab
+                                tab_text={'Jogging'}
+                                icon_path={'/icons/gears.svg'}
+                                href={'/jog'}
+                            />
+                            <PageTab
+                                tab_text={'Diagnostics'}
+                                icon_path={'/icons/stethoscope.svg'}
+                                href={'/diagnostics'}
+                            />
+                            <PageTab
+                                tab_text={'OPC-UA'}
+                                icon_path={'/icons/globe.svg'}
+                                href={'/opc'}
+                            />
+                            <PageTab
+                                tab_text={'IO Configuration'}
+                                icon_path={'/icons/plc.svg'}
+                                href={'/io_configuration'}
+                            />
+                            <PageTab
+                                tab_text={'Administration'}
+                                icon_path={'/icons/system-management.svg'}
+                                href={'/administration'}
+                            />
+
+                            {/* <PageTab
+                                tab_text={'Administration'}
+                                icon_path={'/icons/system-management.svg'}
+                                href={'/administration'}
+                            />
+                            <PageTab
+                                tab_text={'Administration'}
+                                icon_path={'/icons/system-management.svg'}
+                                href={'/administration'}
+                            /> */}
+                        </nav>
+                    </div>
                 ) : (
                     // Render nothing or a placeholder when not authenticated
                     <></>
