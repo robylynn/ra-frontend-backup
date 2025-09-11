@@ -1,33 +1,54 @@
 # ./api/models.py
 from __future__ import annotations
-from pydantic import BaseModel, Field, HttpUrl, ValidationError
-from typing import Optional, Any, Dict, List
+from pydantic import BaseModel, Field, HttpUrl, ValidationError, ConfigDict
+from fastapi import Request
+from typing import Optional, Any, Dict, List, Set, cast
 from pathlib import Path
 from datetime import datetime
-import uuid
+from asyncpg.pool import Pool as AsyncpgPool
+from loguru import logger
+import uuid, asyncio
+
+from backend.api.subscription_manager import SubscriptionManager
+
+class ApiState(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    local_db_pool: AsyncpgPool = None
+    websocket_broadcast_queues: Dict[str, asyncio.Queue] = {}
+    websocket_active_clients: Dict[str, List[asyncio.Queue]] = {}
+    broadcast_consumer_tasks: List[asyncio.Task] = []
+    cloud_db_pools: List[AsyncpgPool] = []
+    cloud_db_urls: List[str] = []
+    enable_db: bool = False
+    enable_cloud_db: bool = False
+    local_db_url: str = ''
+    subscription_manager: SubscriptionManager = None
+
+def typedAppState(request: Request) -> ApiState:
+    return cast(ApiState, request.app.state)
+
+# # --- Models for Schema.yml Structure ---
+# class ColumnDef(BaseModel):
+#     """Represents a column definition from schema.yml."""
+
+#     type: str = Field(..., alias="name")
 
 
-# --- Models for Schema.yml Structure ---
-class ColumnDef(BaseModel):
-    """Represents a column definition from schema.yml."""
+# class TableDef(BaseModel):
+#     """Represents a single table's definition in the schema file."""
 
-    type: str = Field(..., alias="name")
-
-
-class TableDef(BaseModel):
-    """Represents a single table's definition in the schema file."""
-
-    columns: Dict[str, Any]
-    hypertable_column: Optional[str] = Field(
-        None, description="The column used as the TimescaleDB hypertable dimension."
-    )
-    number_of_tables: Optional[int] = None
+#     columns: Dict[str, Any]
+#     hypertable_column: Optional[str] = Field(
+#         None, description="The column used as the TimescaleDB hypertable dimension."
+#     )
+#     number_of_tables: Optional[int] = None
 
 
-class SchemaConfig(BaseModel):
-    """Represents the entire schema.yml structure."""
+# class SchemaConfig(BaseModel):
+#     """Represents the entire schema.yml structure."""
 
-    tables: Dict[str, TableDef]
+#     tables: Dict[str, TableDef]
 
 
 # --- Models for Database Configuration YAML ---

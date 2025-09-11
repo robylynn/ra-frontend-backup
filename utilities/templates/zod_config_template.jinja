@@ -6,15 +6,24 @@ import { z } from "zod";
 export const {{ name | camelcase }} = z.object({
     {% for prop_name, prop_data in schema.properties.items() %}
     {{- prop_name }}:{{' '}}
-    {%- if prop_data.ref is defined %}
+    {%- if prop_data.ref is defined -%}
         {{ prop_data.ref | camelcase }}
     {%- elif prop_data.type == 'object' -%}
         z.object({{ prop_data.ref }}).optional()
     {%- elif prop_data.type == 'array' -%}
-        z.array({{ prop_data.elements.ref | camelcase }})
+        z.array(
+        {%- if prop_data.elements.ref is defined -%}
+        {{ prop_data.elements.ref | camelcase }}
+        {%- else -%}
+        {{ type_mappings[prop_data.elements.type] }}
+        {%- endif -%}
+        )
         {%- if prop_data.validations is defined -%}
         .min({{ prop_data.validations.min_items }})
         {%- endif %}
+        {%- if prop_data.default is defined -%}
+        .default([])
+        {%- endif -%}
     {%- elif prop_data.type == 'union' -%}
     z.union([
         {% for variant in prop_data.variants -%}
@@ -22,7 +31,7 @@ export const {{ name | camelcase }} = z.object({
             {%- if not loop.last -%},{%- endif -%}
         {%- endfor -%}])
     {%- elif prop_data.type == 'enum' -%}
-    z.enum(['{{ "','".join(prop_data.valid_values) }}'])
+    z.enum(['{{ "','".join(prop_data.valid_values) }}']) {%- if prop_data.default is defined -%}.default('{{prop_data.default}}'){%- endif -%}
     {%- elif prop_data.type == 'uuid' -%}
     z.string().uuid()
     {%- elif prop_data.type == 'string' -%}
@@ -31,7 +40,10 @@ export const {{ name | camelcase }} = z.object({
             {%- if prop_data.validations.minlength is defined -%}.min({{ prop_data.validations.minlength }}){%- endif -%}
             {%- if prop_data.validations.url is defined -%}.url(){%- endif -%}
             {%- if prop_data.validations.datetime is defined -%}.datetime(){%- endif -%}
+            {%- if prop_data.default is defined -%}.default(''){%- endif -%}
         {%- endif -%}
+    {%- elif prop_data.type == 'datetime' -%}
+    z.string(){%- if prop_data.default is defined -%}.datetime().default(new Date().toISOString()){%- endif -%}
     {%- elif prop_data.type == 'number' -%}
     z.number()
         {%- if prop_data.validations is defined -%}
@@ -44,7 +56,7 @@ export const {{ name | camelcase }} = z.object({
     {%- else -%}
     z.any()
     {%- endif -%}
-    {% if not loop.last %},
+    {%- if not loop.last -%},
     {% endif -%}
 {% endfor %}
 });

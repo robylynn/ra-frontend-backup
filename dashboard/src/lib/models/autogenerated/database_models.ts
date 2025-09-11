@@ -264,6 +264,22 @@ export const axisEstimatesBatchSchema = z.array(axisEstimatesSchema)
 export type axisEstimates = z.infer<typeof axisEstimatesSchema>
 export type axisEstimatesBatch = z.infer<typeof axisEstimatesBatchSchema>
 
+export const defectDetectionSchema = z.object({
+stamp: z.string().datetime(),
+image_id: z.string().uuid().optional(),
+bbox_x_center: z.number().optional(),
+bbox_y_center: z.number().optional(),
+bbox_width: z.number().optional(),
+bbox_height: z.number().optional(),
+product_type: z.string().optional(),
+defect_type: z.string().optional(),
+confidence: z.number().optional(),
+model: z.string().optional(),
+});
+export const defectDetectionBatchSchema = z.array(defectDetectionSchema)
+export type defectDetection = z.infer<typeof defectDetectionSchema>
+export type defectDetectionBatch = z.infer<typeof defectDetectionBatchSchema>
+
 
 export const DatabaseDataSchemas = z.union([
 sensorDataBatchSchema,
@@ -284,6 +300,7 @@ digitalInDataBatchSchema,
 digitalOutConfigBatchSchema,
 digitalOutDataBatchSchema,
 axisEstimatesBatchSchema,
+defectDetectionBatchSchema,
 ]);
 export type DatabaseData = z.infer<typeof DatabaseDataSchemas>;
 
@@ -494,6 +511,19 @@ position: number | undefined;
 velocity: number | undefined;
 }
 
+export interface IDefectDetection {
+stamp: string;
+image_id: string | undefined;
+bbox_x_center: number | undefined;
+bbox_y_center: number | undefined;
+bbox_width: number | undefined;
+bbox_height: number | undefined;
+product_type: string | undefined;
+defect_type: string | undefined;
+confidence: number | undefined;
+model: string | undefined;
+}
+
 
 // Mapping for dynamic inference
 export const TableSchemaMap = {
@@ -518,4 +548,5 @@ axis_estimates_0: axisEstimatesBatchSchema,
 axis_estimates_1: axisEstimatesBatchSchema,
 axis_estimates_2: axisEstimatesBatchSchema,
 axis_estimates_3: axisEstimatesBatchSchema,
+defect_detection: defectDetectionBatchSchema,
 }

@@ -42,23 +42,38 @@ schemas:
     type: array
     elements: { ref: plot_configuration }
 
-  image_metadata:
+  image_archive_metadata:
     type: object
     properties:
-      src:
-        type: string
-        validations: { url: true }
-      altText:
-        type: string
-        validations: { minlength: 1 }
-      caption:
-        type: string
-        optional: true
+      number_of_images: { type: number }
+      # src:
+      #   type: string
+      #   validations: { url: true }
+      # altText:
+      #   type: string
+      #   validations: { minlength: 1 }
+      # caption:
+      #   type: string
+      #   optional: true
 
   camera_metadata:
     type: object
     properties:
       source: { type: string }
+  
+  training_metadata:
+    type: object
+    properties:
+      source: { type: string }
+
+  vision_statistics_metadata:
+    type: object
+    properties:
+      refresh_interval: { type: number }
+      time_span: { type: number }
+      defects_to_analyze:
+        type: array
+        elements: { type: string }
 
   jogging_component:
     type: object
@@ -80,7 +95,7 @@ schemas:
       type: { type: literal, value: charts }
       metadata: { ref: plot_configuration }
 
-  image_component:
+  image_archive_component:
     type: object
     properties:
       id: { type: uuid }
@@ -88,7 +103,7 @@ schemas:
         type: string
         validations: { minlength: 1 }
       type: { type: literal, value: image }
-      metadata: { ref: image_metadata }
+      metadata: { ref: image_archive_metadata }
 
   camera_component:
     type: object
@@ -100,34 +115,36 @@ schemas:
       type: { type: literal, value: camera }
       metadata: { ref: camera_metadata }
 
+  training_component:
+    type: object
+    properties:
+      id: { type: uuid }
+      label:
+        type: string
+        validations: { minlength: 1 }
+      type: { type: literal, value: training }
+      metadata: { ref: training_metadata }
+
+  vision_statistics_component:
+    type: object
+    properties:
+      id: { type: uuid }
+      label:
+        type: string
+        validations: { minlength: 1 }
+      type: { type: literal, value: vision_statistics }
+      metadata: { ref: vision_statistics_metadata }
+
   ui_component:
     type: union
     discriminator: type
     variants:
       - jogging_component
       - chart_component
-      - image_component
+      - image_archive_component
+      - training_component
       - camera_component
-      # - type: object
-      #   extends: uiComponentSchemaBase
-      #   properties:
-      #     type: { type: literal, value: jogging }
-      #     metadata: { ref: joggingMetadataSchema }
-      # - type: object
-      #   extends: uiComponentSchemaBase
-      #   properties:
-      #     type: { type: literal, value: charts }
-      #     metadata: { ref: PlotConfigurationSchema }
-      # - type: object
-      #   extends: uiComponentSchemaBase
-      #   properties:
-      #     type: { type: literal, value: image }
-      #     metadata: { ref: imageMetadataSchema }
-      # - type: object
-      #   extends: uiComponentSchemaBase
-      #   properties:
-      #     type: { type: literal, value: camera }
-      #     metadata: { ref: cameraMetadataSchema }
+      - vision_statistics_component
 
   ui_configuration:
     type: object
@@ -149,14 +166,17 @@ schemas:
       components:
         type: array
         elements: { ref: ui_component }
-        validations: { min_items: 1 }
+        validations: { min_items: 0 }
+        default: []
       # plots: { ref: plot_configurations }
       plots:
         type: array
         elements: { ref: plot_configuration }
+        default: []
       last_updated:
-        type: string
-        validations: { datetime: true }
+        type: datetime
+        # validations: { datetime: true }
+        default: ''
 
   # ui_config_api_response:
   #   type: object
@@ -221,19 +241,21 @@ schemas:
       id: { type: string }
       modules:
         type: array
-        elements: {ref: io_module}
+        elements: { ref: io_module }
       rack_config: { ref: io_rack_config }
   
   io_configuration:
     type: object
-    
     properties:
       racks:
         type: array
-        elements: {ref: io_rack}
+        elements: { ref: io_rack }
+        default: []
       last_updated:
-        type: string
-        validations: { datetime: true }
+        type: datetime
+        # type: string
+        # validations: { datetime: true }
+        default: ''
 
   ##############
   ## OPC Schemas
@@ -263,9 +285,12 @@ schemas:
       subscription_groups:
         type: array
         elements: { ref: opc_subscription_group }
+        default: []
       last_updated:
-        type: string
-        validations: { datetime: true }
+        # type: string
+        type: datetime
+        # validations: { datetime: true }
+        default: ''
 
   ###################
   ## Combined Schemas

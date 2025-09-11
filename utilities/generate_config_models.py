@@ -19,7 +19,8 @@ PYTHON_TYPE_MAPPINGS = {
 ZOD_TYPE_MAPPINGS = {
     'boolean': 'z.boolean()',
     'inteter': 'z.number()',
-    'float': 'z.number()'
+    'float': 'z.number()',
+    'string': 'z.string()'
 }
 
 def to_pascal_case(string: str) -> str:

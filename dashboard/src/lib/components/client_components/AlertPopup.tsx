@@ -40,7 +40,7 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
     }
 
     // Use the provided header, or fallback to a default if not provided
-    const alertHeader = header || 'Alert:';
+    const alertHeader = header || 'Alert';
 
     // We use refreshCount to determine if this is a new or refreshed alert
     const isRefreshed = refreshCount > 0;
@@ -58,7 +58,7 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
       `}
         >
             <div>
-                <strong className="font-bold">{alertHeader}</strong>{' '}
+                <strong className="font-bold">{`${alertHeader}: `}</strong>
                 <span className="block sm:inline ml-2 text-wrap wrap-break-word">{message}</span>
             </div>
             <button

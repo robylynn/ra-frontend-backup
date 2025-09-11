@@ -8,8 +8,9 @@ from fastapi import APIRouter, HTTPException, Request, status, Depends
 from asyncpg.pool import Pool as AsyncpgPool
 from loguru import logger
 
-from api.schema_models import LOADED_RAW_SCHEMA
+from backend.api.schema_models import LOADED_RAW_SCHEMA
 from common_models.models import ApiResponse
+from backend.api.models import typedAppState, ApiState
 
 # Create an API Router for status and meta-information endpoints
 status_router = APIRouter(
@@ -19,11 +20,11 @@ status_router = APIRouter(
 
 
 # --- Helper Function: Get Database Connection Pool ---
-async def get_db_connection_pool(request: Request) -> AsyncpgPool:
+async def get_db_connection_pool(request: Request, state: ApiState = Depends(typedAppState)) -> AsyncpgPool:
     """Dependency to get the local database connection pool."""
     if (
-        not hasattr(request.app.state, "local_db_pool")
-        or request.app.state.local_db_pool is None
+        not hasattr(state, "local_db_pool")
+        or state.local_db_pool is None
     ):
         logger.error("Database pool not initialized in app.state.")
         raise HTTPException(
@@ -32,7 +33,7 @@ async def get_db_connection_pool(request: Request) -> AsyncpgPool:
                 success=False, message="Database pool not initialized."
             ).model_dump(),
         )
-    return request.app.state.local_db_pool
+    return state.local_db_pool
 
 
 # --- Endpoint to get available tables ---
@@ -55,7 +56,7 @@ async def get_available_tables():
 
 # --- Health Check Endpoint ---
 @status_router.get("/", summary="Health Check", response_model=ApiResponse)
-async def health_check(request: Request):
+async def health_check(request: Request, state: ApiState = Depends(typedAppState)):
     """
     Basic health check endpoint to confirm the API is running.
     """
@@ -64,8 +65,8 @@ async def health_check(request: Request):
     # Access DEPLOYMENT_ENVIRONMENT directly from environment as it's loaded by main.py
     # and then passed to app.state. We can safely get it from app.state now.
     deployment_environment = (
-        request.app.state.deployment_environment
-        if hasattr(request.app.state, "deployment_environment")
+        state.deployment_environment
+        if hasattr(state, "deployment_environment")
         else os.getenv("DEPLOYMENT_ENV", "unknown")
     )
 
@@ -77,14 +78,14 @@ async def health_check(request: Request):
                 list(LOADED_RAW_SCHEMA.tables.keys()) if LOADED_RAW_SCHEMA else []
             ),
             "cloud_db_sync_enabled": (
-                request.app.state.enable_cloud_db
-                if hasattr(request.app.state, "enable_cloud_db")
+                state.enable_cloud_db
+                if hasattr(state, "enable_cloud_db")
                 else False
             ),
             "active_cloud_db_pools": (
-                len(request.app.state.cloud_db_pools)
-                if hasattr(request.app.state, "cloud_db_pools")
-                and request.app.state.enable_cloud_db
+                len(state.cloud_db_pools)
+                if hasattr(state, "cloud_db_pools")
+                and state.enable_cloud_db
                 else 0
             ),
             "deployment_environment": deployment_environment,
@@ -92,15 +93,15 @@ async def health_check(request: Request):
                 len(
                     [
                         k
-                        for k in request.app.state.websocket_broadcast_queues
+                        for k in state.websocket_broadcast_queues
                         if not k.endswith("_consumer_task")
                     ]
                 )
-                if hasattr(request.app.state, "websocket_broadcast_queues")
+                if hasattr(state, "websocket_broadcast_queues")
                 else 0
             ),
-            "db_pool_initialized": hasattr(request.app.state, "local_db_pool")
-            and request.app.state.local_db_pool is not None,
+            "db_pool_initialized": hasattr(state, "local_db_pool")
+            and state.local_db_pool is not None,
         },
     )
 

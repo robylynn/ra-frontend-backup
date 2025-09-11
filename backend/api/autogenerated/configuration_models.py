@@ -1,7 +1,9 @@
 # pydantic_template.jinja
 from __future__ import annotations
 from typing import Literal, Union, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
+from datetime import datetime, timezone
+from functools import partial
 import uuid
 
 # MODELS FOR CONFIGURATION
@@ -28,13 +30,19 @@ class PlotConfiguration(BaseModel):
 class PlotConfigurations(BaseModel):
     plot_configurations: List[PlotConfiguration] = Field(...)
 
-class ImageMetadata(BaseModel):
-    src: str = Field(...)
-    altText: str = Field(...)
-    caption: str = Field(...)
+class ImageArchiveMetadata(BaseModel):
+    number_of_images: float = Field(...)
 
 class CameraMetadata(BaseModel):
     source: str = Field(...)
+
+class TrainingMetadata(BaseModel):
+    source: str = Field(...)
+
+class VisionStatisticsMetadata(BaseModel):
+    refresh_interval: float = Field(...)
+    time_span: float = Field(...)
+    defects_to_analyze: List[str]
 
 class JoggingComponent(BaseModel):
     id: uuid.UUID = Field(...)
@@ -48,11 +56,11 @@ class ChartComponent(BaseModel):
     type: Literal['charts'] = Field(...)
     metadata: PlotConfiguration = Field(...)
 
-class ImageComponent(BaseModel):
+class ImageArchiveComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     type: Literal['image'] = Field(...)
-    metadata: ImageMetadata = Field(...)
+    metadata: ImageArchiveMetadata = Field(...)
 
 class CameraComponent(BaseModel):
     id: uuid.UUID = Field(...)
@@ -60,17 +68,34 @@ class CameraComponent(BaseModel):
     type: Literal['camera'] = Field(...)
     metadata: CameraMetadata = Field(...)
 
+class TrainingComponent(BaseModel):
+    id: uuid.UUID = Field(...)
+    label: str = Field(...)
+    type: Literal['training'] = Field(...)
+    metadata: TrainingMetadata = Field(...)
+
+class VisionStatisticsComponent(BaseModel):
+    id: uuid.UUID = Field(...)
+    label: str = Field(...)
+    type: Literal['vision_statistics'] = Field(...)
+    metadata: VisionStatisticsMetadata = Field(...)
+
 UiComponent = Union[
         JoggingComponent,
         ChartComponent,
-        ImageComponent,
+        ImageArchiveComponent,
+        TrainingComponent,
         CameraComponent,
+        VisionStatisticsComponent,
     ]
 class UiConfiguration(BaseModel):
     theme: Literal['light','dark','system'] = 'system'
-    components: List[UiComponent] = Field(...)
-    plots: List[PlotConfiguration] = Field(...)
-    last_updated: str = Field(...)
+    components: List[UiComponent] = Field(default_factory=list)
+    plots: List[PlotConfiguration] = Field(default_factory=list)
+    last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
+    @field_serializer('last_updated')
+    def serialize_last_updated(self, last_updated: datetime, _info):
+        return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 class IoPointDescription(BaseModel):
     label: str = Field(...)
@@ -106,8 +131,11 @@ class IoRack(BaseModel):
     rack_config: IoRackConfig = Field(...)
 
 class IoConfiguration(BaseModel):
-    racks: List[IoRack] = Field(...)
-    last_updated: str = Field(...)
+    racks: List[IoRack] = Field(default_factory=list)
+    last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
+    @field_serializer('last_updated')
+    def serialize_last_updated(self, last_updated: datetime, _info):
+        return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 class OpcDataPoint(BaseModel):
     id: str = Field(...)
@@ -123,8 +151,11 @@ class OpcSubscriptionGroup(BaseModel):
     data_points: List[OpcDataPoint] = Field(...)
 
 class OpcConfiguration(BaseModel):
-    subscription_groups: List[OpcSubscriptionGroup] = Field(...)
-    last_updated: str = Field(...)
+    subscription_groups: List[OpcSubscriptionGroup] = Field(default_factory=list)
+    last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
+    @field_serializer('last_updated')
+    def serialize_last_updated(self, last_updated: datetime, _info):
+        return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 class FullConfiguration(BaseModel):
     client_id: str = Field(...)

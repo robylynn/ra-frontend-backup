@@ -6,10 +6,10 @@ import sys
 import asyncio
 import json
 from contextlib import asynccontextmanager
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, cast
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from fastapi import FastAPI, Request, status, HTTPException
+from fastapi import FastAPI, Request, status, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.exception_handlers import (
     http_exception_handler,
@@ -21,9 +21,11 @@ from asyncpg.pool import Pool as AsyncpgPool
 import yaml
 import uvicorn
 from pydantic import ValidationError
+from backend.api.models import ApiState
 
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
+from backend.api.models import typedAppState
 
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,10 +36,9 @@ sys.path.insert(0, backend_root)
 from common_models.models import ApiResponse
 from backend.api.models import (
     DeploymentConfig,
-    SchemaConfig,
     DatabaseConnectionConfig,
 )
-from backend.api.schema_models import LOADED_RAW_SCHEMA, SCHEMA_FILE_PATH, load_raw_schema
+from backend.api.schema_models import LOADED_RAW_SCHEMA, SCHEMA_FILE_PATH, load_raw_schema, SchemaConfig
 from backend.api.data_router import data_router
 from backend.api.ui_router import ui_router
 from backend.api.auth_router import auth_router
@@ -86,11 +87,12 @@ def load_database_configs() -> DeploymentConfig:
 app_config: Optional[DeploymentConfig] = None
 current_env_config: Optional[DatabaseConnectionConfig] = None
 
-
 # --- Lifespan Events ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Application starting up...")
+
+    app_state: ApiState = cast(ApiState, app.state)
 
     # 1. Load Schema Configuration (ensure it's loaded before DB pools or routers)
     logger.info("Loading raw schema configuration...")
@@ -111,7 +113,7 @@ async def lifespan(app: FastAPI):
         else:
             current_env_config = app_config.development
         logger.info(f"Loaded database configuration for environment: '{environment}'.")
-        app.state.enable_cloud_db = current_env_config.enable_cloud_db
+        app_state.enable_cloud_db = current_env_config.enable_cloud_db
     except Exception as e:
         logger.critical(
             f"Failed to load database configurations: {e}. Exiting application."
@@ -121,10 +123,10 @@ async def lifespan(app: FastAPI):
     # 3. Initialize asyncpg LOCAL database connection pool
     logger.info("Initializing asyncpg LOCAL database connection pool...")
     try:
-        app.state.local_db_pool = await asyncpg.create_pool(
+        app_state.local_db_pool = await asyncpg.create_pool(
             current_env_config.local_db_url
         )
-        app.state.local_db_url = current_env_config.local_db_url
+        app_state.local_db_url = current_env_config.local_db_url
         logger.info("Asyncpg LOCAL database connection pool initialized successfully.")
     except Exception as e:
         logger.critical(
@@ -133,15 +135,15 @@ async def lifespan(app: FastAPI):
         sys.exit(1)
 
     # 4. Initialize asyncpg CLOUD database connection pools (if enabled)
-    app.state.cloud_db_pools: List[AsyncpgPool] = []
-    app.state.cloud_db_urls: List[str] = []
-    if app.state.enable_cloud_db and current_env_config.cloud_dbs:
+    app_state.cloud_db_pools = []#: List[AsyncpgPool] = []
+    app_state.cloud_db_urls = []#: List[str] = []
+    if app_state.enable_cloud_db and current_env_config.cloud_dbs:
         logger.info(f"Initializing asyncpg CLOUD database connection pools...")
         for idx, cloud_db in enumerate(current_env_config.cloud_dbs):
             try:
                 pool = await asyncpg.create_pool(cloud_db.url)
-                app.state.cloud_db_pools.append(pool)
-                app.state.cloud_db_urls.append(cloud_db.url)
+                app_state.cloud_db_pools.append(pool)
+                app_state.cloud_db_urls.append(cloud_db.url)
                 logger.info(
                     f"Cloud DB pool {idx+1} ('{cloud_db.name}') initialized successfully."
                 )
@@ -150,33 +152,33 @@ async def lifespan(app: FastAPI):
                     f"Failed to connect to cloud database '{cloud_db.name}' at {cloud_db.url}: {e}. This cloud DB will be skipped."
                 )
 
-        if not app.state.cloud_db_pools:
+        if not app_state.cloud_db_pools:
             logger.warning(
                 "All configured cloud database connections failed. Cloud synchronization will be effectively disabled."
             )
-            app.state.enable_cloud_db = False
+            app_state.enable_cloud_db = False
     else:
         logger.info(
             "ENABLE_CLOUD_DB is false for this environment or no cloud pools available. Cloud database synchronization is disabled."
         )
-        app.state.enable_db = False
+        app_state.enable_db = False
 
     # 5. Initialize WebSocket broadcast queues and active clients
-    app.state.websocket_broadcast_queues: Dict[str, asyncio.Queue] = {}
-    app.state.websocket_active_clients: Dict[str, List[asyncio.Queue]] = {}
-    app.state.broadcast_consumer_tasks: List[asyncio.Task] = []
+    # app_state.websocket_broadcast_queues = {}#: Dict[str, asyncio.Queue] = {}
+    # app_state.websocket_active_clients = {}#: Dict[str, List[asyncio.Queue]] = {}
+    # app_state.broadcast_consumer_tasks = []#: List[asyncio.Task] = []
 
     # --- Initialize SubscriptionManager for ZMQ-like WebSockets ---
-    app.state.subscription_manager = SubscriptionManager()
+    app_state.subscription_manager = SubscriptionManager()
     logger.info("SubscriptionManager initialized and added to app state.")
 
     if LOADED_RAW_SCHEMA and LOADED_RAW_SCHEMA.tables:
         for table_name in LOADED_RAW_SCHEMA.tables.keys():
-            app.state.websocket_broadcast_queues[table_name] = asyncio.Queue()
-            app.state.websocket_active_clients[table_name] = []
+            app_state.websocket_broadcast_queues[table_name] = asyncio.Queue()
+            app_state.websocket_active_clients[table_name] = []
 
             consumer_task = asyncio.create_task(_broadcast_consumer(app, table_name))
-            app.state.broadcast_consumer_tasks.append(consumer_task)
+            app_state.broadcast_consumer_tasks.append(consumer_task)
             logger.info(
                 f"Background broadcast consumer task for table '{table_name}' started."
             )
@@ -186,17 +188,17 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutting down...")
 
     # 6. Close database connection pools
-    if hasattr(app.state, "local_db_pool") and app.state.local_db_pool:
-        await app.state.local_db_pool.close()
+    if hasattr(app_state, "local_db_pool") and app_state.local_db_pool:
+        await app_state.local_db_pool.close()
         logger.info("Local DB pool closed.")
 
-    if hasattr(app.state, "cloud_db_pools") and app.state.cloud_db_pools:
-        for idx, pool in enumerate(app.state.cloud_db_pools):
+    if hasattr(app_state, "cloud_db_pools") and app_state.cloud_db_pools:
+        for idx, pool in enumerate(app_state.cloud_db_pools):
             await pool.close()
             logger.info(f"Cloud DB pool {idx+1} closed.")
 
     # 7. Cancel WebSocket broadcast consumer tasks
-    for task in app.state.broadcast_consumer_tasks:
+    for task in app_state.broadcast_consumer_tasks:
         task.cancel()
         try:
             await task
@@ -212,14 +214,16 @@ async def _broadcast_consumer(app: FastAPI, table_name: str):
     and sends them to all active WebSocket clients for that table.
     """
     logger.info(f"Starting WebSocket broadcast consumer for table '{table_name}'")
-    queue = app.state.websocket_broadcast_queues[table_name]
+
+    app_state: ApiState = cast(ApiState, app.state)
+    queue = app_state.websocket_broadcast_queues[table_name]
 
     while True:
         try:
             message = await queue.get()
 
             disconnected_clients = []
-            for client_queue in app.state.websocket_active_clients[table_name]:
+            for client_queue in app_state.websocket_active_clients[table_name]:
                 try:
                     client_queue.put_nowait(message)
                 except asyncio.QueueFull:
@@ -233,10 +237,10 @@ async def _broadcast_consumer(app: FastAPI, table_name: str):
                     disconnected_clients.append(client_queue)
 
             for client_queue in disconnected_clients:
-                if client_queue in app.state.websocket_active_clients[table_name]:
-                    app.state.websocket_active_clients[table_name].remove(client_queue)
+                if client_queue in app_state.websocket_active_clients[table_name]:
+                    app_state.websocket_active_clients[table_name].remove(client_queue)
                     logger.info(
-                        f"Removed disconnected client from '{table_name}'. Remaining: {len(app.state.websocket_active_clients[table_name])}"
+                        f"Removed disconnected client from '{table_name}'. Remaining: {len(app_state.websocket_active_clients[table_name])}"
                     )
 
             queue.task_done()
@@ -259,6 +263,7 @@ backend_api = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+backend_api.state = ApiState()
 
 
 @backend_api.exception_handler(StarletteHTTPException)
@@ -309,11 +314,10 @@ backend_api.include_router(auth_router, prefix="/auth")
 backend_api.include_router(status_router, prefix="/status")
 backend_api.include_router(subscription_router, prefix="/database_stream")
 backend_api.include_router(system_router, prefix="/system")
-backend_api.include_router(camera_router, prefix="/camera")
 
 
 @backend_api.get("/", summary="Root API Message", response_model=ApiResponse)
-async def root_message():
+async def root_message(state: ApiState = Depends(typedAppState)):
     """
     Provides a simple welcome message for the API root.
     """
@@ -321,28 +325,28 @@ async def root_message():
 
 
 @backend_api.get("/status", summary="API Health Check", response_model=ApiResponse)
-async def health_check_status():
+async def health_check_status(state: ApiState = Depends(typedAppState)):
     """
     Provides a detailed health check for the API, including database connection status
     and loaded schema information.
     """
     db_status = (
         "Connected"
-        if hasattr(backend_api.state, "local_db_pool")
-        and backend_api.state.local_db_pool
+        if hasattr(state, "local_db_pool")
+        and state.local_db_pool
         else "Disconnected"
     )
 
     cloud_db_status = "Disabled"
     if (
-        hasattr(backend_api.state, "enable_cloud_db")
-        and backend_api.state.enable_cloud_db
+        hasattr(state, "enable_cloud_db")
+        and state.enable_cloud_db
     ):
         if (
-            hasattr(backend_api.state, "cloud_db_pools")
-            and backend_api.state.cloud_db_pools
+            hasattr(state, "cloud_db_pools")
+            and state.cloud_db_pools
         ):
-            cloud_db_status = f"{len(backend_api.state.cloud_db_pools)} pools active"
+            cloud_db_status = f"{len(state.cloud_db_pools)} pools active"
         else:
             cloud_db_status = "Enabled, but no pools active"
 
@@ -361,8 +365,8 @@ async def health_check_status():
                 "DEPLOYMENT_ENV", "development"
             ).lower(),
             "running_consumer_tasks": (
-                len(backend_api.state.broadcast_consumer_tasks)
-                if hasattr(backend_api.state, "broadcast_consumer_tasks")
+                len(state.broadcast_consumer_tasks)
+                if hasattr(state, "broadcast_consumer_tasks")
                 else 0
             ),
         },

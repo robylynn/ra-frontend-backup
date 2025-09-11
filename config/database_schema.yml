@@ -218,3 +218,23 @@ tables:
       position: DOUBLE PRECISION
       velocity: DOUBLE PRECISION
     hypertable_column: stamp
+  
+  defect_detection:
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      image_id: UUID
+      bbox_x_center: DOUBLE PRECISION
+      bbox_y_center: DOUBLE PRECISION
+      bbox_width: DOUBLE PRECISION
+      bbox_height: DOUBLE PRECISION
+      product_type: TEXT
+      defect_type: TEXT
+      confidence: DOUBLE PRECISION
+      model: TEXT
+  
+  ai_models:
+    columns:
+      stamp: TIMESTAMPTZ NOT NULL
+      model: TEXT
+      status: TEXT
+      mAP: DOUBLE PRECISION

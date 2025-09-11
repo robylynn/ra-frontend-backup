@@ -41,52 +41,6 @@ export const DataUpdater = () => {
     const { showAlert } = useAlert(); // NEW: Use the showAlert function from context
 
     useEffect(() => {
-        // Define an async function to handle the API call and configuration logic
-        // const fetchConfig = async () => {
-        //     let configToSet: UiConfig = DEFAULT_UI_CONFIG; // Start with default config
-        //     let message: string | null = null; // Message for potential alerts
-        //     let type: AlertType = 'warning'; // Default alert type
-
-        //     try {
-        //         const apiResponse: UiConfigApiResponse =
-        //             await asyncExponentialBackoffRetry(() =>
-        //                 fetchFromBackendApi<UiConfigApiResponse>(
-        //                     '/api/backend/ui/config/abc',
-        //                     'GET',
-        //                     null,
-        //                     uiConfigApiResponseSchema
-        //                 )
-        //             );
-
-        //         if (apiResponse && apiResponse.config_data) {
-        //             configToSet = apiResponse.config_data;
-        //             message = `UI configuration successfully loaded. Client ID: ${apiResponse.client_id}, Last Updated: ${new Date(apiResponse.last_updated).toLocaleString()}.`;
-        //             type = 'success';
-        //             logMessage(
-        //                 `Got UI configuration: ${JSON.stringify(configToSet)}`,
-        //                 'info'
-        //             );
-        //         } else {
-        //             message =
-        //                 'No UI configuration detected in the backend. Default configuration has been loaded.';
-        //             type = 'warning';
-        //             console.warn(message);
-        //         }
-        //     } catch (err: any) {
-        //         message = `Failed to fetch UI configuration from the backend after multiple retries. Default configuration has been loaded. Error: ${err.message || String(err)}.`;
-        //         type = 'error';
-        //         console.error(`Final error loading UI configuration: ${err}`);
-        //     } finally {
-        //         setDashboardContext({
-        //             payload: { configuration: configToSet },
-        //             type: 'ui_config/set',
-        //         });
-        //         if (message) {
-        //             showAlert(message, type, undefined, 'Configuration Alert:');
-        //         }
-        //     }
-        // };
-
         const fetchTables = async () => {
             let message: string | null = null; // Message for potential alerts
             let type: AlertType = 'warning'; // Default alert type
@@ -123,7 +77,7 @@ export const DataUpdater = () => {
                 // console.error(`Final error loading UI configuration: ${err}`);
             } finally {
                 if (message) {
-                    showAlert(message, type, undefined, 'Database Alert:');
+                    showAlert(message, type, undefined, 'Database Alert');
                 }
             }
         };
@@ -139,7 +93,7 @@ export const DataUpdater = () => {
                 const apiResponse: fullConfigurationType =
                     await asyncExponentialBackoffRetry(() =>
                         fetchFromBackendApi<fullConfigurationType>(
-                            '/api/backend/ui/full_config/abc',
+                            '/api/backend/ui/full_config/def',
                             'GET',
                             null,
                             fullConfiguration
@@ -160,7 +114,7 @@ export const DataUpdater = () => {
                                 message,
                                 type,
                                 undefined,
-                                'Configuration Alert:'
+                                'Configuration Alert'
                             );
                         }
                     } else {
@@ -173,17 +127,23 @@ export const DataUpdater = () => {
                                 message,
                                 type,
                                 undefined,
-                                'Configuration Alert:'
+                                'Configuration Alert'
                             );
                         }
                     }
 
                     if (apiResponse.ui_configuration) {
-                        uiConfigToSet = apiResponse.ui_configuration;
-                        message = `UI configuration successfully loaded. Client ID: ${apiResponse.client_id}, Last Updated: ${new Date(apiResponse.ui_configuration.last_updated).toLocaleString()}.`;
-                        type = 'success';
+                        if (apiResponse.ui_configuration.components.length == 0) {
+                            message = 'Received empty UI configuration from backend. Falling back to default.';
+                            type = 'warning';
+                        } else {
+                            uiConfigToSet = apiResponse.ui_configuration;
+                            message = `UI configuration successfully loaded. Client ID: ${apiResponse.client_id}, Last Updated: ${new Date(apiResponse.ui_configuration.last_updated).toLocaleString()}.`;
+                            type = 'success';
+                        }
+                        
                         logMessage(
-                            `Got UI configuration: ${JSON.stringify(uiConfigToSet)}`,
+                            `Using UI configuration: ${JSON.stringify(uiConfigToSet)}`,
                             'info'
                         );
                         if (message) {
@@ -191,7 +151,7 @@ export const DataUpdater = () => {
                                 message,
                                 type,
                                 undefined,
-                                'Configuration Alert:'
+                                'Configuration Alert'
                             );
                         }
                     } else {
@@ -204,7 +164,7 @@ export const DataUpdater = () => {
                                 message,
                                 type,
                                 undefined,
-                                'Configuration Alert:'
+                                'Configuration Alert'
                             );
                         }
                     }
@@ -222,7 +182,7 @@ export const DataUpdater = () => {
                                 message,
                                 type,
                                 undefined,
-                                'Configuration Alert:'
+                                'Configuration Alert'
                             );
                         }
                     } else {
@@ -235,26 +195,12 @@ export const DataUpdater = () => {
                                 message,
                                 type,
                                 undefined,
-                                'Configuration Alert:'
+                                'Configuration Alert'
                             );
                         }
                     }
                 }
 
-                // if (apiResponse && apiResponse.config_data) {
-                //     configToSet = apiResponse.config_data;
-                //     message = `UI configuration successfully loaded. Client ID: ${apiResponse.client_id}, Last Updated: ${new Date(apiResponse.last_updated).toLocaleString()}.`;
-                //     type = 'success';
-                //     logMessage(
-                //         `Got UI configuration: ${JSON.stringify(configToSet)}`,
-                //         'info'
-                //     );
-                // } else {
-                //     message =
-                //         'No UI configuration detected in the backend. Default configuration has been loaded.';
-                //     type = 'warning';
-                //     console.warn(message);
-                // }
             } catch (err: any) {
                 message = `Failed to fetch configurations from the backend after multiple retries. Default configurations have been loaded. Error: ${err.message || String(err)}.`;
                 type = 'error';
@@ -272,9 +218,6 @@ export const DataUpdater = () => {
                     payload: opcConfigToSet,
                     type: 'opc_config/set',
                 });
-                // if (message) {
-                //     showAlert(message, type, undefined, 'Configuration Alert:');
-                // }
             }
         };
 

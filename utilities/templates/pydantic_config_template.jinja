@@ -1,7 +1,9 @@
 # pydantic_template.jinja
 from __future__ import annotations
 from typing import Literal, Union, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
+from datetime import datetime, timezone
+from functools import partial
 import uuid
 
 # MODELS FOR {{ schema_name.upper() }}
@@ -26,7 +28,11 @@ import uuid
     {{ prop_name }}: {{ prop_data.ref | pascalcase }} = Field(...)
     {%- endif %}
     {%- elif prop_data.type == 'array' %}
-    {{ prop_name }}: List[{{ prop_data.elements.ref | pascalcase }}] = Field(...)
+    {% if prop_data.elements.ref is defined -%}
+    {{ prop_name }}: List[{{ prop_data.elements.ref | pascalcase }}] = {%- if prop_data.default is defined %} Field(default_factory=list) {%- else %} Field(...) {%- endif -%}
+    {%- else -%}
+    {{ prop_name }}: List[{{ type_mappings[prop_data.elements.type] }}]
+    {%- endif -%}
     {%- elif prop_data.type == 'union' %}
     {{ prop_name }}: Union[
         {% for value in prop_data.variants -%}
@@ -38,7 +44,12 @@ import uuid
     {%- elif prop_data.type == 'uuid' %}
     {{ prop_name }}: uuid.UUID = Field(...)
     {%- elif prop_data.type == 'string' %}
-    {{ prop_name }}: str = Field(...)
+    {{ prop_name }}: str = {%- if prop_data.default is defined %} Field(default_factory=str) {%- else %} Field(...) {%- endif -%}
+    {%- elif prop_data.type == 'datetime' %}
+    {{ prop_name }}: datetime = {%- if prop_data.default is defined %} Field(default_factory=partial(datetime.now, timezone.utc)) {%- else %} Field(...) {%- endif %}
+    @field_serializer('{{ prop_name }}')
+    def serialize_last_updated(self, {{ prop_name }}: datetime, _info):
+        return {{ prop_name }}.isoformat(timespec="milliseconds").replace("+00:00", "Z")
     {%- elif prop_data.type == 'literal' %}
     {{ prop_name }}: Literal['{{prop_data.value}}'] = Field(...)
     {%- elif prop_data.type == 'integer' or prop_data.type == 'float' or prop_data.type == 'number' %}

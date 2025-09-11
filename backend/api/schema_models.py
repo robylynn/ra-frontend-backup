@@ -2,9 +2,32 @@ import os, sys
 import yaml
 from typing import Dict, Any, Optional
 from loguru import logger  # Keep logger import, but remove configuration here
+from pydantic import BaseModel, Field
 
 # Import the new Pydantic model for schema configuration
-from backend.api.models import SchemaConfig
+# from backend.api.models import SchemaConfig
+
+# --- Models for Schema.yml Structure ---
+class ColumnDef(BaseModel):
+    """Represents a column definition from schema.yml."""
+
+    type: str = Field(..., alias="name")
+
+
+class TableDef(BaseModel):
+    """Represents a single table's definition in the schema file."""
+
+    columns: Dict[str, Any]
+    hypertable_column: Optional[str] = Field(
+        None, description="The column used as the TimescaleDB hypertable dimension."
+    )
+    number_of_tables: Optional[int] = None
+
+
+class SchemaConfig(BaseModel):
+    """Represents the entire schema.yml structure."""
+
+    tables: Dict[str, TableDef]
 
 # LOADED_RAW_SCHEMA will now be an instance of SchemaConfig
 LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
