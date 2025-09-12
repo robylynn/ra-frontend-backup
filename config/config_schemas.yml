@@ -59,7 +59,10 @@ schemas:
   camera_metadata:
     type: object
     properties:
-      source: { type: string }
+      camera_id: { type: string }
+      variant:
+        type: enum
+        valid_values: ['full', 'compact', 'simple']
   
   training_metadata:
     type: object

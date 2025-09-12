@@ -35,7 +35,8 @@ export const DEFAULT_UI_CONFIG: uiConfigurationType = {
             label: 'Camera Feed',
             tile_columns: 1,
             metadata: {
-                source: 'camera0',
+                camera_id: 'camera0',
+                variant: 'full'
             },
         },
         {

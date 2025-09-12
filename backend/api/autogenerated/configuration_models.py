@@ -36,7 +36,8 @@ class ImageArchiveMetadata(BaseModel):
     number_of_images: float = Field(...)
 
 class CameraMetadata(BaseModel):
-    source: str = Field(...)
+    camera_id: str = Field(...)
+    variant: Literal['full','compact','simple'] = ''
 
 class TrainingMetadata(BaseModel):
     source: str = Field(...)

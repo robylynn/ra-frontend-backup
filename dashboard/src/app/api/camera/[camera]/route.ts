@@ -1,7 +1,5 @@
-import authOptions from '@/lib/auth/auth_options';
 import { createAPIResponse } from '@/lib/models/api_models';
-import { debug_mode } from '@/lib/utils/utilities';
-import { getServerSession } from 'next-auth';
+import { debug_mode, validateAuthentication } from '@/lib/utils/utilities';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -9,9 +7,9 @@ export async function GET(
     { params }: { params: { camera: string } } // ← Changed to match folder name
 ) {
     // Authentication check (similar to your socket route)
-    const session = await getServerSession(authOptions);
+    const authenticated = await validateAuthentication();
 
-    if (session == null && process.env.ENABLE_AUTHENTICATION === 'true') {
+    if (!authenticated && process.env.ENABLE_AUTHENTICATION === 'true') {
         if (debug_mode())
             console.log(
                 `Attempted camera stream access without authentication`
