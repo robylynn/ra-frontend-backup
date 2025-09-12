@@ -57,8 +57,8 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
         ${isDismissing ? 'animate-slide-out' : isRefreshed ? 'animate-jiggle' : 'animate-fade-in'}
       `}
         >
-            <div>
-                <strong className="font-bold">{`${alertHeader}: `}</strong>
+            <div className='flex flex-col'>
+                <strong className="font-bold">{`${alertHeader}`}</strong>
                 <span className="block sm:inline ml-2 text-wrap wrap-break-word">{message}</span>
             </div>
             <button

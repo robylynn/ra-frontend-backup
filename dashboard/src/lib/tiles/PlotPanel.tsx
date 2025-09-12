@@ -12,29 +12,6 @@ export const PlotPanel: React.FC<DashboardHeaderContainerProps> = (
 ) => {
     const { dashboardContext } = useContext(DashboardContext);
 
-    // const renderedPlots = () => {
-    //     return dashboardContext.ui_configuration.components.map(
-    //         (component) => {
-    //             if (component.type === 'charts') {
-    //                 const PlotComponent = PlotComponentFactory();
-    //                 return (
-    //                     <PlotComponent
-    //                         traces={component.metadata.traces.map(
-    //                             (trace) => trace
-    //                         )}
-    //                         max_length={component.metadata.max_length}
-    //                     />
-    //                 );
-    //             }
-    //         }
-    //     );
-    // };
-
-    // const plots = renderedPlots();
-
-    // const SensorDataPlot = PlotComponentFactory<sensorDataBatch>();
-    // const AxisPositionPlot = PlotComponentFactory<axisEstimates>();
-
     return (
         <>
             <DashboardHeaderContainer

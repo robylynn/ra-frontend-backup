@@ -67,7 +67,7 @@ export function DashboardHeaderContainer(props: {
 
     return (
         <div
-            className={`flex flex-col rounded-xl mx-2 bg-r2-dark-background-300 h-full transition-all duration-200 active:bg-gray-500 ${
+            className={`flex flex-col rounded-xl mx-2 bg-r2-dark-background-300 h-full transition-all duration-200  ${
                 props.className ?? ''
             }`}
         >

@@ -44,7 +44,7 @@ export default function DashboardMainPanel(props: { className?: string }) {
                         )} ${fillTile === 'camera_panel' ? 'h-full' : 'min-h-[200px]'}`}
                         // fill_tile_callback={setFillTile}
                     /> */}
-                    {dashboardContext.ui_configuration.components.map(
+                    {dashboardContext.ui_configuration.tiles.map(
                         (componentConfig) => {
                             // Look up the component from our map based on its type.
                             const Component =
@@ -62,6 +62,8 @@ export default function DashboardMainPanel(props: { className?: string }) {
                             return (
                                 <Component
                                     key={componentConfig.id}
+                                    title={componentConfig.label}
+                                    metadata={componentConfig.metadata}
                                     //{...componentConfig.props}
                                 />
                             );

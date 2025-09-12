@@ -70,7 +70,7 @@ schemas:
     type: object
     properties:
       refresh_interval: { type: number }
-      time_span: { type: number }
+      time_span_hours: { type: number }
       defects_to_analyze:
         type: array
         elements: { type: string }
@@ -102,7 +102,8 @@ schemas:
       label:
         type: string
         validations: { minlength: 1 }
-      type: { type: literal, value: image }
+      tile_columns: { type: number }
+      type: { type: literal, value: image_archive }
       metadata: { ref: image_archive_metadata }
 
   camera_component:
@@ -112,6 +113,7 @@ schemas:
       label:
         type: string
         validations: { minlength: 1 }
+      tile_columns: { type: number }
       type: { type: literal, value: camera }
       metadata: { ref: camera_metadata }
 
@@ -122,6 +124,7 @@ schemas:
       label:
         type: string
         validations: { minlength: 1 }
+      tile_columns: { type: number }
       type: { type: literal, value: training }
       metadata: { ref: training_metadata }
 
@@ -132,6 +135,7 @@ schemas:
       label:
         type: string
         validations: { minlength: 1 }
+      tile_columns: { type: number }
       type: { type: literal, value: vision_statistics }
       metadata: { ref: vision_statistics_metadata }
 
@@ -163,7 +167,7 @@ schemas:
       #       type: number
       #       validations: { min: 50, max: 200 }
       #       default: 80
-      components:
+      tiles:
         type: array
         elements: { ref: ui_component }
         validations: { min_items: 0 }
