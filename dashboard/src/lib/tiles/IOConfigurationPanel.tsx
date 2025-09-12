@@ -1,6 +1,6 @@
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
-import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 import { IOConfigurationComponent } from '@/lib/components/client_components/IOConfigurationComponent';
+import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 
 export const IOConfigurationPanel: React.FC<DashboardHeaderContainerProps> = (
     props: DashboardHeaderContainerProps

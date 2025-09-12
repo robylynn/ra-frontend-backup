@@ -24,13 +24,13 @@ import {
     DEFAULT_OPC_CONFIG,
     DEFAULT_UI_CONFIG,
 } from '@/lib/models/defaults';
+import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
 import {
     asyncExponentialBackoffRetry,
     fetchFromBackendApi,
 } from '@/lib/utils/timeoutFetch';
 import { logMessage } from '@/lib/utils/utilities';
 import { useSession } from 'next-auth/react';
-import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
 
 export const DataUpdater = () => {
     const { setDashboardContext } = useContext(DashboardContext);

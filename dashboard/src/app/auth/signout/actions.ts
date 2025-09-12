@@ -30,36 +30,39 @@
 //     }
 // }
 
-
 // app/auth/signout/actions.ts
 'use server'; // <--- This directive marks the file as a Server Action
 
-import { auth, signOut } from '@/auth'; // Import the server-side `signOut` helper from your auth.ts
+import { signOut } from '@/auth'; // Import the server-side `signOut` helper from your auth.ts
 import { redirect } from 'next/navigation'; // For server-side redirects
 
 // Define the server action for signing out
 export async function signOutAction() {
-  console.log('[Server Action] Attempting to sign out...');
-  try {
-    // 1. Call signOut to clear the session, but prevent it from issuing its own redirect.
-    // This try-block specifically handles errors that occur during the *session clearing* process.
-    await signOut({ redirect: false }); 
-    // await signOut({ redirect: true }); 
+    console.log('[Server Action] Attempting to sign out...');
+    try {
+        // 1. Call signOut to clear the session, but prevent it from issuing its own redirect.
+        // This try-block specifically handles errors that occur during the *session clearing* process.
+        await signOut({ redirect: false });
+        // await signOut({ redirect: true });
 
-    console.log('[Server Action] Session cleared successfully.');
-    
-  } catch (error: any) {
-    // This catch block will only execute if `signOut({ redirect: false })` itself fails
-    // (e.g., a network issue contacting the Auth.js API, or an internal Auth.js error).
-    // It will NOT catch the NEXT_REDIRECT thrown by the subsequent `redirect()` call.
-    console.error('[Server Action] Error clearing session during sign out:', error);
-    // For actual errors during session clearing, redirect to sign-in with an error message.
-    redirect(`/auth/signin?error=SignOutSessionError`);
-  }
+        console.log('[Server Action] Session cleared successfully.');
+    } catch (error: any) {
+        // This catch block will only execute if `signOut({ redirect: false })` itself fails
+        // (e.g., a network issue contacting the Auth.js API, or an internal Auth.js error).
+        // It will NOT catch the NEXT_REDIRECT thrown by the subsequent `redirect()` call.
+        console.error(
+            '[Server Action] Error clearing session during sign out:',
+            error
+        );
+        // For actual errors during session clearing, redirect to sign-in with an error message.
+        redirect(`/auth/signin?error=SignOutSessionError`);
+    }
 
-  // 2. Explicitly redirect the user using next/navigation's redirect.
-  // This call will *throw* NEXT_REDIRECT. Next.js is designed to catch this internal error
-  // and process it as an HTTP redirect to the browser. It should NOT be caught by your app code.
-  console.log('[Server Action] Initiating explicit redirect to /auth/signin.');
-  redirect('/auth/signin'); 
+    // 2. Explicitly redirect the user using next/navigation's redirect.
+    // This call will *throw* NEXT_REDIRECT. Next.js is designed to catch this internal error
+    // and process it as an HTTP redirect to the browser. It should NOT be caught by your app code.
+    console.log(
+        '[Server Action] Initiating explicit redirect to /auth/signin.'
+    );
+    redirect('/auth/signin');
 }

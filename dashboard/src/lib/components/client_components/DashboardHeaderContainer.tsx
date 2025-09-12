@@ -113,7 +113,7 @@ export function DashboardHeaderContainer(props: {
             </div>
             <div className="relative h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-hidden">
                 <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400">
-                {/* <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-y-scroll"></div> */}
+                    {/* <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-y-scroll"></div> */}
                     {props.children}
                 </div>
 

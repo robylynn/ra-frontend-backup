@@ -4,7 +4,7 @@ import credentials from 'next-auth/providers/credentials';
 export const { auth, handlers, signIn, signOut } = NextAuth({
     // secret: process.env.AUTH_SECRET,
     trustHost: true,
-    
+
     pages: {
         signIn: '/auth/signin', // <-- Add this line
         // You can also define other custom pages like:
@@ -54,7 +54,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 password: { label: 'Password', type: 'password' },
             },
             async authorize(
-                credentials: Record<'username' | 'password', string>,
+                credentials: Record<'username' | 'password', string>
             ) {
                 try {
                     const backendApiUrl = `http://${process.env.CONTROLLER_URI}`;

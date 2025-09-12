@@ -1,7 +1,9 @@
-import { basicApiResponseSchema, NextAPIResponseInterface } from '@/lib/models/api_models';
-import { z, ZodError } from 'zod';
-import { createApiResponseSchema } from '@/lib/models/api_models';
+import {
+    createApiResponseSchema,
+    NextAPIResponseInterface,
+} from '@/lib/models/api_models';
 import { FetchError } from '@/lib/models/errors';
+import { z, ZodError } from 'zod';
 
 export default async function timeoutFetch<Type>(
     path: string,
@@ -87,7 +89,6 @@ export async function timeoutFetchWithErrors(
     return ret;
 }
 
-
 /**
  * Retries a promise-based async function with exponential backoff.
  * @param {Function} apiCall The async function to retry.
@@ -95,7 +96,11 @@ export async function timeoutFetchWithErrors(
  * @param {number} initialDelay The initial delay in milliseconds.
  * @returns {Promise<any>} The result of the successful API call.
  */
-export const asyncExponentialBackoffRetry = async (apiCall, maxRetries = 3, initialDelay = 1000) => {
+export const asyncExponentialBackoffRetry = async (
+    apiCall,
+    maxRetries = 3,
+    initialDelay = 1000
+) => {
     let lastError = null;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -103,14 +108,15 @@ export const asyncExponentialBackoffRetry = async (apiCall, maxRetries = 3, init
         } catch (err) {
             lastError = err;
             const delay = initialDelay * Math.pow(2, attempt);
-            console.warn(`Attempt ${attempt + 1} failed. Retrying in ${delay / 1000}s...`);
-            await new Promise(res => setTimeout(res, delay));
+            console.warn(
+                `Attempt ${attempt + 1} failed. Retrying in ${delay / 1000}s...`
+            );
+            await new Promise((res) => setTimeout(res, delay));
         }
     }
     // If all attempts fail, re-throw the last error
     throw lastError;
 };
-
 
 /**
  * Fetches and validates data from an API using a generic type and an optional Zod schema.
@@ -176,8 +182,7 @@ export async function fetchFromBackendApi<T = unknown>(
         } else {
             // Case 2: No schema provided, so perform minimal validation.
             const schema = createApiResponseSchema();
-            const validatedResponse =
-                createApiResponseSchema().parse(rawData);
+            const validatedResponse = createApiResponseSchema().parse(rawData);
 
             if (!validatedResponse.backend_response.success) {
                 throw new FetchError(

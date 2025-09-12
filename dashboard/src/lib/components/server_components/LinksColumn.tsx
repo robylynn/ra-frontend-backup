@@ -1,16 +1,15 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-"uer server"
-
+'uer server';
 
 // lib/components/server_components/links_column.tsx
 // This is a Server Component – no "use client" directive is needed.
 
 import { auth } from '@/auth'; // Server-side authentication helper
+import StateReadout from '@/lib/components/client_components/StateReadout';
 import Image from 'next/image'; // Works in Server Components
 import Link from 'next/link'; // Works in Server Components
-import StateReadout from '@/lib/components/client_components/StateReadout';
 
 // PageTab is designed to be rendered within a Server Component,
 // as it primarily handles UI and navigation links.
@@ -41,7 +40,7 @@ function PageTab(props: {
                 src={props.icon_path}
                 alt={props.tab_text}
                 // Adjusting dark mode invert/sepia for better icon visibility
-                className="dark:invert dark:opacity-80 flex-shrink-0" 
+                className="dark:invert dark:opacity-80 flex-shrink-0"
                 width={28} // Slightly smaller icons for better visual balance
                 height={28}
                 priority
@@ -62,10 +61,8 @@ function PageTab(props: {
 // It fetches session data directly on the server.
 export default async function LinksColumn(props: { className?: string }) {
     let username: string;
-    
-    const session = await auth().then(
-        (session) => session
-    );
+
+    const session = await auth().then((session) => session);
 
     if (session == null) {
         username = 'NONE';

@@ -1,5 +1,5 @@
-import { z, ZodError } from "zod";
-import { WebsocketError } from "@/lib/models/errors";
+import { WebsocketError } from '@/lib/models/errors';
+import { z, ZodError } from 'zod';
 
 function createWebsocketMessageSchema<T>(schema: z.ZodSchema<T>) {
     return z.object({

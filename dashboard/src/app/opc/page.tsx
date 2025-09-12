@@ -7,7 +7,7 @@ import { OPCConfigurationPanel } from '@/lib/tiles/OPCConfigurationPanel';
 export default function OPCUAPage() {
     return (
         <ProtectedPage>
-            <OPCConfigurationPanel id='opc_panel'/>
+            <OPCConfigurationPanel id="opc_panel" />
         </ProtectedPage>
     );
 }

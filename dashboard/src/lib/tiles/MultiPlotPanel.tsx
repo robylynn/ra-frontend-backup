@@ -1,7 +1,7 @@
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
 // import React from 'react';
-import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 import { MultiPlotComponent } from '@/lib/components/client_components/MultiPlotComponent';
+import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 
 export const MultiPlotPanel: React.FC<DashboardHeaderContainerProps> = (
     props: DashboardHeaderContainerProps
@@ -37,7 +37,7 @@ export const MultiPlotPanel: React.FC<DashboardHeaderContainerProps> = (
                 fill_tile_callback={props.fill_tile_callback}
             >
                 {/* {renderedPlots()} */}
-                <MultiPlotComponent/>
+                <MultiPlotComponent />
             </DashboardHeaderContainer>
         </>
     );

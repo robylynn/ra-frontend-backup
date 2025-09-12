@@ -10,14 +10,14 @@ import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 //         <div
 //             className={`
 //         my-1
-//         bg-light-box-background 
-//         dark:bg-r2-dark-background-500/[.85] 
-//         shadow-[2px_4px_35px_0px_#70727C] 
-//         rounded-lg 
-//         w-[100%] 
-//         border 
+//         bg-light-box-background
+//         dark:bg-r2-dark-background-500/[.85]
+//         shadow-[2px_4px_35px_0px_#70727C]
+//         rounded-lg
+//         w-[100%]
+//         border
 //         border-r2-green-300
-        
+
 //         py-2
 //         ${props.className ?? ''}
 //         `}
@@ -33,7 +33,7 @@ export function SimplifiedDashboardHeaderContainer({
     icon_path,
     className = '',
     isLoading = false,
-    children
+    children,
 }): React.ReactElement<DashboardHeaderContainerProps> {
     // let expansionState: boolean;
     // let setExpansionState: Dispatch<SetStateAction<boolean>>;
@@ -52,7 +52,8 @@ export function SimplifiedDashboardHeaderContainer({
         <div
             className={`flex flex-col rounded-xl mx-2 bg-r2-dark-background-300 h-full transition-all duration-200  ${
                 className ?? ''
-            }`} id={id}
+            }`}
+            id={id}
         >
             <div className="flex flex-row items-center p-2 rounded-xl group justify-between">
                 <div className="flex flex-row">
@@ -96,7 +97,7 @@ export function SimplifiedDashboardHeaderContainer({
             </div>
             <div className="relative h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-hidden">
                 <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400">
-                {/* <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-y-scroll"></div> */}
+                    {/* <div className="h-full mx-2 mb-2 rounded-xl bg-r2-dark-background-400 overflow-y-scroll"></div> */}
                     {children}
                 </div>
 

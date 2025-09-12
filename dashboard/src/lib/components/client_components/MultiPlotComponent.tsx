@@ -361,7 +361,7 @@ const ImportModal = ({ isOpen, onClose, onImport }) => {
         showAlert(message, log_level);
     };
 
-    useEffect(() => setImportText(''), [isOpen])
+    useEffect(() => setImportText(''), [isOpen]);
 
     return (
         <Modal onClose={onClose} isOpen={isOpen} modalTitle="Import Plots">

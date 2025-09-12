@@ -5,10 +5,10 @@
 
 import { useContext, useState } from 'react';
 
-import { ComponentMap } from '@/lib/utils/ComponentMap';
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
 import LoadingIndicator from '@/lib/components/server_components/LoadingIndicator';
+import { ComponentMap } from '@/lib/utils/ComponentMap';
 
 export default function DashboardMainPanel(props: { className?: string }) {
     const [fillTile, setFillTile] = useState<string>('');

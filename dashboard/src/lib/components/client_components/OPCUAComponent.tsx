@@ -26,7 +26,7 @@ import {
 import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
 import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
 import { useSession } from 'next-auth/react';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Alarm {
