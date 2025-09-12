@@ -1325,7 +1325,7 @@ export class ApplicationContext {
     heartbeat_counter: number = 0;
     database_online: boolean = false;
     // ra_websocket: WebSocket | null = null;
-    // ra_ros_websocket: ROSLIB.Ros | null = null;
+    ra_ros_websocket: ROSLIB.Ros | null = null;
     ros_state: RosState = {
         ros: null,
         connected: false,

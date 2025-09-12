@@ -131,7 +131,7 @@ export const DataUpdater = () => {
 
                     if (apiResponse.ui_configuration) {
                         if (
-                            apiResponse.ui_configuration.components.length == 0
+                            apiResponse.ui_configuration.tiles.length == 0
                         ) {
                             message =
                                 'Received empty UI configuration from backend. Falling back to default.';

@@ -91,7 +91,7 @@ export default function DashboardContextProvider(props: {
         ros_axis_command_services: AxisCommandServices;
         ros_camera_command_services: CameraCommandServices;
         ros_ai_training_command_services: AITrainingCommandServices;
-        // ra_ros_websocket: ROSLIB.Ros;
+        ra_ros_websocket: ROSLIB.Ros;
         ros_state: RosState;
     }>('ros/set');
     const setAnalogInDataAction = createAction<{
@@ -211,7 +211,7 @@ export default function DashboardContextProvider(props: {
                     return state;
                 })
                 .addCase(setROSAction, (state, action) => {
-                    // state.ra_ros_websocket = action.payload.ra_ros_websocket;
+                    state.ra_ros_websocket = action.payload.ra_ros_websocket;
                     // state.ros_state.ros = action.payload.ros_state.
                     state.ros_state = action.payload.ros_state;
                     state.io_configuration_services =

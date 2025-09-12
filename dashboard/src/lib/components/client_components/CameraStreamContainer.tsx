@@ -491,7 +491,7 @@ const CameraStreamContainer = ({
     );
 };
 
-// Export different variations
+// Compact version
 export const CompactCameraStream = (
     props: Omit<CameraStreamContainerProps, 'layout'>
 ) => <CameraStreamContainer {...props} layout="compact" />;
@@ -506,5 +506,4 @@ export const SimpleCameraStream = (
     />
 );
 
-// Default export
 export default CameraStreamContainer;
