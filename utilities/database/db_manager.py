@@ -105,7 +105,7 @@ project_root = os.path.join(
 sys.path.insert(0, project_root)
 
 from backend.api.models import (
-    SchemaConfig,
+    # SchemaConfig,
     DeploymentConfig,
     DatabaseConnectionConfig,
     CloudDbInstance,
