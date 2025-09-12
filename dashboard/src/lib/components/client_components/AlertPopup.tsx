@@ -1,7 +1,6 @@
 // lib/components/client_components/AlertPopup.tsx
 'use client';
 
-import Image from 'next/image';
 import React from 'react';
 import { CloseIcon } from '../server_components/svg/icons';
 
@@ -29,7 +28,7 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
     alertRef,
     header,
     // isRefreshed = false, // Default to false if not provided
-    refreshCount = 0
+    refreshCount = 0,
 }) => {
     // Determine alert styling based on type
     let alertBgClass = 'bg-yellow-100 border-yellow-400 text-yellow-700'; // Default for warning
@@ -57,16 +56,18 @@ export const AlertPopup: React.FC<AlertPopupProps> = ({
         ${isDismissing ? 'animate-slide-out' : isRefreshed ? 'animate-jiggle' : 'animate-fade-in'}
       `}
         >
-            <div className='flex flex-col'>
+            <div className="flex flex-col">
                 <strong className="font-bold">{`${alertHeader}`}</strong>
-                <span className="block sm:inline ml-2 text-wrap wrap-break-word">{message}</span>
+                <span className="block sm:inline ml-2 text-wrap wrap-break-word">
+                    {message}
+                </span>
             </div>
             <button
                 onClick={onDismiss} // onDismiss now comes from the provider
                 className="ml-4 text-current hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-current rounded-full p-1 transition-opacity duration-200"
                 aria-label="Dismiss alert"
             >
-                <CloseIcon/>
+                <CloseIcon />
                 {/* <Image
                     src="/icons/close.svg"
                     alt="Close"

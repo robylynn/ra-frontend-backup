@@ -4,7 +4,12 @@
 'use client';
 
 import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
-import { AITrainingServiceType, AxisServiceType, CameraServiceType, IOPointType } from '@/lib/models/api_models';
+import {
+    AITrainingServiceType,
+    AxisServiceType,
+    CameraServiceType,
+    IOPointType,
+} from '@/lib/models/api_models';
 import {
     AITrainingCommandServices,
     ApplicationServices,

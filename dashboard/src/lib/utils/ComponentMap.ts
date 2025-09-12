@@ -1,13 +1,13 @@
-import { CameraStreamPanel } from "@/lib/tiles/CameraPanel"
-import { JogPanel } from "@/lib/tiles/JogPanel"
-import { PlotPanel } from "@/lib/tiles/PlotPanel"
-import { TestStatisticsPanel } from "@/lib/tiles/TestInferencePanel";
+import { CameraStreamPanel } from '@/lib/tiles/CameraPanel';
+import { JogPanel } from '@/lib/tiles/JogPanel';
+import { PlotPanel } from '@/lib/tiles/PlotPanel';
+import { TestStatisticsPanel } from '@/lib/tiles/TestInferencePanel';
 // import React from "react"
 // import { useState } from "react"
 
 // const blankComponent: React.FC = (props: {label: string}) => {
 //     const [state, setState] = useState('');
-    
+
 //     return (
 //         <div>
 //         </div>

@@ -134,7 +134,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         newWs.onmessage = (event) => {
             const data: WebSocketMessage = JSON.parse(event.data);
             // console.log('Provider received:', data);
-            logMessage(`Provider received: ${JSON.stringify(data)}`, 'debug')
+            logMessage(`Provider received: ${JSON.stringify(data)}`, 'debug');
             // New: Distribute message to all registered listeners that match the filter
             messageListeners.current.forEach(({ callback, filter }) => {
                 let matches = true;

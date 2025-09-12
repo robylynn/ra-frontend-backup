@@ -79,9 +79,6 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({
             //     return;
             // }
 
-
-
-
             // // Check if an identical alert (same message and type) is already active and not dismissing.
             // const isDuplicate = alerts.find(
             //     (alert) =>
@@ -108,9 +105,6 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({
             // };
             // // Add new alerts to the beginning of the array to make them appear at the top
             // setAlerts((prevAlerts) => [newAlert, ...prevAlerts]);
-
-
-
 
             setAlerts((prevAlerts) => {
                 // // Check if an identical alert (same message and type) is already active and not dismissing.
@@ -188,7 +182,7 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({
                     isDismissing: false,
                     header: headerOverride,
                     // isRefreshed: false, // NEW: Signal that this is a refreshed alert
-                    refreshCount: 0
+                    refreshCount: 0,
                 };
                 // Add new alerts to the beginning of the array.
                 return [newAlert, ...prevAlerts];

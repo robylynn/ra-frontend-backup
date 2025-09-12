@@ -5,7 +5,6 @@
 import ProtectedPage from '@/lib/components/server_components/ProtectedPage';
 import { IOConfigurationPanel } from '@/lib/tiles/IOConfigurationPanel';
 
-
 export default function IOConfigurationPage() {
     return (
         <ProtectedPage>

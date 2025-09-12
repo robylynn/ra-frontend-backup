@@ -1,6 +1,6 @@
 import { DashboardHeaderContainer } from '@/lib/components/client_components/DashboardHeaderContainer';
-import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 import OPCUAComponent from '@/lib/components/client_components/OPCUAComponent';
+import { DashboardHeaderContainerProps } from '@/lib/models/dashboard_types';
 
 export const OPCConfigurationPanel: React.FC<DashboardHeaderContainerProps> = (
     props: DashboardHeaderContainerProps
@@ -14,7 +14,7 @@ export const OPCConfigurationPanel: React.FC<DashboardHeaderContainerProps> = (
                 fill_tile_id={props.id}
                 fill_tile_callback={props.fill_tile_callback}
             >
-                <OPCUAComponent/>
+                <OPCUAComponent />
             </DashboardHeaderContainer>
         </>
     );

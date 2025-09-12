@@ -8,7 +8,7 @@ export default function ChartsPage() {
     return (
         <ProtectedPage>
             {/* <PlotPanel id={'test plot panel'} /> */}
-            <MultiPlotPanel id={'multi_plot_panel'}/>
+            <MultiPlotPanel id={'multi_plot_panel'} />
         </ProtectedPage>
     );
 }

@@ -67,11 +67,8 @@ const JogAxis = (props: { axis: number }): ReactElement => {
             </h2>
             <div className="flex w-full grid grid-cols-6 items-center justify-center p-4 gap-4">
                 <select
-                    onChange={
-                        (e) =>
-                            setPosVelSelectState(
-                                parseInt(e.target.value)
-                            )
+                    onChange={(e) =>
+                        setPosVelSelectState(parseInt(e.target.value))
                     }
                     value={posVelSelectState}
                 >

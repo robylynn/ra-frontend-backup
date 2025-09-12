@@ -27,11 +27,11 @@ import { ioModuleTypes } from '@/lib/models/io_modules';
 import { Modal } from '@/lib/components/client_components/Modal';
 import { ToolTipButtonProps } from '@/lib/components/client_components/ToolTipButtonsColumn';
 import { MultiColumnPanelContainer } from '@/lib/components/server_components/MultiColumnPanelContainer';
+import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
 import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
+import { useSession } from 'next-auth/react';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
-import { useSession } from 'next-auth/react';
 
 const SignalIcon = () => (
     <svg

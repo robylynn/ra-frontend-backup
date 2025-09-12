@@ -37,7 +37,7 @@
 //     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 font-inter">
 //       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md text-center">
 //         <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-6">Signing Out</h1>
-        
+
 //         {error && (
 //           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
 //             <strong className="font-bold">Error!</strong>
@@ -60,42 +60,42 @@
 //   );
 // }
 
-
 // app/auth/signout/page.tsx
 // This is a Server Component – no "use client" directive
-import React from 'react';
 import { signOutAction } from './actions'; // Import the Server Action
 import { SignOutButton } from './SignOutButton';
 
 export default async function SignOutPage() {
-  // In a Server Component, you can use server-side functions like `await auth()`
-  // to check the session if needed, but for a pure sign-out page, it's often not.
+    // In a Server Component, you can use server-side functions like `await auth()`
+    // to check the session if needed, but for a pure sign-out page, it's often not.
 
-  // The form will trigger the server action directly.
-  // We provide a simple UI that gives the user a button to confirm sign out.
-  // You could also auto-submit the form using client-side JavaScript in a separate
-  // 'use client' wrapper if you wanted immediate sign out on page load without a button.
+    // The form will trigger the server action directly.
+    // We provide a simple UI that gives the user a button to confirm sign out.
+    // You could also auto-submit the form using client-side JavaScript in a separate
+    // 'use client' wrapper if you wanted immediate sign out on page load without a button.
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 font-inter">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md text-center">
-        <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-6">Sign Out</h1>
-        
-        <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-          Are you sure you want to sign out?
-        </p>
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 font-inter">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+                <h1 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-6">
+                    Sign Out
+                </h1>
 
-        {/* This form directly calls the server action */}
-        <form action={signOutAction}>
-          {/* <button
+                <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+                    Are you sure you want to sign out?
+                </p>
+
+                {/* This form directly calls the server action */}
+                <form action={signOutAction}>
+                    {/* <button
             type="submit"
             className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 transform hover:scale-105"
           >
             Confirm Sign Out
           </button> */}
-          <SignOutButton/>
-        </form>
-      </div>
-    </div>
-  );
+                    <SignOutButton />
+                </form>
+            </div>
+        </div>
+    );
 }
