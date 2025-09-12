@@ -11,10 +11,10 @@ from loguru import logger
 import asyncpg
 from asyncpg.pool import Pool as AsyncpgPool
 
-from api.models import UserCreate, User, UserInDB, Token, TokenData
+from backend.api.models import UserCreate, User, UserInDB, Token, TokenData
 from common_models.models import ApiResponse
 from utilities.password_utils import verify_password, get_password_hash
-from api.schema_models import (
+from backend.api.schema_models import (
     LOADED_RAW_SCHEMA,
 )  # To check if 'users' table is in schema
 

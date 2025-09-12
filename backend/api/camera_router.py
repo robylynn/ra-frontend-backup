@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter
 from loguru import logger
-from api.models import CameraStreamRequestData, CameraStreamResponseData
+from backend.api.models import CameraStreamRequestData, CameraStreamResponseData
 from common_models.models import ApiResponse
 
 camera_router = APIRouter(tags=["Camera"])
