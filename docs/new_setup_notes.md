@@ -5,3 +5,7 @@
 4. Using nodejs v20, make sure required dependencies for the nexjs project are installed with `yarn install` from the `dashboard/` directory
 5. Start both the FastAPI backend and the nodejs frontend using the corresponding debug configurations in vscode
 6. Register a new account and log in. You may need to refresh the page after an initial login if the UI configuration doesn't load
+
+Install postgresql-client-common
+sudo apt install postgresql-client
+psql -h <hostname> -p <port> -U <username> -d <database_name>

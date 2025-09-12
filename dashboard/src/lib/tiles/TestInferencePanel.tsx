@@ -13,11 +13,9 @@ export const TestStatisticsPanel: React.FC<TestInferencePanelInterface> = ({
     return (
         <SimplifiedDashboardHeaderContainer
             id={title}
-            header_text={title}
+            title={title}
             icon_path="/icons/gears.svg"
             isLoading={false}
-            // className={''}
-            // fill_tile_id={title}
         >
             <div>
                 <p>STATISTICS</p>
