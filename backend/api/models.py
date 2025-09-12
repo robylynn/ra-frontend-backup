@@ -68,8 +68,14 @@ class DatabaseConnectionConfig(BaseModel):
         True,
         description="Whether cloud synchronization is enabled for this environment.",
     )
-    local_db_url: str = Field(
-        ..., description="The connection URL for the local database."
+    # local_db_url: str = Field(
+    #     ..., description="The connection URL for the local database."
+    # )
+    local_db_host: str = Field(
+        ..., description="The host for the local database."
+    )
+    local_db: str = Field(
+        ..., description="The database to use for the local connection."
     )
     cloud_dbs: List[CloudDbInstance] = Field(
         default_factory=list,

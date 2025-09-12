@@ -95,6 +95,7 @@ from asyncpg.pool import Pool as AsyncpgPool
 from pydantic import ValidationError
 from pathlib import Path
 from urllib.parse import urlparse
+from dotenv import load_dotenv
 
 # Adjust sys.path to include the 'backend' directory for importing 'api' modules
 # Assuming this script is in 'backend/utilities/database'
@@ -103,6 +104,8 @@ project_root = os.path.join(
     current_dir, "..", ".."
 )  # Go up one level from 'utilities' to 'backend'
 sys.path.insert(0, project_root)
+
+load_dotenv()
 
 from backend.api.models import (
     # SchemaConfig,
@@ -366,14 +369,20 @@ async def main():
             )
 
             # Setup local DB
-            local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip("/")
+            local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{MANAGER_DB_CONFIG.local_db_host}:{os.getenv('POSTGRES_PORT')}/{MANAGER_DB_CONFIG.local_db}"
+            print(local_connection_string)
+            # local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip("/")
+            
+            
             if not await _ensure_database_exists(
-                MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"
+                # MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"
+                local_connection_string, MANAGER_DB_CONFIG.local_db, "Local"
             ):
                 raise Exception(
                     f"Failed to ensure database '{local_db_name}' exists for Local DB."
                 )
-            local_pool = await _get_pool(MANAGER_DB_CONFIG.local_db_url, "Local")
+            # local_pool = await _get_pool(MANAGER_DB_CONFIG.local_db_url, "Local")
+            local_pool = await _get_pool(local_connection_string, "Local")
             pools_to_target["Local"] = local_pool
 
             # Setup all cloud DBs if enabled for the environment

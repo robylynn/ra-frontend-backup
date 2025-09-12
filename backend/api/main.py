@@ -6,6 +6,7 @@ import sys
 import asyncio
 import json
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 from typing import Dict, List, Any, Optional, cast
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -27,9 +28,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
 from backend.api.models import typedAppState
 
+load_dotenv()
+
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_root = os.path.join(current_dir, "..")
+project_root = os.path.join(backend_root, '..')
 sys.path.insert(0, backend_root)
 
 # Import necessary modules
@@ -56,8 +60,8 @@ logger.add(
 )
 
 # --- Configuration Loading ---
-DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "config", "database_configs.yml")
-
+# DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "config", "dummy_database_configs.yml")
+DATABASE_CONFIGS_PATH = os.path.join(project_root, "config", os.getenv("DB_CONFIG_FILE", "dummy_database_configs.yaml"))
 
 def load_database_configs() -> DeploymentConfig:
     """Loads database connection configurations from database_configs.yml."""
@@ -122,15 +126,17 @@ async def lifespan(app: FastAPI):
 
     # 3. Initialize asyncpg LOCAL database connection pool
     logger.info("Initializing asyncpg LOCAL database connection pool...")
+    local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{current_env_config.local_db_host}:{os.getenv('POSTGRES_PORT')}/{current_env_config.local_db}"
     try:
         app_state.local_db_pool = await asyncpg.create_pool(
-            current_env_config.local_db_url
+            # current_env_config.local_db_url
+            local_connection_string
         )
-        app_state.local_db_url = current_env_config.local_db_url
+        app_state.local_db_url = local_connection_string#current_env_config.local_db_url
         logger.info("Asyncpg LOCAL database connection pool initialized successfully.")
     except Exception as e:
         logger.critical(
-            f"Failed to connect to local database at {current_env_config.local_db_url}: {e}. Exiting application."
+            f"Failed to connect to local database at {local_connection_string}: {e}. Exiting application."
         )
         sys.exit(1)
 
