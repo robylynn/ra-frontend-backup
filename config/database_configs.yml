@@ -6,6 +6,7 @@ development:
   # local_db_url: postgresql://user:password@localhost:5432/rac_db_dev
   local_db_host: localhost
   local_db: rac_db_dev
+  local_db_port: 5433
   cloud_dbs:
     - name: dev_cloud_primary
       url: postgresql://dev_user:dev_password@dev-cloud-host-1:5432/dev_db_1
@@ -17,6 +18,7 @@ docker_development:
   # local_db_url: postgresql://user:password@localhost:5432/rac_db_dev
   local_db_host: timescaledb
   local_db: rac_db_dev
+  local_db_port: 5432
   cloud_dbs:
     - name: dev_cloud_primary
       url: postgresql://dev_user:dev_password@dev-cloud-host-1:5432/dev_db_1
@@ -28,6 +30,7 @@ production:
   # local_db_url: postgresql://prod_user:prod_password@timescaledb:5432/metrics_db_prod
   local_db_host: localhost
   local_db: rac_db_prod
+  local_db_port: 5432
   cloud_dbs:
     - name: prod_cloud_main
       url: postgresql://prod_user:prod_password@prod-cloud-host-main:5432/prod_db_main
@@ -39,4 +42,5 @@ testing: # NEW: Testing environment configuration
   # local_db_url: postgresql://user:password@localhost:5432/metrics_db_test # Dedicated test database
   local_db_host: localhost
   local_db: rac_db_test
+  local_db_port: 5432
   cloud_dbs: [] # No cloud dbs for testing environment

@@ -77,6 +77,9 @@ class DatabaseConnectionConfig(BaseModel):
     local_db: str = Field(
         ..., description="The database to use for the local connection."
     )
+    local_db_port: int = Field(
+        ..., description="The port for the local database connection."
+    )
     cloud_dbs: List[CloudDbInstance] = Field(
         default_factory=list,
         description="List of cloud database instances for this environment.",
@@ -87,6 +90,7 @@ class DeploymentConfig(BaseModel):
     """Represents the top-level structure of the database_configs.yml file."""
 
     development: DatabaseConnectionConfig
+    docker_development: DatabaseConnectionConfig
     production: DatabaseConnectionConfig
     testing: DatabaseConnectionConfig
     # Add other environments here if needed (e.g., staging: DatabaseConnectionConfig)

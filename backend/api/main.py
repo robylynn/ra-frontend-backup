@@ -1,8 +1,6 @@
 ## Backend API for RA Products
 ## Developed by R2 Labs
 
-print("LOADING MAIN")
-
 import os
 import sys
 import asyncio
@@ -30,9 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
 from backend.api.models import typedAppState
 
-print("DONE LOADING MAIN")
-
-load_dotenv()
+# load_dotenv()
 
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -114,12 +110,16 @@ async def lifespan(app: FastAPI):
     try:
         app_config = load_database_configs()
         environment = os.getenv("DEPLOYMENT_ENV", "development").lower()
-        if environment == "production":
-            current_env_config = app_config.production
-        elif environment == "testing":
-            current_env_config = app_config.testing
-        else:
-            current_env_config = app_config.development
+        if environment is None:
+            logger.warning(f"No deployment environment defined, defaulting to \'development\'")
+            environment = "development"
+        current_env_config = getattr(app_config, environment)
+        # if environment == "production":
+        #     current_env_config = app_config.production
+        # elif environment == "testing":
+        #     current_env_config = app_config.testing
+        # else:
+        #     current_env_config = app_config.development
         logger.info(f"Loaded database configuration for environment: '{environment}'.")
         app_state.enable_cloud_db = current_env_config.enable_cloud_db
     except Exception as e:
@@ -130,7 +130,8 @@ async def lifespan(app: FastAPI):
 
     # 3. Initialize asyncpg LOCAL database connection pool
     logger.info("Initializing asyncpg LOCAL database connection pool...")
-    local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{current_env_config.local_db_host}:{os.getenv('POSTGRES_PORT')}/{current_env_config.local_db}"
+    local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{current_env_config.local_db_host}:{current_env_config.local_db_port}/{current_env_config.local_db}"
+    logger.debug(f"Using local connection string: {local_connection_string}")
     try:
         app_state.local_db_pool = await asyncpg.create_pool(
             # current_env_config.local_db_url

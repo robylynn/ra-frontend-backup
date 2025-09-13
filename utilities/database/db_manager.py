@@ -369,7 +369,7 @@ async def main():
             )
 
             # Setup local DB
-            local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{MANAGER_DB_CONFIG.local_db_host}:{os.getenv('POSTGRES_PORT')}/{MANAGER_DB_CONFIG.local_db}"
+            local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{MANAGER_DB_CONFIG.local_db_host}:{MANAGER_DB_CONFIG.local_db_port}/{MANAGER_DB_CONFIG.local_db}"
             print(local_connection_string)
             # local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip("/")
             
