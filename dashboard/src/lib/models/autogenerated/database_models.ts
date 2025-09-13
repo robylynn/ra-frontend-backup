@@ -7,299 +7,311 @@ import { z } from 'zod';
 // These schemas define the data structure and validation rules.
 
 export const sensorDataSchema = z.object({
-    stamp: z.string().datetime(),
-    device_id: z.string(),
-    temperature: z.number().optional(),
-    humidity: z.number().optional(),
+stamp: z.string().datetime(),
+device_id: z.string(),
+temperature: z.number().optional(),
+humidity: z.number().optional(),
 });
-export const sensorDataBatchSchema = z.array(sensorDataSchema);
-export type sensorData = z.infer<typeof sensorDataSchema>;
-export type sensorDataBatch = z.infer<typeof sensorDataBatchSchema>;
+export const sensorDataBatchSchema = z.array(sensorDataSchema)
+export type sensorData = z.infer<typeof sensorDataSchema>
+export type sensorDataBatch = z.infer<typeof sensorDataBatchSchema>
 
 export const logsSchema = z.object({
-    time: z.string().datetime(),
-    device_id: z.string(),
-    message_level: z.string().optional(),
-    message: z.string().optional(),
+time: z.string().datetime(),
+device_id: z.string(),
+message_level: z.string().optional(),
+message: z.string().optional(),
 });
-export const logsBatchSchema = z.array(logsSchema);
-export type logs = z.infer<typeof logsSchema>;
-export type logsBatch = z.infer<typeof logsBatchSchema>;
+export const logsBatchSchema = z.array(logsSchema)
+export type logs = z.infer<typeof logsSchema>
+export type logsBatch = z.infer<typeof logsBatchSchema>
 
 export const projectMetricsSchema = z.object({
-    timestamp: z.string().datetime(),
-    project_name: z.string(),
-    value: z.number().optional(),
-    status: z.string().optional(),
+timestamp: z.string().datetime(),
+project_name: z.string(),
+value: z.number().optional(),
+status: z.string().optional(),
 });
-export const projectMetricsBatchSchema = z.array(projectMetricsSchema);
-export type projectMetrics = z.infer<typeof projectMetricsSchema>;
-export type projectMetricsBatch = z.infer<typeof projectMetricsBatchSchema>;
+export const projectMetricsBatchSchema = z.array(projectMetricsSchema)
+export type projectMetrics = z.infer<typeof projectMetricsSchema>
+export type projectMetricsBatch = z.infer<typeof projectMetricsBatchSchema>
 
 export const userActivitySchema = z.object({
-    activity_time: z.string().datetime(),
-    user_id: z.string(),
-    action: z.string().optional(),
-    duration_ms: z.number().optional(),
+activity_time: z.string().datetime(),
+user_id: z.string(),
+action: z.string().optional(),
+duration_ms: z.number().optional(),
 });
-export const userActivityBatchSchema = z.array(userActivitySchema);
-export type userActivity = z.infer<typeof userActivitySchema>;
-export type userActivityBatch = z.infer<typeof userActivityBatchSchema>;
+export const userActivityBatchSchema = z.array(userActivitySchema)
+export type userActivity = z.infer<typeof userActivitySchema>
+export type userActivityBatch = z.infer<typeof userActivityBatchSchema>
 
 export const frontendConfigsSchema = z.object({
-    client_id: z.string(),
-    config_data: z.record(z.string(), z.unknown()).optional(),
-    last_updated: z.string().datetime(),
+client_id: z.string(),
+config_data: z.record(z.string(), z.unknown()).optional(),
+last_updated: z.string().datetime(),
 });
-export const frontendConfigsBatchSchema = z.array(frontendConfigsSchema);
-export type frontendConfigs = z.infer<typeof frontendConfigsSchema>;
-export type frontendConfigsBatch = z.infer<typeof frontendConfigsBatchSchema>;
+export const frontendConfigsBatchSchema = z.array(frontendConfigsSchema)
+export type frontendConfigs = z.infer<typeof frontendConfigsSchema>
+export type frontendConfigsBatch = z.infer<typeof frontendConfigsBatchSchema>
 
 export const ioConfigsSchema = z.object({
-    client_id: z.string(),
-    config_data: z.record(z.string(), z.unknown()).optional(),
-    last_updated: z.string().datetime(),
+client_id: z.string(),
+config_data: z.record(z.string(), z.unknown()).optional(),
+last_updated: z.string().datetime(),
 });
-export const ioConfigsBatchSchema = z.array(ioConfigsSchema);
-export type ioConfigs = z.infer<typeof ioConfigsSchema>;
-export type ioConfigsBatch = z.infer<typeof ioConfigsBatchSchema>;
+export const ioConfigsBatchSchema = z.array(ioConfigsSchema)
+export type ioConfigs = z.infer<typeof ioConfigsSchema>
+export type ioConfigsBatch = z.infer<typeof ioConfigsBatchSchema>
 
 export const opcConfigsSchema = z.object({
-    client_id: z.string(),
-    config_data: z.record(z.string(), z.unknown()).optional(),
-    last_updated: z.string().datetime(),
+client_id: z.string(),
+config_data: z.record(z.string(), z.unknown()).optional(),
+last_updated: z.string().datetime(),
 });
-export const opcConfigsBatchSchema = z.array(opcConfigsSchema);
-export type opcConfigs = z.infer<typeof opcConfigsSchema>;
-export type opcConfigsBatch = z.infer<typeof opcConfigsBatchSchema>;
+export const opcConfigsBatchSchema = z.array(opcConfigsSchema)
+export type opcConfigs = z.infer<typeof opcConfigsSchema>
+export type opcConfigsBatch = z.infer<typeof opcConfigsBatchSchema>
 
 export const usersSchema = z.object({
-    user_id: z.any(),
-    username: z.string(),
-    hashed_password: z.string(),
-    created_at: z.string().datetime().default(new Date().toISOString()),
+user_id: z.any(),
+username: z.string(),
+hashed_password: z.string(),
+created_at: z.string().datetime().default(new Date().toISOString()),
 });
-export const usersBatchSchema = z.array(usersSchema);
-export type users = z.infer<typeof usersSchema>;
-export type usersBatch = z.infer<typeof usersBatchSchema>;
+export const usersBatchSchema = z.array(usersSchema)
+export type users = z.infer<typeof usersSchema>
+export type usersBatch = z.infer<typeof usersBatchSchema>
 
 export const realtimeSysStateSchema = z.object({
-    stamp: z.string().datetime(),
-    state: z.number().optional(),
+stamp: z.string().datetime(),
+state: z.number().optional(),
 });
-export const realtimeSysStateBatchSchema = z.array(realtimeSysStateSchema);
-export type realtimeSysState = z.infer<typeof realtimeSysStateSchema>;
-export type realtimeSysStateBatch = z.infer<typeof realtimeSysStateBatchSchema>;
+export const realtimeSysStateBatchSchema = z.array(realtimeSysStateSchema)
+export type realtimeSysState = z.infer<typeof realtimeSysStateSchema>
+export type realtimeSysStateBatch = z.infer<typeof realtimeSysStateBatchSchema>
 
 export const analogInConfigSchema = z.object({
-    stamp: z.string().datetime(),
-    channel: z.number(),
-    label: z.string().optional(),
-    unit: z.string().optional(),
-    min_electrical_value: z.number().optional(),
-    max_electrical_value: z.number().optional(),
-    min_measurement_value: z.number().optional(),
-    max_measurement_value: z.number().optional(),
-    transfer_function_type: z.number().optional(),
-    hardware_config__configured: z.boolean().optional(),
-    hardware_config__enabled: z.boolean().optional(),
-    hardware_config__channel_type: z.number().optional(),
+stamp: z.string().datetime(),
+channel: z.number(),
+label: z.string().optional(),
+unit: z.string().optional(),
+min_electrical_value: z.number().optional(),
+max_electrical_value: z.number().optional(),
+min_measurement_value: z.number().optional(),
+max_measurement_value: z.number().optional(),
+transfer_function_type: z.number().optional(),
+hardware_config__configured: z.boolean().optional(),
+hardware_config__enabled: z.boolean().optional(),
+hardware_config__channel_type: z.number().optional(),
 });
-export const analogInConfigBatchSchema = z.array(analogInConfigSchema);
-export type analogInConfig = z.infer<typeof analogInConfigSchema>;
-export type analogInConfigBatch = z.infer<typeof analogInConfigBatchSchema>;
+export const analogInConfigBatchSchema = z.array(analogInConfigSchema)
+export type analogInConfig = z.infer<typeof analogInConfigSchema>
+export type analogInConfigBatch = z.infer<typeof analogInConfigBatchSchema>
 
 export const analogInDataSchema = z.object({
-    stamp: z.string().datetime(),
-    read_channels: z.array(z.boolean()),
-    read_channels__0: z.boolean().optional(),
-    read_channels__1: z.boolean().optional(),
-    read_channels__2: z.boolean().optional(),
-    read_channels__3: z.boolean().optional(),
-    read_channels__4: z.boolean().optional(),
-    read_channels__5: z.boolean().optional(),
-    read_channels__6: z.boolean().optional(),
-    read_channels__7: z.boolean().optional(),
-    values: z.array(z.number()),
-    values__0: z.number().optional(),
-    values__1: z.number().optional(),
-    values__2: z.number().optional(),
-    values__3: z.number().optional(),
-    values__4: z.number().optional(),
-    values__5: z.number().optional(),
-    values__6: z.number().optional(),
-    values__7: z.number().optional(),
-    types: z.array(z.number()),
-    types__0: z.number().optional(),
-    types__1: z.number().optional(),
-    types__2: z.number().optional(),
-    types__3: z.number().optional(),
-    types__4: z.number().optional(),
-    types__5: z.number().optional(),
-    types__6: z.number().optional(),
-    types__7: z.number().optional(),
+stamp: z.string().datetime(),
+read_channels: z.array(z.boolean()),
+read_channels__0: z.boolean().optional(),
+read_channels__1: z.boolean().optional(),
+read_channels__2: z.boolean().optional(),
+read_channels__3: z.boolean().optional(),
+read_channels__4: z.boolean().optional(),
+read_channels__5: z.boolean().optional(),
+read_channels__6: z.boolean().optional(),
+read_channels__7: z.boolean().optional(),
+values: z.array(z.number()),
+values__0: z.number().optional(),
+values__1: z.number().optional(),
+values__2: z.number().optional(),
+values__3: z.number().optional(),
+values__4: z.number().optional(),
+values__5: z.number().optional(),
+values__6: z.number().optional(),
+values__7: z.number().optional(),
+types: z.array(z.number()),
+types__0: z.number().optional(),
+types__1: z.number().optional(),
+types__2: z.number().optional(),
+types__3: z.number().optional(),
+types__4: z.number().optional(),
+types__5: z.number().optional(),
+types__6: z.number().optional(),
+types__7: z.number().optional(),
 });
-export const analogInDataBatchSchema = z.array(analogInDataSchema);
-export type analogInData = z.infer<typeof analogInDataSchema>;
-export type analogInDataBatch = z.infer<typeof analogInDataBatchSchema>;
+export const analogInDataBatchSchema = z.array(analogInDataSchema)
+export type analogInData = z.infer<typeof analogInDataSchema>
+export type analogInDataBatch = z.infer<typeof analogInDataBatchSchema>
 
 export const analogOutConfigSchema = z.object({
-    stamp: z.string().datetime(),
-    channel: z.number(),
-    label: z.string().optional(),
-    unit: z.string().optional(),
-    min_electrical_value: z.number().optional(),
-    max_electrical_value: z.number().optional(),
-    min_measurement_value: z.number().optional(),
-    max_measurement_value: z.number().optional(),
-    transfer_function_type: z.number().optional(),
-    hardware_config__configured: z.boolean().optional(),
-    hardware_config__enabled: z.boolean().optional(),
-    hardware_config__pwm_period_ms: z.number().optional(),
-    hardware_config__initial_value_volts: z.number().optional(),
-    hardware_config__estop_configured: z.boolean().optional(),
-    hardware_config__estop_value_volts: z.number().optional(),
+stamp: z.string().datetime(),
+channel: z.number(),
+label: z.string().optional(),
+unit: z.string().optional(),
+min_electrical_value: z.number().optional(),
+max_electrical_value: z.number().optional(),
+min_measurement_value: z.number().optional(),
+max_measurement_value: z.number().optional(),
+transfer_function_type: z.number().optional(),
+hardware_config__configured: z.boolean().optional(),
+hardware_config__enabled: z.boolean().optional(),
+hardware_config__pwm_period_ms: z.number().optional(),
+hardware_config__initial_value_volts: z.number().optional(),
+hardware_config__estop_configured: z.boolean().optional(),
+hardware_config__estop_value_volts: z.number().optional(),
 });
-export const analogOutConfigBatchSchema = z.array(analogOutConfigSchema);
-export type analogOutConfig = z.infer<typeof analogOutConfigSchema>;
-export type analogOutConfigBatch = z.infer<typeof analogOutConfigBatchSchema>;
+export const analogOutConfigBatchSchema = z.array(analogOutConfigSchema)
+export type analogOutConfig = z.infer<typeof analogOutConfigSchema>
+export type analogOutConfigBatch = z.infer<typeof analogOutConfigBatchSchema>
 
 export const analogOutDataSchema = z.object({
-    stamp: z.string().datetime(),
-    write_channels__0: z.boolean().optional(),
-    write_channels__1: z.boolean().optional(),
-    write_channels__2: z.boolean().optional(),
-    write_channels__3: z.boolean().optional(),
-    values__0: z.number().optional(),
-    values__1: z.number().optional(),
-    values__2: z.number().optional(),
-    values__3: z.number().optional(),
+stamp: z.string().datetime(),
+write_channels__0: z.boolean().optional(),
+write_channels__1: z.boolean().optional(),
+write_channels__2: z.boolean().optional(),
+write_channels__3: z.boolean().optional(),
+values__0: z.number().optional(),
+values__1: z.number().optional(),
+values__2: z.number().optional(),
+values__3: z.number().optional(),
 });
-export const analogOutDataBatchSchema = z.array(analogOutDataSchema);
-export type analogOutData = z.infer<typeof analogOutDataSchema>;
-export type analogOutDataBatch = z.infer<typeof analogOutDataBatchSchema>;
+export const analogOutDataBatchSchema = z.array(analogOutDataSchema)
+export type analogOutData = z.infer<typeof analogOutDataSchema>
+export type analogOutDataBatch = z.infer<typeof analogOutDataBatchSchema>
 
 export const digitalInConfigSchema = z.object({
-    stamp: z.string().datetime(),
-    channel: z.number(),
-    label: z.string().optional(),
-    hardware_config__configured: z.boolean().optional(),
-    hardware_config__enabled: z.boolean().optional(),
+stamp: z.string().datetime(),
+channel: z.number(),
+label: z.string().optional(),
+hardware_config__configured: z.boolean().optional(),
+hardware_config__enabled: z.boolean().optional(),
 });
-export const digitalInConfigBatchSchema = z.array(digitalInConfigSchema);
-export type digitalInConfig = z.infer<typeof digitalInConfigSchema>;
-export type digitalInConfigBatch = z.infer<typeof digitalInConfigBatchSchema>;
+export const digitalInConfigBatchSchema = z.array(digitalInConfigSchema)
+export type digitalInConfig = z.infer<typeof digitalInConfigSchema>
+export type digitalInConfigBatch = z.infer<typeof digitalInConfigBatchSchema>
 
 export const digitalInDataSchema = z.object({
-    stamp: z.string().datetime(),
-    read_channels: z.array(z.boolean()),
-    read_channels__0: z.boolean().optional(),
-    read_channels__1: z.boolean().optional(),
-    read_channels__2: z.boolean().optional(),
-    read_channels__3: z.boolean().optional(),
-    read_channels__4: z.boolean().optional(),
-    read_channels__5: z.boolean().optional(),
-    read_channels__6: z.boolean().optional(),
-    read_channels__7: z.boolean().optional(),
-    values: z.array(z.boolean()),
-    values__0: z.boolean().optional(),
-    values__1: z.boolean().optional(),
-    values__2: z.boolean().optional(),
-    values__3: z.boolean().optional(),
-    values__4: z.boolean().optional(),
-    values__5: z.boolean().optional(),
-    values__6: z.boolean().optional(),
-    values__7: z.boolean().optional(),
+stamp: z.string().datetime(),
+read_channels: z.array(z.boolean()),
+read_channels__0: z.boolean().optional(),
+read_channels__1: z.boolean().optional(),
+read_channels__2: z.boolean().optional(),
+read_channels__3: z.boolean().optional(),
+read_channels__4: z.boolean().optional(),
+read_channels__5: z.boolean().optional(),
+read_channels__6: z.boolean().optional(),
+read_channels__7: z.boolean().optional(),
+values: z.array(z.boolean()),
+values__0: z.boolean().optional(),
+values__1: z.boolean().optional(),
+values__2: z.boolean().optional(),
+values__3: z.boolean().optional(),
+values__4: z.boolean().optional(),
+values__5: z.boolean().optional(),
+values__6: z.boolean().optional(),
+values__7: z.boolean().optional(),
 });
-export const digitalInDataBatchSchema = z.array(digitalInDataSchema);
-export type digitalInData = z.infer<typeof digitalInDataSchema>;
-export type digitalInDataBatch = z.infer<typeof digitalInDataBatchSchema>;
+export const digitalInDataBatchSchema = z.array(digitalInDataSchema)
+export type digitalInData = z.infer<typeof digitalInDataSchema>
+export type digitalInDataBatch = z.infer<typeof digitalInDataBatchSchema>
 
 export const digitalOutConfigSchema = z.object({
-    stamp: z.string().datetime(),
-    channel: z.number(),
-    label: z.string().optional(),
-    hardware_config__configured: z.boolean().optional(),
-    hardware_config__enabled: z.boolean().optional(),
-    hardware_config__initial_value: z.boolean().optional(),
-    hardware_config__estop_configured: z.boolean().optional(),
-    hardware_config__estop_value: z.boolean().optional(),
+stamp: z.string().datetime(),
+channel: z.number(),
+label: z.string().optional(),
+hardware_config__configured: z.boolean().optional(),
+hardware_config__enabled: z.boolean().optional(),
+hardware_config__initial_value: z.boolean().optional(),
+hardware_config__estop_configured: z.boolean().optional(),
+hardware_config__estop_value: z.boolean().optional(),
 });
-export const digitalOutConfigBatchSchema = z.array(digitalOutConfigSchema);
-export type digitalOutConfig = z.infer<typeof digitalOutConfigSchema>;
-export type digitalOutConfigBatch = z.infer<typeof digitalOutConfigBatchSchema>;
+export const digitalOutConfigBatchSchema = z.array(digitalOutConfigSchema)
+export type digitalOutConfig = z.infer<typeof digitalOutConfigSchema>
+export type digitalOutConfigBatch = z.infer<typeof digitalOutConfigBatchSchema>
 
 export const digitalOutDataSchema = z.object({
-    stamp: z.string().datetime(),
-    write_channels: z.array(z.boolean()),
-    write_channels__0: z.boolean().optional(),
-    write_channels__1: z.boolean().optional(),
-    write_channels__2: z.boolean().optional(),
-    write_channels__3: z.boolean().optional(),
-    write_channels__4: z.boolean().optional(),
-    write_channels__5: z.boolean().optional(),
-    write_channels__6: z.boolean().optional(),
-    write_channels__7: z.boolean().optional(),
-    values: z.array(z.boolean()),
-    values__0: z.boolean().optional(),
-    values__1: z.boolean().optional(),
-    values__2: z.boolean().optional(),
-    values__3: z.boolean().optional(),
-    values__4: z.boolean().optional(),
-    values__5: z.boolean().optional(),
-    values__6: z.boolean().optional(),
-    values__7: z.boolean().optional(),
+stamp: z.string().datetime(),
+write_channels: z.array(z.boolean()),
+write_channels__0: z.boolean().optional(),
+write_channels__1: z.boolean().optional(),
+write_channels__2: z.boolean().optional(),
+write_channels__3: z.boolean().optional(),
+write_channels__4: z.boolean().optional(),
+write_channels__5: z.boolean().optional(),
+write_channels__6: z.boolean().optional(),
+write_channels__7: z.boolean().optional(),
+values: z.array(z.boolean()),
+values__0: z.boolean().optional(),
+values__1: z.boolean().optional(),
+values__2: z.boolean().optional(),
+values__3: z.boolean().optional(),
+values__4: z.boolean().optional(),
+values__5: z.boolean().optional(),
+values__6: z.boolean().optional(),
+values__7: z.boolean().optional(),
 });
-export const digitalOutDataBatchSchema = z.array(digitalOutDataSchema);
-export type digitalOutData = z.infer<typeof digitalOutDataSchema>;
-export type digitalOutDataBatch = z.infer<typeof digitalOutDataBatchSchema>;
+export const digitalOutDataBatchSchema = z.array(digitalOutDataSchema)
+export type digitalOutData = z.infer<typeof digitalOutDataSchema>
+export type digitalOutDataBatch = z.infer<typeof digitalOutDataBatchSchema>
 
 export const axisEstimatesSchema = z.object({
-    stamp: z.string().datetime(),
-    axis_index: z.number(),
-    position: z.number().optional(),
-    velocity: z.number().optional(),
+stamp: z.string().datetime(),
+axis_index: z.number(),
+position: z.number().optional(),
+velocity: z.number().optional(),
 });
-export const axisEstimatesBatchSchema = z.array(axisEstimatesSchema);
-export type axisEstimates = z.infer<typeof axisEstimatesSchema>;
-export type axisEstimatesBatch = z.infer<typeof axisEstimatesBatchSchema>;
+export const axisEstimatesBatchSchema = z.array(axisEstimatesSchema)
+export type axisEstimates = z.infer<typeof axisEstimatesSchema>
+export type axisEstimatesBatch = z.infer<typeof axisEstimatesBatchSchema>
 
 export const defectDetectionSchema = z.object({
-    stamp: z.string().datetime(),
-    image_id: z.string().uuid().optional(),
-    bbox_x_center: z.number().optional(),
-    bbox_y_center: z.number().optional(),
-    bbox_width: z.number().optional(),
-    bbox_height: z.number().optional(),
-    product_type: z.string().optional(),
-    defect_type: z.string().optional(),
-    confidence: z.number().optional(),
-    model: z.string().optional(),
+stamp: z.string().datetime(),
+image_id: z.string().uuid().optional(),
+bbox_x_center: z.number().optional(),
+bbox_y_center: z.number().optional(),
+bbox_width: z.number().optional(),
+bbox_height: z.number().optional(),
+product_type: z.string().optional(),
+defect_type: z.string().optional(),
+confidence: z.number().optional(),
+model: z.string().optional(),
 });
-export const defectDetectionBatchSchema = z.array(defectDetectionSchema);
-export type defectDetection = z.infer<typeof defectDetectionSchema>;
-export type defectDetectionBatch = z.infer<typeof defectDetectionBatchSchema>;
+export const defectDetectionBatchSchema = z.array(defectDetectionSchema)
+export type defectDetection = z.infer<typeof defectDetectionSchema>
+export type defectDetectionBatch = z.infer<typeof defectDetectionBatchSchema>
+
+export const aiModelsSchema = z.object({
+stamp: z.string().datetime(),
+model: z.string().optional(),
+status: z.string().optional(),
+mAP: z.number().optional(),
+});
+export const aiModelsBatchSchema = z.array(aiModelsSchema)
+export type aiModels = z.infer<typeof aiModelsSchema>
+export type aiModelsBatch = z.infer<typeof aiModelsBatchSchema>
+
 
 export const DatabaseDataSchemas = z.union([
-    sensorDataBatchSchema,
-    logsBatchSchema,
-    projectMetricsBatchSchema,
-    userActivityBatchSchema,
-    frontendConfigsBatchSchema,
-    ioConfigsBatchSchema,
-    opcConfigsBatchSchema,
-    usersBatchSchema,
-    realtimeSysStateBatchSchema,
-    analogInConfigBatchSchema,
-    analogInDataBatchSchema,
-    analogOutConfigBatchSchema,
-    analogOutDataBatchSchema,
-    digitalInConfigBatchSchema,
-    digitalInDataBatchSchema,
-    digitalOutConfigBatchSchema,
-    digitalOutDataBatchSchema,
-    axisEstimatesBatchSchema,
-    defectDetectionBatchSchema,
+sensorDataBatchSchema,
+logsBatchSchema,
+projectMetricsBatchSchema,
+userActivityBatchSchema,
+frontendConfigsBatchSchema,
+ioConfigsBatchSchema,
+opcConfigsBatchSchema,
+usersBatchSchema,
+realtimeSysStateBatchSchema,
+analogInConfigBatchSchema,
+analogInDataBatchSchema,
+analogOutConfigBatchSchema,
+analogOutDataBatchSchema,
+digitalInConfigBatchSchema,
+digitalInDataBatchSchema,
+digitalOutConfigBatchSchema,
+digitalOutDataBatchSchema,
+axisEstimatesBatchSchema,
+defectDetectionBatchSchema,
+aiModelsBatchSchema,
 ]);
 export type DatabaseData = z.infer<typeof DatabaseDataSchemas>;
 
@@ -307,244 +319,253 @@ export type DatabaseData = z.infer<typeof DatabaseDataSchemas>;
 // These interfaces provide type safety for your data.
 
 export interface ISensorData {
-    stamp: string;
-    device_id: string;
-    temperature: number | undefined;
-    humidity: number | undefined;
+stamp: string;
+device_id: string;
+temperature: number | undefined;
+humidity: number | undefined;
 }
 
 export interface ILogs {
-    time: string;
-    device_id: string;
-    message_level: string | undefined;
-    message: string | undefined;
+time: string;
+device_id: string;
+message_level: string | undefined;
+message: string | undefined;
 }
 
 export interface IProjectMetrics {
-    timestamp: string;
-    project_name: string;
-    value: number | undefined;
-    status: string | undefined;
+timestamp: string;
+project_name: string;
+value: number | undefined;
+status: string | undefined;
 }
 
 export interface IUserActivity {
-    activity_time: string;
-    user_id: string;
-    action: string | undefined;
-    duration_ms: number | undefined;
+activity_time: string;
+user_id: string;
+action: string | undefined;
+duration_ms: number | undefined;
 }
 
 export interface IFrontendConfigs {
-    client_id: string;
-    config_data: Record<string, unknown> | undefined;
-    last_updated: string;
+client_id: string;
+config_data: Record<string, unknown> | undefined;
+last_updated: string;
 }
 
 export interface IIoConfigs {
-    client_id: string;
-    config_data: Record<string, unknown> | undefined;
-    last_updated: string;
+client_id: string;
+config_data: Record<string, unknown> | undefined;
+last_updated: string;
 }
 
 export interface IOpcConfigs {
-    client_id: string;
-    config_data: Record<string, unknown> | undefined;
-    last_updated: string;
+client_id: string;
+config_data: Record<string, unknown> | undefined;
+last_updated: string;
 }
 
 export interface IUsers {
-    user_id: any;
-    username: string;
-    hashed_password: string;
-    created_at: string;
+user_id: any;
+username: string;
+hashed_password: string;
+created_at: string;
 }
 
 export interface IRealtimeSysState {
-    stamp: string;
-    state: number | undefined;
+stamp: string;
+state: number | undefined;
 }
 
 export interface IAnalogInConfig {
-    stamp: string;
-    channel: number;
-    label: string | undefined;
-    unit: string | undefined;
-    min_electrical_value: number | undefined;
-    max_electrical_value: number | undefined;
-    min_measurement_value: number | undefined;
-    max_measurement_value: number | undefined;
-    transfer_function_type: number | undefined;
-    hardware_config__configured: boolean | undefined;
-    hardware_config__enabled: boolean | undefined;
-    hardware_config__channel_type: number | undefined;
+stamp: string;
+channel: number;
+label: string | undefined;
+unit: string | undefined;
+min_electrical_value: number | undefined;
+max_electrical_value: number | undefined;
+min_measurement_value: number | undefined;
+max_measurement_value: number | undefined;
+transfer_function_type: number | undefined;
+hardware_config__configured: boolean | undefined;
+hardware_config__enabled: boolean | undefined;
+hardware_config__channel_type: number | undefined;
 }
 
 export interface IAnalogInData {
-    stamp: string;
-    read_channels: boolean[];
-    read_channels__0: boolean | undefined;
-    read_channels__1: boolean | undefined;
-    read_channels__2: boolean | undefined;
-    read_channels__3: boolean | undefined;
-    read_channels__4: boolean | undefined;
-    read_channels__5: boolean | undefined;
-    read_channels__6: boolean | undefined;
-    read_channels__7: boolean | undefined;
-    values: number[];
-    values__0: number | undefined;
-    values__1: number | undefined;
-    values__2: number | undefined;
-    values__3: number | undefined;
-    values__4: number | undefined;
-    values__5: number | undefined;
-    values__6: number | undefined;
-    values__7: number | undefined;
-    types: number[];
-    types__0: number | undefined;
-    types__1: number | undefined;
-    types__2: number | undefined;
-    types__3: number | undefined;
-    types__4: number | undefined;
-    types__5: number | undefined;
-    types__6: number | undefined;
-    types__7: number | undefined;
+stamp: string;
+read_channels: boolean[];
+read_channels__0: boolean | undefined;
+read_channels__1: boolean | undefined;
+read_channels__2: boolean | undefined;
+read_channels__3: boolean | undefined;
+read_channels__4: boolean | undefined;
+read_channels__5: boolean | undefined;
+read_channels__6: boolean | undefined;
+read_channels__7: boolean | undefined;
+values: number[];
+values__0: number | undefined;
+values__1: number | undefined;
+values__2: number | undefined;
+values__3: number | undefined;
+values__4: number | undefined;
+values__5: number | undefined;
+values__6: number | undefined;
+values__7: number | undefined;
+types: number[];
+types__0: number | undefined;
+types__1: number | undefined;
+types__2: number | undefined;
+types__3: number | undefined;
+types__4: number | undefined;
+types__5: number | undefined;
+types__6: number | undefined;
+types__7: number | undefined;
 }
 
 export interface IAnalogOutConfig {
-    stamp: string;
-    channel: number;
-    label: string | undefined;
-    unit: string | undefined;
-    min_electrical_value: number | undefined;
-    max_electrical_value: number | undefined;
-    min_measurement_value: number | undefined;
-    max_measurement_value: number | undefined;
-    transfer_function_type: number | undefined;
-    hardware_config__configured: boolean | undefined;
-    hardware_config__enabled: boolean | undefined;
-    hardware_config__pwm_period_ms: number | undefined;
-    hardware_config__initial_value_volts: number | undefined;
-    hardware_config__estop_configured: boolean | undefined;
-    hardware_config__estop_value_volts: number | undefined;
+stamp: string;
+channel: number;
+label: string | undefined;
+unit: string | undefined;
+min_electrical_value: number | undefined;
+max_electrical_value: number | undefined;
+min_measurement_value: number | undefined;
+max_measurement_value: number | undefined;
+transfer_function_type: number | undefined;
+hardware_config__configured: boolean | undefined;
+hardware_config__enabled: boolean | undefined;
+hardware_config__pwm_period_ms: number | undefined;
+hardware_config__initial_value_volts: number | undefined;
+hardware_config__estop_configured: boolean | undefined;
+hardware_config__estop_value_volts: number | undefined;
 }
 
 export interface IAnalogOutData {
-    stamp: string;
-    write_channels__0: boolean | undefined;
-    write_channels__1: boolean | undefined;
-    write_channels__2: boolean | undefined;
-    write_channels__3: boolean | undefined;
-    values__0: number | undefined;
-    values__1: number | undefined;
-    values__2: number | undefined;
-    values__3: number | undefined;
+stamp: string;
+write_channels__0: boolean | undefined;
+write_channels__1: boolean | undefined;
+write_channels__2: boolean | undefined;
+write_channels__3: boolean | undefined;
+values__0: number | undefined;
+values__1: number | undefined;
+values__2: number | undefined;
+values__3: number | undefined;
 }
 
 export interface IDigitalInConfig {
-    stamp: string;
-    channel: number;
-    label: string | undefined;
-    hardware_config__configured: boolean | undefined;
-    hardware_config__enabled: boolean | undefined;
+stamp: string;
+channel: number;
+label: string | undefined;
+hardware_config__configured: boolean | undefined;
+hardware_config__enabled: boolean | undefined;
 }
 
 export interface IDigitalInData {
-    stamp: string;
-    read_channels: boolean[];
-    read_channels__0: boolean | undefined;
-    read_channels__1: boolean | undefined;
-    read_channels__2: boolean | undefined;
-    read_channels__3: boolean | undefined;
-    read_channels__4: boolean | undefined;
-    read_channels__5: boolean | undefined;
-    read_channels__6: boolean | undefined;
-    read_channels__7: boolean | undefined;
-    values: boolean[];
-    values__0: boolean | undefined;
-    values__1: boolean | undefined;
-    values__2: boolean | undefined;
-    values__3: boolean | undefined;
-    values__4: boolean | undefined;
-    values__5: boolean | undefined;
-    values__6: boolean | undefined;
-    values__7: boolean | undefined;
+stamp: string;
+read_channels: boolean[];
+read_channels__0: boolean | undefined;
+read_channels__1: boolean | undefined;
+read_channels__2: boolean | undefined;
+read_channels__3: boolean | undefined;
+read_channels__4: boolean | undefined;
+read_channels__5: boolean | undefined;
+read_channels__6: boolean | undefined;
+read_channels__7: boolean | undefined;
+values: boolean[];
+values__0: boolean | undefined;
+values__1: boolean | undefined;
+values__2: boolean | undefined;
+values__3: boolean | undefined;
+values__4: boolean | undefined;
+values__5: boolean | undefined;
+values__6: boolean | undefined;
+values__7: boolean | undefined;
 }
 
 export interface IDigitalOutConfig {
-    stamp: string;
-    channel: number;
-    label: string | undefined;
-    hardware_config__configured: boolean | undefined;
-    hardware_config__enabled: boolean | undefined;
-    hardware_config__initial_value: boolean | undefined;
-    hardware_config__estop_configured: boolean | undefined;
-    hardware_config__estop_value: boolean | undefined;
+stamp: string;
+channel: number;
+label: string | undefined;
+hardware_config__configured: boolean | undefined;
+hardware_config__enabled: boolean | undefined;
+hardware_config__initial_value: boolean | undefined;
+hardware_config__estop_configured: boolean | undefined;
+hardware_config__estop_value: boolean | undefined;
 }
 
 export interface IDigitalOutData {
-    stamp: string;
-    write_channels: boolean[];
-    write_channels__0: boolean | undefined;
-    write_channels__1: boolean | undefined;
-    write_channels__2: boolean | undefined;
-    write_channels__3: boolean | undefined;
-    write_channels__4: boolean | undefined;
-    write_channels__5: boolean | undefined;
-    write_channels__6: boolean | undefined;
-    write_channels__7: boolean | undefined;
-    values: boolean[];
-    values__0: boolean | undefined;
-    values__1: boolean | undefined;
-    values__2: boolean | undefined;
-    values__3: boolean | undefined;
-    values__4: boolean | undefined;
-    values__5: boolean | undefined;
-    values__6: boolean | undefined;
-    values__7: boolean | undefined;
+stamp: string;
+write_channels: boolean[];
+write_channels__0: boolean | undefined;
+write_channels__1: boolean | undefined;
+write_channels__2: boolean | undefined;
+write_channels__3: boolean | undefined;
+write_channels__4: boolean | undefined;
+write_channels__5: boolean | undefined;
+write_channels__6: boolean | undefined;
+write_channels__7: boolean | undefined;
+values: boolean[];
+values__0: boolean | undefined;
+values__1: boolean | undefined;
+values__2: boolean | undefined;
+values__3: boolean | undefined;
+values__4: boolean | undefined;
+values__5: boolean | undefined;
+values__6: boolean | undefined;
+values__7: boolean | undefined;
 }
 
 export interface IAxisEstimates {
-    stamp: string;
-    axis_index: number;
-    position: number | undefined;
-    velocity: number | undefined;
+stamp: string;
+axis_index: number;
+position: number | undefined;
+velocity: number | undefined;
 }
 
 export interface IDefectDetection {
-    stamp: string;
-    image_id: string | undefined;
-    bbox_x_center: number | undefined;
-    bbox_y_center: number | undefined;
-    bbox_width: number | undefined;
-    bbox_height: number | undefined;
-    product_type: string | undefined;
-    defect_type: string | undefined;
-    confidence: number | undefined;
-    model: string | undefined;
+stamp: string;
+image_id: string | undefined;
+bbox_x_center: number | undefined;
+bbox_y_center: number | undefined;
+bbox_width: number | undefined;
+bbox_height: number | undefined;
+product_type: string | undefined;
+defect_type: string | undefined;
+confidence: number | undefined;
+model: string | undefined;
 }
+
+export interface IAiModels {
+stamp: string;
+model: string | undefined;
+status: string | undefined;
+mAP: number | undefined;
+}
+
 
 // Mapping for dynamic inference
 export const TableSchemaMap = {
-    sensor_data: sensorDataBatchSchema,
-    logs: logsBatchSchema,
-    project_metrics: projectMetricsBatchSchema,
-    user_activity: userActivityBatchSchema,
-    frontend_configs: frontendConfigsBatchSchema,
-    io_configs: ioConfigsBatchSchema,
-    opc_configs: opcConfigsBatchSchema,
-    users: usersBatchSchema,
-    realtime_sys_state: realtimeSysStateBatchSchema,
-    analog_in_config: analogInConfigBatchSchema,
-    analog_in_data: analogInDataBatchSchema,
-    analog_out_config: analogOutConfigBatchSchema,
-    analog_out_data: analogOutDataBatchSchema,
-    digital_in_config: digitalInConfigBatchSchema,
-    digital_in_data: digitalInDataBatchSchema,
-    digital_out_config: digitalOutConfigBatchSchema,
-    digital_out_data: digitalOutDataBatchSchema,
-    axis_estimates_0: axisEstimatesBatchSchema,
-    axis_estimates_1: axisEstimatesBatchSchema,
-    axis_estimates_2: axisEstimatesBatchSchema,
-    axis_estimates_3: axisEstimatesBatchSchema,
-    defect_detection: defectDetectionBatchSchema,
-};
+sensor_data: sensorDataBatchSchema,
+logs: logsBatchSchema,
+project_metrics: projectMetricsBatchSchema,
+user_activity: userActivityBatchSchema,
+frontend_configs: frontendConfigsBatchSchema,
+io_configs: ioConfigsBatchSchema,
+opc_configs: opcConfigsBatchSchema,
+users: usersBatchSchema,
+realtime_sys_state: realtimeSysStateBatchSchema,
+analog_in_config: analogInConfigBatchSchema,
+analog_in_data: analogInDataBatchSchema,
+analog_out_config: analogOutConfigBatchSchema,
+analog_out_data: analogOutDataBatchSchema,
+digital_in_config: digitalInConfigBatchSchema,
+digital_in_data: digitalInDataBatchSchema,
+digital_out_config: digitalOutConfigBatchSchema,
+digital_out_data: digitalOutDataBatchSchema,
+axis_estimates_0: axisEstimatesBatchSchema,
+axis_estimates_1: axisEstimatesBatchSchema,
+axis_estimates_2: axisEstimatesBatchSchema,
+axis_estimates_3: axisEstimatesBatchSchema,
+defect_detection: defectDetectionBatchSchema,
+ai_models: aiModelsBatchSchema,
+}

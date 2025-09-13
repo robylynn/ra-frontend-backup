@@ -12,6 +12,17 @@ development:
     - name: dev_cloud_backup
       url: postgresql://dev_user:dev_password@dev-cloud-host-2:5432/dev_db_2
 
+docker_development:
+  enable_cloud_db: false # Set to true to enable cloud sync for development
+  # local_db_url: postgresql://user:password@localhost:5432/rac_db_dev
+  local_db_host: timescaledb
+  local_db: rac_db_dev
+  cloud_dbs:
+    - name: dev_cloud_primary
+      url: postgresql://dev_user:dev_password@dev-cloud-host-1:5432/dev_db_1
+    - name: dev_cloud_backup
+      url: postgresql://dev_user:dev_password@dev-cloud-host-2:5432/dev_db_2
+
 production:
   enable_cloud_db: true
   # local_db_url: postgresql://prod_user:prod_password@timescaledb:5432/metrics_db_prod

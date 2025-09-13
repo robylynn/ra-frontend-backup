@@ -16,3 +16,4 @@ passlib[bcrypt]==1.7.4 # NEW: For password hashing
 python-jose[cryptography]==3.3.0 # NEW: For JWT token generation and verification
 pydantic-settings==2.10.1
 python-multipart==0.0.20
+Jinja2==3.1.6

@@ -1,6 +1,8 @@
 ## Backend API for RA Products
 ## Developed by R2 Labs
 
+print("LOADING MAIN")
+
 import os
 import sys
 import asyncio
@@ -27,6 +29,8 @@ from backend.api.models import ApiState
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
 from backend.api.models import typedAppState
+
+print("DONE LOADING MAIN")
 
 load_dotenv()
 

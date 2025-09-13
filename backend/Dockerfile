@@ -9,17 +9,19 @@ WORKDIR /app
 COPY backend ./backend
 COPY config ./config
 COPY utilities ./utilities
+COPY common_models ./common_models
+COPY .env .
 
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# RUN python /app/utilities/generate_config_models.py
-# RUN python /app/utilities/generate_database_models.py
+RUN python /app/utilities/generate_config_models.py --pydantic
+RUN python /app/utilities/generate_database_models.py --pydantic
 
 EXPOSE ${API_PORT}
 
 # ENV PYTHONPATH=${PYTHONPATH}:/app
 
-CMD ["python", "backend/api/main.py"]
+CMD ["uvicorn", "backend.api.main:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
 # CMD ["uvicorn", "backend.api.main:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
 # CMD ["uvicorn", "backend.api.main", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
 
