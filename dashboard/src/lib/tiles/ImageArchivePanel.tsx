@@ -1,6 +1,7 @@
 "use client";
 
 import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
+import { SimplifiedDashboardHeaderContainer } from "../components/server_components/SimplifiedDashboardHeaderContainer";
 import ImageArchiveContainer from "@/lib/components/client_components/ImageArchiveContainer";
 import { Dispatch, SetStateAction } from "react";
 
@@ -14,12 +15,10 @@ export const ImageArchivePanel = (props: {
   const { variant = "full" } = props;
 
   return (
-    <DashboardHeaderContainer
-      header_text="Images"
+    <SimplifiedDashboardHeaderContainer
+      title="Images"
       icon_path={"/icons/gallery.svg"}
       className={props.className || ""}
-      fill_tile_id={props.id}
-      fill_tile_callback={props.fill_tile_callback}
     >
       <div className="w-full h-full bg-gray-900">
         {variant === "compact" && (
@@ -27,7 +26,7 @@ export const ImageArchivePanel = (props: {
             layout="compact"
             showFilters={true}
             showDetails={true}
-            maxImages={8}
+            maxImages={2}
             refreshInterval={8000}
           />
         )}
@@ -37,7 +36,7 @@ export const ImageArchivePanel = (props: {
             layout="full"
             showFilters={false}
             showDetails={false}
-            maxImages={6}
+            maxImages={3}
             refreshInterval={10000}
           />
         )}
@@ -47,14 +46,14 @@ export const ImageArchivePanel = (props: {
             layout="full"
             showFilters={true}
             showDetails={true}
-            maxImages={12}
+            maxImages={3}
             refreshInterval={10000}
           />
         )}
       </div>
-    </DashboardHeaderContainer>
+    </SimplifiedDashboardHeaderContainer>
   );
-}
+};
 
 // Export different variations
 type ImageArchivePanelProps = {
@@ -66,8 +65,8 @@ type ImageArchivePanelProps = {
 
 export const CompactImageArchivePanel = (props: ImageArchivePanelProps) => {
   return <ImageArchivePanel {...props} variant="compact" />;
-}
+};
 
 export const SimpleImageArchivePanel = (props: ImageArchivePanelProps) => {
   return <ImageArchivePanel {...props} variant="simple" />;
-}
+};

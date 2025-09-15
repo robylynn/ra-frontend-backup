@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardHeaderContainer } from "@/lib/components/client_components/DashboardHeaderContainer";
 import InspectionStatsContainer from "@/lib/components/client_components/InspectionStatsContainer";
+import { SimplifiedDashboardHeaderContainer } from "../components/server_components/SimplifiedDashboardHeaderContainer";
 
 export const AIModelStatisticsPanel = (props: {
   id: string;
@@ -9,12 +9,10 @@ export const AIModelStatisticsPanel = (props: {
   fill_tile_callback?: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <DashboardHeaderContainer
-      header_text="Statistics"
+    <SimplifiedDashboardHeaderContainer
+      title="Statistics"
       icon_path={"/icons/chart.svg"}
       className={props.className || ""}
-      fill_tile_id={props.id}
-      fill_tile_callback={props.fill_tile_callback}
     >
       <div className="w-full h-full flex flex-col p-3 bg-gray-900">
         <InspectionStatsContainer
@@ -24,6 +22,6 @@ export const AIModelStatisticsPanel = (props: {
           refreshInterval={5000}
         />
       </div>
-    </DashboardHeaderContainer>
+    </SimplifiedDashboardHeaderContainer>
   );
-}
+};
