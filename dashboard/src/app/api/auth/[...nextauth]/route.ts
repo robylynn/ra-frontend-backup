@@ -2,6 +2,7 @@
 // Developed by R2 Labs
 
 import { handlers } from '@/auth';
+import { logMessage } from '@/lib/utils/utilities';
 import { NextRequest } from 'next/server';
 // export const { GET, POST } = handlers;
 
@@ -16,13 +17,23 @@ function setDynamicAuthUrl(req: NextRequest) {
 
         if (host) {
             process.env.AUTH_URL = `${protocol}://${host}`;
-            console.log(`[Dynamic AUTH_URL Set] to: ${process.env.AUTH_URL}`);
+            // console.log(`[Dynamic AUTH_URL Set] to: ${process.env.AUTH_URL}`);
+            logMessage(
+                `AUTH_URL Set to: ${process.env.AUTH_URL}`,
+                'debug',
+                'Dynamic AUTH_URL'
+            );
         } else {
             // Fallback if host headers are also missing (shouldn't happen for direct access)
             process.env.AUTH_URL = `http://localhost:${process.env.PORT || 3000}`;
-            console.log(
-                `[Dynamic AUTH_URL Fallback] to: ${process.env.AUTH_URL}`
+            logMessage(
+                `Fallback to: ${process.env.AUTH_URL}`,
+                'warning',
+                'Dynamic AUTH_URL'
             );
+            // console.log(
+            //     `[Dynamic AUTH_URL Fallback] to: ${process.env.AUTH_URL}`
+            // );
         }
     }
 }
@@ -31,33 +42,33 @@ function setDynamicAuthUrl(req: NextRequest) {
 export const { GET, POST } = {
     GET: async (req: NextRequest, res) => {
         setDynamicAuthUrl(req); // Set AUTH_URL before handlers process the request
-        console.log('--- Incoming Request to Auth.js GET Handler ---');
-        console.log('Request URL:', req.url);
-        console.log('Headers Host:', req.headers.get('host'));
-        console.log(
-            'Headers X-Forwarded-Host:',
-            req.headers.get('x-forwarded-host')
-        );
-        console.log(
-            'Headers X-Forwarded-Proto:',
-            req.headers.get('x-forwarded-proto')
-        );
+        // console.log('--- Incoming Request to Auth.js GET Handler ---');
+        // console.log('Request URL:', req.url);
+        // console.log('Headers Host:', req.headers.get('host'));
+        // console.log(
+        //     'Headers X-Forwarded-Host:',
+        //     req.headers.get('x-forwarded-host')
+        // );
+        // console.log(
+        //     'Headers X-Forwarded-Proto:',
+        //     req.headers.get('x-forwarded-proto')
+        // );
         console.log('--------------------------------------------------');
         return handlers.GET(req);
     },
     POST: async (req: NextRequest, res) => {
         setDynamicAuthUrl(req); // Set AUTH_URL before handlers process the request
-        console.log('--- Incoming Request to Auth.js POST Handler ---');
-        console.log('Request URL:', req.url);
-        console.log('Headers Host:', req.headers.get('host'));
-        console.log(
-            'Headers X-Forwarded-Host:',
-            req.headers.get('x-forwarded-host')
-        );
-        console.log(
-            'Headers X-Forwarded-Proto:',
-            req.headers.get('x-forwarded-proto')
-        );
+        // console.log('--- Incoming Request to Auth.js POST Handler ---');
+        // console.log('Request URL:', req.url);
+        // console.log('Headers Host:', req.headers.get('host'));
+        // console.log(
+        //     'Headers X-Forwarded-Host:',
+        //     req.headers.get('x-forwarded-host')
+        // );
+        // console.log(
+        //     'Headers X-Forwarded-Proto:',
+        //     req.headers.get('x-forwarded-proto')
+        // );
         console.log('---------------------------------------------------');
         return handlers.POST(req);
     },

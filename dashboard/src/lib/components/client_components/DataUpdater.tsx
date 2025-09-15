@@ -65,7 +65,7 @@ export const DataUpdater = () => {
                 } else {
                     message = `Backend has no available database tables`;
                     type = 'warning';
-                    logMessage(message, type);
+                    logMessage(message, 'warning');
                 }
             } catch (err: any) {
                 message = `Failed to fetch available database tables from the backend after multiple retries. Error: ${err.message || String(err)}.`;

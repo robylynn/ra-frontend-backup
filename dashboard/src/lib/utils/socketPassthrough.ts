@@ -1,7 +1,7 @@
 'use server';
 
 // import { getSession } from 'next-auth/react';
-import { debug_mode } from '@/lib/utils/utilities';
+import { logMessage } from '@/lib/utils/utilities';
 import { IncomingMessage } from 'http';
 import { ErrorEvent, WebSocket, WebSocketServer } from 'ws';
 
@@ -12,12 +12,18 @@ export async function socketPassthrough(props: {
     request: IncomingMessage;
     server: WebSocketServer;
 }) {
-    const format_message = (message) => {
-        return `${props.socket_name.toUpperCase()}: ${message}`;
-    };
+    // const format_message = (message) => {
+    //     return `${props.socket_name.toUpperCase()}: ${message}`;
+    // };
+    const socket_name = props.socket_name.toUpperCase();
 
-    if (debug_mode())
-        console.log(format_message('Websocket client connected.'));
+    // if (debug_mode())
+    //     console.log(format_message('Websocket client connected.'));
+    logMessage(
+        'Websocket client connected to passthrough.',
+        'debug',
+        `${socket_name}`
+    );
 
     // const session = await getSession({ req: props.request });
     // const session = await getSession();
@@ -35,28 +41,44 @@ export async function socketPassthrough(props: {
 
     let backend_socket = new WebSocket(`ws://${props.proxy_address}`);
 
-    if (debug_mode())
-        console.log(format_message('Proxy target websocket created'));
+    // if (debug_mode())
+    //     console.log(format_message('Proxy target websocket created'));
+    // logMessage('Proxy target websocket closed', 'debug', 'ROS')
 
     const onBackendWebsocketClose = () => {
-        console.warn(format_message('Proxy target websocket closed.'));
+        // console.warn(format_message('Proxy target websocket closed.'));
+        logMessage(
+            'Proxy target websocket closed',
+            'warning',
+            `${socket_name}`
+        );
         backend_socket.close();
         props.client.close();
     };
 
     const onBackendWebsocketMessage = (message: string) => {
-        if (process.env.DEBUG.toLowerCase() == 'true')
-            console.log(
-                format_message(
-                    `Got message from proxy target websocket: ${message}`
-                )
-            );
+        // if (process.env.DEBUG.toLowerCase() == 'true')
+        //     console.log(
+        //         format_message(
+        //             `Got message from proxy target websocket: ${message}`
+        //         )
+        //     );
+        logMessage(
+            `Got message from proxy target websocket: ${message}`,
+            'silent',
+            `${socket_name}`
+        );
         props.client.send(message.toString());
     };
 
     const onBackendWebsocketError = (event: ErrorEvent) => {
-        console.error(
-            format_message('Proxy target websocket error: ' + event.message)
+        // console.error(
+        //     format_message('Proxy target websocket error: ' + event.message)
+        // );
+        logMessage(
+            `Proxy target websocket error: ${event.message}`,
+            'error',
+            socket_name
         );
         props.client.close();
     };
@@ -66,23 +88,29 @@ export async function socketPassthrough(props: {
     backend_socket.onerror = onBackendWebsocketError;
 
     const onClientWebsocketClose = () => {
-        console.warn(
-            format_message(
-                // `Client ${session?.user.name} closed the proxy websocket`
-                `Client closed the proxy websocket`
-            )
-        );
+        // console.warn(
+        //     format_message(
+        //         // `Client ${session?.user.name} closed the proxy websocket`
+        //         `Client closed the proxy websocket`
+        //     )
+        // );
+        logMessage('Client closed the proxy websocket', 'warning', socket_name);
         props.client.close();
         backend_socket.close();
     };
 
     const onClientWebsocketMessage = (message: string) => {
-        if (debug_mode())
-            console.log(
-                format_message(
-                    `Got message from client on proxy websocket: ${message}`
-                )
-            );
+        // if (debug_mode())
+        //     console.log(
+        //         format_message(
+        //             `Got message from client on proxy websocket: ${message}`
+        //         )
+        //     );
+        logMessage(
+            `Got message from client on proxy websocket: ${JSON.stringify(message)}`,
+            'silent',
+            socket_name
+        );
         backend_socket.send(message.toString());
     };
 

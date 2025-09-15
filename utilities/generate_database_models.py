@@ -153,6 +153,10 @@ def generate_pydantic_models(schema_file: Path, output_file: Path):
     with open(schema_file, "r") as f:
         raw_yaml_data = yaml.safe_load(f)
 
+    # --- ADDED: Handle case where output_file is a directory ---
+    if output_file.is_dir():
+        output_file = output_file / "database_models.py"
+
     static_models_data: List[Dict[str, Any]] = []
     dynamic_base_models_data: List[Dict[str, Any]] = []
 
@@ -331,6 +335,10 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
         logger.error(f"Schema file not found: {schema_file}")
         raise FileNotFoundError(f"Schema file not found: {schema_file}")
 
+    # --- ADDED: Handle case where output_file is a directory ---
+    if output_file.is_dir():
+        output_file = output_file / "database_models.ts"
+
     with open(schema_file, "r") as f:
         raw_yaml_data = yaml.safe_load(f)
 
@@ -427,7 +435,9 @@ def generate_zod_models(schema_file: Path, output_file: Path, template_path: Pat
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Pydantic and Zod schemas from YAML configuration files.")
     parser.add_argument("--pydantic", action="store_true", help="Generate Pydantic schemas.")
+    parser.add_argument("--pydantic-output-dir", type=str, help="Output directory for Pydantic schemas.")
     parser.add_argument("--zod", action="store_true", help="Generate Zod schemas.")
+    parser.add_argument("--zod-output-dir", type=str, help="Output directory for Zod schemas.")
     args = parser.parse_args()
     
     # If neither flag is set, generate both
@@ -437,14 +447,14 @@ if __name__ == "__main__":
 
     if args.pydantic:
         try:
-            generate_pydantic_models(Path(SCHEMA_FILE_PATH), Path(PYDANTIC_GENERATED_MODELS_FILE))
+            generate_pydantic_models(Path(SCHEMA_FILE_PATH), Path(PYDANTIC_GENERATED_MODELS_FILE) if not args.pydantic_output_dir else Path(args.pydantic_output_dir))
         except Exception as e:
             logger.error(f"Error during Pydantic model generation: {e}")
     
     if args.zod:
         try:
             template_path = Path(TEMPLATE_DIR) / ZOD_TEMPLATE_FILE
-            generate_zod_models(Path(SCHEMA_FILE_PATH), Path(ZOD_GENERATED_MODELS_FILE), template_path)
+            generate_zod_models(Path(SCHEMA_FILE_PATH), Path(ZOD_GENERATED_MODELS_FILE) if not args.zod_output_dir else Path(args.zod_output_dir), template_path)
         except Exception as e:
             logger.error(f"Error during Zod model generation: {e}")
 
