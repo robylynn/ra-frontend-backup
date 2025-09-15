@@ -36,14 +36,6 @@ export default function DashboardMainPanel(props: { className?: string }) {
         >
             {dashboardContext.ui_configuration ? (
                 <>
-                    {/* <CameraStreamPanel
-                        id="camera_panel"
-                        cameraId="camera0"
-                        className={`bg-purple-800 col-span-1 row-start-1 peer-[:has(#control_fullscreen:checked)]:hidden ${tile_hidden(
-                            'camera_panel'
-                        )} ${fillTile === 'camera_panel' ? 'h-full' : 'min-h-[200px]'}`}
-                        // fill_tile_callback={setFillTile}
-                    /> */}
                     {dashboardContext.ui_configuration.tiles.map(
                         (componentConfig) => {
                             // Look up the component from our map based on its type.

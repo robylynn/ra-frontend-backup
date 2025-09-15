@@ -4,7 +4,6 @@
 import { handlers } from '@/auth';
 import { logMessage } from '@/lib/utils/utilities';
 import { NextRequest } from 'next/server';
-// export const { GET, POST } = handlers;
 
 // Function to dynamically set AUTH_URL based on incoming request headers
 function setDynamicAuthUrl(req: NextRequest) {
@@ -17,7 +16,6 @@ function setDynamicAuthUrl(req: NextRequest) {
 
         if (host) {
             process.env.AUTH_URL = `${protocol}://${host}`;
-            // console.log(`[Dynamic AUTH_URL Set] to: ${process.env.AUTH_URL}`);
             logMessage(
                 `AUTH_URL Set to: ${process.env.AUTH_URL}`,
                 'debug',
@@ -31,9 +29,6 @@ function setDynamicAuthUrl(req: NextRequest) {
                 'warning',
                 'Dynamic AUTH_URL'
             );
-            // console.log(
-            //     `[Dynamic AUTH_URL Fallback] to: ${process.env.AUTH_URL}`
-            // );
         }
     }
 }
@@ -53,7 +48,7 @@ export const { GET, POST } = {
         //     'Headers X-Forwarded-Proto:',
         //     req.headers.get('x-forwarded-proto')
         // );
-        console.log('--------------------------------------------------');
+        // console.log('--------------------------------------------------');
         return handlers.GET(req);
     },
     POST: async (req: NextRequest, res) => {
@@ -69,7 +64,7 @@ export const { GET, POST } = {
         //     'Headers X-Forwarded-Proto:',
         //     req.headers.get('x-forwarded-proto')
         // );
-        console.log('---------------------------------------------------');
+        // console.log('---------------------------------------------------');
         return handlers.POST(req);
     },
 };

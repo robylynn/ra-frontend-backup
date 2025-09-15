@@ -71,7 +71,7 @@ const CameraStreamContainer = ({
         setDetectingCameras(true);
         setDetectionError(null);
 
-        dashboardContext.camera_services.detect_cameras(
+        dashboardContext.camera_services?.detect_cameras(
             (result) => {
                 try {
                     if (result.cameras_json) {

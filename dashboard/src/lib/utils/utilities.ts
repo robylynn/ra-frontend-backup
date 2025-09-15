@@ -38,8 +38,6 @@ export const logMessage = (
         ? LOG_LEVELS[process.env.LOG_LEVEL.toLowerCase()]
         : LOG_LEVELS[DEFAULT_LOG_LEVEL];
 
-    console.log(currentLogLevel);
-
     const messageLevel =
         LOG_LEVELS[level.toLowerCase()];// || LOG_LEVELS[DEFAULT_LOG_LEVEL];
 
