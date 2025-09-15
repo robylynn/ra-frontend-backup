@@ -1,7 +1,9 @@
 import { CameraStreamPanel } from '@/lib/tiles/CameraPanel';
 import { JogPanel } from '@/lib/tiles/JogPanel';
 import { PlotPanel } from '@/lib/tiles/PlotPanel';
-import { TestStatisticsPanel } from '@/lib/tiles/TestInferencePanel';
+// import { TestStatisticsPanel } from '@/lib/tiles/TestInferencePanel';
+import { AIModelStatisticsPanel } from '../tiles/AIStatsPanels';
+import { ImageArchivePanel } from '../tiles/ImageArchivePanel';
 // import React from "react"
 // import { useState } from "react"
 
@@ -20,8 +22,11 @@ export const ComponentMap = {
     // charts: null,//(): React.FC => {return (
     camera: CameraStreamPanel,
     training: CameraStreamPanel,
-    image_archive: CameraStreamPanel,
-    vision_statistics: TestStatisticsPanel,
+    image_archive: ImageArchivePanel,
+    vision_statistics: AIModelStatisticsPanel,
+
+    // vision_statistics: TestStatisticsPanel,
+
     // training: () => {},
     // image_archive: () => {},
     // vision_statistics: () => {}
