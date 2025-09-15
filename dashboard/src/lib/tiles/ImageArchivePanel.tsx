@@ -17,7 +17,7 @@ export const ImageArchivePanel = (props: {
   return (
     <SimplifiedDashboardHeaderContainer
       title="Images"
-      icon_path={"/icons/gallery.svg"}
+      icon_path={"/icons/device.svg"}
       className={props.className || ""}
     >
       <div className="w-full h-full bg-gray-900">

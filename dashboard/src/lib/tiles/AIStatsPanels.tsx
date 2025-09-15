@@ -11,7 +11,7 @@ export const AIModelStatisticsPanel = (props: {
   return (
     <SimplifiedDashboardHeaderContainer
       title="Statistics"
-      icon_path={"/icons/chart.svg"}
+      icon_path={"/icons/device.svg"}
       className={props.className || ""}
     >
       <div className="w-full h-full flex flex-col p-3 bg-gray-900">
