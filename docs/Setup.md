@@ -97,10 +97,9 @@ Debug mode allows changes to frontend without rebuilding containers. `launch.jso
 ## R2 Controller Interfaces
 The `r2-controller-interfaces` [repo](https://github.com/R2-Labs/r2-controller-interfaces) is included as a submodule in this project. We can use the `ros-typescript-generator` [project](https://github.com/Greenroom-Robotics/ros-typescript-generator/tree/master) to build TypeScript interfaces from the message and service definitions we use for the RAC. The configuration for the generation of TypeScript interfaces is defined in `dashboard/ros-ts-generator-config.json`. The `ros-typescript-generator` apparently only works on node v14, so we can switch to that with node version manager
 ```
-nvm use 14
-npx ros-typescript-generator --config ./ros-ts-generator-config.json
+nvm exec 14 npx ros-typescript-generator --config ./ros-ts-generator-config.json
 ```
-Be sure to switch back to node v20 (`nvm use 20`) after generating the code. This only has to be done if the message/service definitions in `r2c_interfaces` changes.
+Be sure to switch back to node v20 (`nvm use 20`), if needed, after generating the code. This only has to be done if the message/service definitions in `r2c_interfaces` changes.
 
 ## RA Frontend Interfaces (WIP)
 We use `quicktype` to generate types for both python and TypeScript from JSON schema that define the types used in the database. Install quicktype, 

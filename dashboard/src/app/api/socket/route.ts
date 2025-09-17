@@ -136,11 +136,11 @@ export async function SOCKET(
     const userName = user?.name || user?.email || 'Authenticated User'; // Use name or email from the token payload
 
     // console.log(`[WS] Client connected: User ID: ${userId}, Name: ${userName}`);
-    logMessage(`[WS] Client connected: User ID: ${userId}, Name: ${userName}`, 'info', 'WS');
+    logMessage(`Client connected: User ID: ${userId}, Name: ${userName}`, 'info', 'WS');
 
     const target = queryParameters['target'];
     logMessage(
-        `[WS] Target Parameter: ${target === undefined ? 'Undefined' : target}`, 'debug', 'WS'
+        `Target Parameter: ${target === undefined ? 'Undefined' : target}`, 'debug', 'WS'
     );
 
     switch (target) {
@@ -171,7 +171,7 @@ export async function SOCKET(
                 streamUrl +
                 (streamParams.toString() ? `?${streamParams.toString()}` : '');
             // console.log(`[WS] Constructed stream URL: ${finalStreamUrl}`);
-            logMessage(`[WS] Constructed stream URL: ${finalStreamUrl}`, 'debug', 'WS');
+            logMessage(`Constructed stream URL: ${finalStreamUrl}`, 'debug', 'WS');
 
             await socketPassthrough({
                 socket_name: 'streaming_websocket',
