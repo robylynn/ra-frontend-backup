@@ -147,7 +147,7 @@ class IoConfiguration(BaseModel):
 class OpcDataPoint(BaseModel):
     id: str = Field(default_factory=str)
     name: str = Field(...)
-    type: float = Field(...)
+    type: int = Field(...)
     node_id: str = Field(...)
     is_writable: bool = Field(default=False)
     children: List["OpcDataPoint"] = Field(default_factory=list)

@@ -976,40 +976,57 @@ export const IOConfigurationComponent: React.FC = () => {
     return (
         <MultiColumnPanelContainer buttons={buttons}>
             <>
-                {racks.map((rack) => (
-                    <RackComponent
-                        key={rack.id}
-                        rack={rack}
-                        setRacks={setRacks}
-                        onAddModule={handleAddModule}
-                        onDeleteRack={() => handleDeleteRack(rack.id)}
-                        onEditRack={() => setEditingRack(rack.id)}
-                        onRemoveModule={handleRemoveModule}
-                        onEditModule={handleEditModule}
-                        onSaveModule={(rackId, updatedModule) => {
-                            if (updatedModule) {
-                                setRacks((prev) =>
-                                    prev.map((r) =>
-                                        r.id === rackId
-                                            ? {
-                                                  ...r,
-                                                  modules: r.modules.map((m) =>
-                                                      m.id === updatedModule.id
-                                                          ? updatedModule
-                                                          : m
-                                                  ),
-                                              }
-                                            : r
-                                    )
-                                );
-                            }
-                        }}
-                        dragItem={dragItem}
-                        dragOverItem={dragOverItem}
-                        handleDragStart={handleDragStart}
-                        handleDragEnd={handleDragEnd}
-                    />
-                ))}
+                {racks.length ? (
+                    racks.map((rack) => (
+                        <RackComponent
+                            key={rack.id}
+                            rack={rack}
+                            setRacks={setRacks}
+                            onAddModule={handleAddModule}
+                            onDeleteRack={() => handleDeleteRack(rack.id)}
+                            onEditRack={() => setEditingRack(rack.id)}
+                            onRemoveModule={handleRemoveModule}
+                            onEditModule={handleEditModule}
+                            onSaveModule={(rackId, updatedModule) => {
+                                if (updatedModule) {
+                                    setRacks((prev) =>
+                                        prev.map((r) =>
+                                            r.id === rackId
+                                                ? {
+                                                      ...r,
+                                                      modules: r.modules.map(
+                                                          (m) =>
+                                                              m.id ===
+                                                              updatedModule.id
+                                                                  ? updatedModule
+                                                                  : m
+                                                      ),
+                                                  }
+                                                : r
+                                        )
+                                    );
+                                }
+                            }}
+                            dragItem={dragItem}
+                            dragOverItem={dragOverItem}
+                            handleDragStart={handleDragStart}
+                            handleDragEnd={handleDragEnd}
+                        />
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
+                        <p className="text-lg">
+                            No IO racks configured.
+                        </p>
+                        {/* <button
+                                onClick={handleAddGroup}
+                                className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            >
+                                <PlusIcon />
+                                <span>Add First Group</span>
+                            </button> */}
+                    </div>
+                )}
 
                 <ModuleModal
                     isOpen={!!currentModule}

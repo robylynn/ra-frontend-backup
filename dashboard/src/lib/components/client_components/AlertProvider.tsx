@@ -46,104 +46,15 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({
         (
             message: string,
             type: AlertType,
+            headerOverride?: string,
             autoDismissDurationOverride?: number,
-            headerOverride?: string
         ) => {
-            // // Check if a duplicate alert already exists and is not dismissing.
-            // const existingAlert = alerts.find(
-            //     (alert) =>
-            //         alert.message === message &&
-            //         alert.type === type &&
-            //         !alert.isDismissing
-            // );
-
-            // if (existingAlert) {
-            //     // If a duplicate is found, update the existing alert to bring it to the front
-            //     // and reset its auto-dismiss timer.
-            //     setAlerts((prevAlerts) => {
-            //         const newAlerts = prevAlerts.filter(
-            //             (alert) => alert.id !== existingAlert.id
-            //         );
-            //         // Create a new alert object to ensure a state update is triggered
-            //         const updatedAlert = {
-            //             ...existingAlert,
-            //             id: uuidv4(), // Give it a new ID to force a re-render
-            //             autoDismissDuration:
-            //                 autoDismissDurationOverride ??
-            //                 defaultAutoDismissDuration,
-            //             header: headerOverride || existingAlert.header,
-            //         };
-            //         return [updatedAlert, ...newAlerts];
-            //     });
-            //     console.log('Duplicate alert timer reset:', message, type);
-            //     return;
-            // }
-
-            // // Check if an identical alert (same message and type) is already active and not dismissing.
-            // const isDuplicate = alerts.find(
-            //     (alert) =>
-            //         alert.message === message &&
-            //         alert.type === type &&
-            //         !alert.isDismissing
-            // );
-
-            // // If a duplicate is found, simply exit the function.
-            // if (isDuplicate) {
-            //     console.log('Duplicate alert blocked:', message, type);
-            //     return;
-            // }
-
-            // const id = uuidv4();
-            // const newAlert: AlertItem = {
-            //     id,
-            //     message,
-            //     type,
-            //     autoDismissDuration:
-            //         autoDismissDurationOverride ?? defaultAutoDismissDuration,
-            //     isDismissing: false,
-            //     header: headerOverride, // NEW LINE: Pass the headerOverride to the AlertItem
-            // };
-            // // Add new alerts to the beginning of the array to make them appear at the top
-            // setAlerts((prevAlerts) => [newAlert, ...prevAlerts]);
-
             setAlerts((prevAlerts) => {
-                // // Check if an identical alert (same message and type) is already active and not dismissing.
-                // const existingAlert = prevAlerts.find(
-                //     (alert) =>
-                //         alert.message === message &&
-                //         alert.type === type &&
-                //         !alert.isDismissing
-                // );
-
-                // if (existingAlert) {
-                //     // If a duplicate is found, create a new object with a new ID
-                //     // and reset its auto-dismiss timer. This forces a re-render.
-                //     console.log(
-                //         'Duplicate alert found, resetting timer:',
-                //         message,
-                //         type
-                //     );
-                //     const updatedAlert: AlertItem = {
-                //         ...existingAlert,
-                //         id: uuidv4(), // Assign a new ID to force a re-render
-                //         autoDismissDuration:
-                //             autoDismissDurationOverride ??
-                //             defaultAutoDismissDuration,
-                //         header: headerOverride || existingAlert.header, // Keep old header if new one not provided
-                //         isRefreshed: true, // NEW: Signal that this is a refreshed alert
-                //     };
-
-                //     // Filter out the old alert and prepend the updated one to the array.
-                //     const newAlerts = prevAlerts.filter(
-                //         (alert) => alert.id !== existingAlert.id
-                //     );
-                //     return [updatedAlert, ...newAlerts];
-                // }
-
                 const existingIndex = prevAlerts.findIndex(
                     (alert) =>
                         alert.message === message &&
                         alert.type === type &&
+                        // alert.header === headerOverride &&
                         !alert.isDismissing
                 );
 

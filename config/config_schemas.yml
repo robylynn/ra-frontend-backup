@@ -273,7 +273,7 @@ schemas:
     properties:
       id: { type: string, default: '' }
       name: { type: string }
-      type: { type: number }
+      type: { type: integer }
       node_id: { type: string }
       is_writable: { type: boolean, default: false }
       children:

@@ -33,7 +33,7 @@ export interface I{{ name | camelcase }} {
     string
     {%- elif prop_data.type == 'datetime' -%}
     Date
-    {%- elif prop_data.type == 'number' -%}
+    {%- elif prop_data.type == 'number' or prop_data.type == 'integer' -%}
     number
     {%- elif prop_data.type == 'boolean' -%}
     boolean
@@ -92,7 +92,7 @@ z.object({
         {%- endif -%}
     {%- elif prop_data.type == 'datetime' -%}
     z.string(){%- if prop_data.default is defined -%}.datetime().default(new Date().toISOString()){%- endif -%}
-    {%- elif prop_data.type == 'number' -%}
+    {%- elif prop_data.type == 'number' or prop_data.type == 'integer' -%}
     z.number()
         {%- if prop_data.validations is defined -%}
             {%- if prop_data.validations.min is defined -%}.min({{ prop_data.validations.min }}){%- endif -%}

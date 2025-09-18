@@ -649,7 +649,7 @@ interface SubscriptionGroupProps {
     onDelete: (id: string) => void;
     onAddDataPoint: (id: string, endpoint: string) => void;
     onDeleteDataPoint: (groupId: string, dataPointId: string) => void;
-    onWrite: (id: string, value: number) => void;
+    // onWrite: (id: string, value: number) => void;
     alarms: Alarm[];
     onOpenAlarmModal: (dp: opcDataPointType) => void;
     liveValues: { [key: string]: number };
@@ -661,7 +661,7 @@ const SubscriptionGroup: React.FC<SubscriptionGroupProps> = ({
     onDelete,
     onAddDataPoint,
     onDeleteDataPoint,
-    onWrite,
+    // onWrite,
     alarms,
     onOpenAlarmModal,
     liveValues,
@@ -683,7 +683,7 @@ const SubscriptionGroup: React.FC<SubscriptionGroupProps> = ({
         );
 
         dashboardContext.ros_services.opc_services.write(
-            data_point.node_id,
+            data_point,
             newValue,
             () =>
                 showAlert(
@@ -1018,12 +1018,12 @@ export default function OPCUAComponent() {
         return () => clearInterval(interval);
     }, [subscriptionGroups, alarms]);
 
-    const handleWriteValue = (dataPointId: string, newValue: number) => {
-        setLiveValues((prevValues) => ({
-            ...prevValues,
-            [dataPointId]: newValue,
-        }));
-    };
+    // const handleWriteValue = (dataPointId: string, newValue: number) => {
+    //     setLiveValues((prevValues) => ({
+    //         ...prevValues,
+    //         [dataPointId]: newValue,
+    //     }));
+    // };
 
     const handleAddGroup = () => {
         setEditingGroup(null);
@@ -1038,7 +1038,8 @@ export default function OPCUAComponent() {
         } else {
             setSubscriptionGroups((groups) => [
                 ...groups,
-                { ...groupData, id: uuidv4(), dataPoints: [] },
+                // { ...groupData, id: uuidv4(), dataPoints: [] },
+                { ...groupData, id: uuidv4() },
             ]);
         }
     };
@@ -1241,7 +1242,7 @@ export default function OPCUAComponent() {
                                 onDelete={handleDeleteGroup}
                                 onAddDataPoint={handleOpenServerDiscovery}
                                 onDeleteDataPoint={handleDeleteDataPoint}
-                                onWrite={handleWriteValue}
+                                // onWrite={handleWriteValue}
                                 liveValues={liveValues}
                                 alarms={alarms}
                                 onOpenAlarmModal={handleOpenAlarmModal}
@@ -1252,13 +1253,13 @@ export default function OPCUAComponent() {
                             <p className="text-lg">
                                 No subscription groups configured.
                             </p>
-                            <button
+                            {/* <button
                                 onClick={handleAddGroup}
                                 className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                             >
                                 <PlusIcon />
                                 <span>Add First Group</span>
-                            </button>
+                            </button> */}
                         </div>
                     )
                 ) : (

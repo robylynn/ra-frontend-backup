@@ -281,13 +281,13 @@ export type ioModuleType = z.infer<typeof ioModule>;
 export interface IioRackConfig {
     name: string,
     address: string,
-    max_modules: any
+    max_modules: number
 }
 
 export const ioRackConfig=z.object({
     name: z.string(),
     address: z.string(),
-    max_modules: z.any()
+    max_modules: z.number()
 });
 export type ioRackConfigType = z.infer<typeof ioRackConfig>;
 
@@ -342,7 +342,7 @@ export interface IopcSubscriptionGroup {
     id: string,
     name: string,
     endpoint: string,
-    interval: any,
+    interval: number,
     data_points: IopcDataPoint[]
 }
 
@@ -350,7 +350,7 @@ export const opcSubscriptionGroup=z.object({
     id: z.string(),
     name: z.string(),
     endpoint: z.string(),
-    interval: z.any(),
+    interval: z.number(),
     data_points: z.array(opcDataPoint)
 });
 export type opcSubscriptionGroupType = z.infer<typeof opcSubscriptionGroup>;
