@@ -14,7 +14,7 @@ export const MultiColumnPanelContainer: React.FC<
     return (
         <div className="grid grid-cols-[93%_7%] h-full">
             <div className="h-full bg-gray-100 p-4 flex flex-col items-center font-sans overflow-y-scroll">
-                <div className="w-full max-w-7xl">{children}</div>
+                <div className="w-full h-full max-w-7xl">{children}</div>
             </div>
             <ButtonsColumn buttons={buttons} />
         </div>

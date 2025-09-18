@@ -145,10 +145,16 @@ class IoConfiguration(BaseModel):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 class OpcDataPoint(BaseModel):
-    id: str = Field(...)
+    id: str = Field(default_factory=str)
     name: str = Field(...)
+    type: float = Field(...)
     node_id: str = Field(...)
-    is_writable: bool = Field(...)
+    is_writable: bool = Field(default=False)
+    children: List["OpcDataPoint"] = Field(default_factory=list)
+
+
+class OpcDataPoints(BaseModel):
+    opc_data_points: List[OpcDataPoint] = Field(...)
 
 class OpcSubscriptionGroup(BaseModel):
     id: str = Field(...)

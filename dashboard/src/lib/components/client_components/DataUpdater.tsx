@@ -74,7 +74,7 @@ export const DataUpdater = () => {
                 // console.error(`Final error loading UI configuration: ${err}`);
             } finally {
                 if (message) {
-                    showAlert(message, type, undefined, 'Database Alert');
+                    showAlert(message, type, 'Database Alert');
                 }
             }
         };
@@ -110,7 +110,6 @@ export const DataUpdater = () => {
                             showAlert(
                                 message,
                                 type,
-                                undefined,
                                 'Configuration Alert'
                             );
                         }
@@ -123,7 +122,6 @@ export const DataUpdater = () => {
                             showAlert(
                                 message,
                                 type,
-                                undefined,
                                 'Configuration Alert'
                             );
                         }
@@ -150,7 +148,6 @@ export const DataUpdater = () => {
                             showAlert(
                                 message,
                                 type,
-                                undefined,
                                 'Configuration Alert'
                             );
                         }
@@ -163,7 +160,6 @@ export const DataUpdater = () => {
                             showAlert(
                                 message,
                                 type,
-                                undefined,
                                 'Configuration Alert'
                             );
                         }
@@ -181,7 +177,6 @@ export const DataUpdater = () => {
                             showAlert(
                                 message,
                                 type,
-                                undefined,
                                 'Configuration Alert'
                             );
                         }
@@ -194,7 +189,6 @@ export const DataUpdater = () => {
                             showAlert(
                                 message,
                                 type,
-                                undefined,
                                 'Configuration Alert'
                             );
                         }

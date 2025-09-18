@@ -28,28 +28,6 @@ class ApiState(BaseModel):
 def typedAppState(request: Request) -> ApiState:
     return cast(ApiState, request.app.state)
 
-# # --- Models for Schema.yml Structure ---
-# class ColumnDef(BaseModel):
-#     """Represents a column definition from schema.yml."""
-
-#     type: str = Field(..., alias="name")
-
-
-# class TableDef(BaseModel):
-#     """Represents a single table's definition in the schema file."""
-
-#     columns: Dict[str, Any]
-#     hypertable_column: Optional[str] = Field(
-#         None, description="The column used as the TimescaleDB hypertable dimension."
-#     )
-#     number_of_tables: Optional[int] = None
-
-
-# class SchemaConfig(BaseModel):
-#     """Represents the entire schema.yml structure."""
-
-#     tables: Dict[str, TableDef]
-
 
 # --- Models for Database Configuration YAML ---
 class CloudDbInstance(BaseModel):

@@ -43,10 +43,12 @@ import {
     IRosTypeR2CInterfacesJogAxisRequest,
     IRosTypeR2CInterfacesJogAxisRequestConst,
     IRosTypeR2CInterfacesOpcuaData,
+    IRosTypeR2CInterfacesOpcuaDataTypeType,
     IRosTypeR2CInterfacesSetAnalogOutputStatesRequest,
     IRosTypeR2CInterfacesSetApplicationStringRequest,
     IRosTypeR2CInterfacesSetAxisStateRequest,
     IRosTypeR2CInterfacesSetDigitalOutputStatesRequest,
+    IRosTypeR2CInterfacesSetOpcuaVariableRequest,
     IRosTypeR2CInterfacesTorques,
 } from '@/lib/models/ros_types';
 
@@ -506,6 +508,17 @@ interface SubscribeServiceCall {
     ): Promise<boolean>;
 }
 
+interface WriteServiceCall {
+    (
+        node_id: string,
+        value: string | number | boolean,
+        onSuccess?: () => void, // = () => {},
+        onFailure?: () => void, // = () => {},
+        onError?: (error: any) => void, // = (error) => {},
+        onComplete?: () => void
+    ): Promise<boolean>;
+}
+
 type ServiceResult<T> = T | null;
 
 export class OPCUAServices {
@@ -517,6 +530,7 @@ export class OPCUAServices {
         browse: null,
         subscribe: null,
         unsubscribe: null,
+        write: null,
     };
 
     private async _call_service<T extends { success: boolean }>(
@@ -595,6 +609,14 @@ export class OPCUAServices {
         });
 
         this._services.unsubscribe = unsubscribe_service;
+
+        const write_service = new ROSLIB.Service({
+            ros: this._ros,
+            name: '/opc/set_variable',
+            serviceType: 'r2c_interfaces/SetOPCUAVariable',
+        });
+
+        this._services.write = write_service;
     }
 
     public connect_to_server(
@@ -683,6 +705,45 @@ export class OPCUAServices {
         const request_data: IRosTypeR2CInterfacesCreateOpcuaSubscriptionRequest =
             {
                 node_id: node_id,
+            };
+
+        const res =
+            await this._call_service<IRosTypeR2CInterfacesCreateOpcuaSubscriptionResponse>(
+                this._services.unsubscribe,
+                request_data,
+                onSuccess,
+                onError,
+                onFailure,
+                onComplete,
+                (error) => {
+                    throw new Error('OPC-UA unsubscribe service undefined.');
+                }
+            );
+
+        return res.success;
+    };
+
+    public write: WriteServiceCall = async (
+        node_id,
+        value,
+        onSuccess = () => {},
+        onFailure = () => {},
+        onError = (e) => {},
+        onComplete = () => {}
+    ): Promise<boolean> => {
+        const request_data: IRosTypeR2CInterfacesSetOpcuaVariableRequest =
+            {
+                data: {
+                    stamp: {
+                        sec: 0,
+                        nanosec: 0
+                    },
+                    node_id: node_id,
+                    data_type: {type: IRosTypeR2CInterfacesOpcuaDataTypeType.TYPE_NULL},
+                    numeric_value: typeof value === 'number' ? value : null,
+                    string_value: typeof value === 'string' ? value : null,
+                    bool_value: typeof value === 'boolean' ? value : null
+                }
             };
 
         const res =

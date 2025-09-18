@@ -2,28 +2,49 @@
 // DO NOT EDIT MANUALLY
 
 import { z } from "zod";
+import { v4 as uuidv4 } from 'uuid'
 
 
-export const joggingMetadata = z.object({
+export interface IjoggingMetadata {
+    message: string,
+    version: string,
+    pace: any
+}
+
+export const joggingMetadata=z.object({
     message: z.string(),
     version: z.string(),
     pace: z.any()
 });
 export type joggingMetadataType = z.infer<typeof joggingMetadata>;
 
-export const chartTraceMetadata = z.object({
+export interface IchartTraceMetadata {
+    table_name: string,
+    column: string,
+    color: string
+}
+
+export const chartTraceMetadata=z.object({
     table_name: z.string(),
     column: z.string(),
     color: z.string()
 });
 export type chartTraceMetadataType = z.infer<typeof chartTraceMetadata>;
 
-export const plotConfiguration = z.object({
+export interface IplotConfiguration {
+    id: string,
+    name: string,
+    type: ['line'| 'bar'| 'scatter'],
+    traces: IchartTraceMetadata[],
+    max_length?: number
+}
+
+export const plotConfiguration=z.object({
     id: z.string().uuid(),
     name: z.string(),
     type: z.enum(['line','bar','scatter']),
     traces: z.array(chartTraceMetadata),
-    max_length: z.number()
+    max_length: z.number().optional()
 });
 export type plotConfigurationType = z.infer<typeof plotConfiguration>;
 
@@ -31,30 +52,56 @@ export const plotConfigurations = z.array(plotConfiguration);
 
 export type plotConfigurationsType = z.infer<typeof plotConfigurations>;
 
-export const imageArchiveMetadata = z.object({
+export interface IimageArchiveMetadata {
+    number_of_images: number
+}
+
+export const imageArchiveMetadata=z.object({
     number_of_images: z.number()
 });
 export type imageArchiveMetadataType = z.infer<typeof imageArchiveMetadata>;
 
-export const cameraMetadata = z.object({
+export interface IcameraMetadata {
+    camera_id: string,
+    variant: ['full'| 'compact'| 'simple']
+}
+
+export const cameraMetadata=z.object({
     camera_id: z.string(),
     variant: z.enum(['full','compact','simple'])
 });
 export type cameraMetadataType = z.infer<typeof cameraMetadata>;
 
-export const trainingMetadata = z.object({
+export interface ItrainingMetadata {
+    source: string
+}
+
+export const trainingMetadata=z.object({
     source: z.string()
 });
 export type trainingMetadataType = z.infer<typeof trainingMetadata>;
 
-export const visionStatisticsMetadata = z.object({
+export interface IvisionStatisticsMetadata {
+    refresh_interval: number,
+    time_span_hours: number,
+    defects_to_analyze: string[]
+}
+
+export const visionStatisticsMetadata=z.object({
     refresh_interval: z.number(),
     time_span_hours: z.number(),
     defects_to_analyze: z.array(z.string())
 });
 export type visionStatisticsMetadataType = z.infer<typeof visionStatisticsMetadata>;
 
-export const joggingComponent = z.object({
+export interface IjoggingComponent {
+    id: string,
+    label: string,
+    type: any,
+    metadata: IjoggingMetadata
+}
+
+export const joggingComponent=z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     type: z.any(),
@@ -62,7 +109,14 @@ export const joggingComponent = z.object({
 });
 export type joggingComponentType = z.infer<typeof joggingComponent>;
 
-export const chartComponent = z.object({
+export interface IchartComponent {
+    id: string,
+    label: string,
+    type: any,
+    metadata: IplotConfiguration
+}
+
+export const chartComponent=z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     type: z.any(),
@@ -70,7 +124,15 @@ export const chartComponent = z.object({
 });
 export type chartComponentType = z.infer<typeof chartComponent>;
 
-export const imageArchiveComponent = z.object({
+export interface IimageArchiveComponent {
+    id: string,
+    label: string,
+    tile_columns: number,
+    type: any,
+    metadata: IimageArchiveMetadata
+}
+
+export const imageArchiveComponent=z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -79,7 +141,15 @@ export const imageArchiveComponent = z.object({
 });
 export type imageArchiveComponentType = z.infer<typeof imageArchiveComponent>;
 
-export const cameraComponent = z.object({
+export interface IcameraComponent {
+    id: string,
+    label: string,
+    tile_columns: number,
+    type: any,
+    metadata: IcameraMetadata
+}
+
+export const cameraComponent=z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -88,7 +158,15 @@ export const cameraComponent = z.object({
 });
 export type cameraComponentType = z.infer<typeof cameraComponent>;
 
-export const trainingComponent = z.object({
+export interface ItrainingComponent {
+    id: string,
+    label: string,
+    tile_columns: number,
+    type: any,
+    metadata: ItrainingMetadata
+}
+
+export const trainingComponent=z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -97,7 +175,15 @@ export const trainingComponent = z.object({
 });
 export type trainingComponentType = z.infer<typeof trainingComponent>;
 
-export const visionStatisticsComponent = z.object({
+export interface IvisionStatisticsComponent {
+    id: string,
+    label: string,
+    tile_columns: number,
+    type: any,
+    metadata: IvisionStatisticsMetadata
+}
+
+export const visionStatisticsComponent=z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -105,6 +191,14 @@ export const visionStatisticsComponent = z.object({
     metadata: visionStatisticsMetadata
 });
 export type visionStatisticsComponentType = z.infer<typeof visionStatisticsComponent>;
+
+export type IuiComponent =
+    IjoggingComponent| 
+    IchartComponent| 
+    IimageArchiveComponent| 
+    ItrainingComponent| 
+    IcameraComponent| 
+    IvisionStatisticsComponent
 
 export const uiComponent = z.union([
     joggingComponent,
@@ -116,7 +210,14 @@ export const uiComponent = z.union([
     ]);
 export type uiComponentType = z.infer<typeof uiComponent>;
 
-export const uiConfiguration = z.object({
+export interface IuiConfiguration {
+    theme: ['light'| 'dark'| 'system'],
+    tiles: IuiComponent[],
+    plots: IplotConfiguration[],
+    last_updated: Date
+}
+
+export const uiConfiguration=z.object({
     theme: z.enum(['light','dark','system']).default('system'),
     tiles: z.array(uiComponent).min(0).default([]),
     plots: z.array(plotConfiguration).default([]),
@@ -124,13 +225,24 @@ export const uiConfiguration = z.object({
 });
 export type uiConfigurationType = z.infer<typeof uiConfiguration>;
 
-export const ioPointDescription = z.object({
+export interface IioPointDescription {
+    label: string,
+    type: ['DI'| 'DO'| 'AI'| 'AO']
+}
+
+export const ioPointDescription=z.object({
     label: z.string(),
     type: z.enum(['DI','DO','AI','AO'])
 });
 export type ioPointDescriptionType = z.infer<typeof ioPointDescription>;
 
-export const ioPoint = z.object({
+export interface IioPoint {
+    id: string,
+    point_type: IioPointDescription,
+    point_value: number|boolean
+}
+
+export const ioPoint=z.object({
     id: z.string(),
     point_type: ioPointDescription,
     point_value: z.union([
@@ -138,14 +250,27 @@ export const ioPoint = z.object({
 });
 export type ioPointType = z.infer<typeof ioPoint>;
 
-export const ioModuleDescription = z.object({
+export interface IioModuleDescription {
+    name: string,
+    icon: string,
+    points: IioPointDescription[]
+}
+
+export const ioModuleDescription=z.object({
     name: z.string(),
     icon: z.string(),
     points: z.array(ioPointDescription)
 });
 export type ioModuleDescriptionType = z.infer<typeof ioModuleDescription>;
 
-export const ioModule = z.object({
+export interface IioModule {
+    id: string,
+    name: string,
+    type: IioModuleDescription,
+    points: IioPoint[]
+}
+
+export const ioModule=z.object({
     id: z.string(),
     name: z.string(),
     type: ioModuleDescription,
@@ -153,35 +278,75 @@ export const ioModule = z.object({
 });
 export type ioModuleType = z.infer<typeof ioModule>;
 
-export const ioRackConfig = z.object({
+export interface IioRackConfig {
+    name: string,
+    address: string,
+    max_modules: any
+}
+
+export const ioRackConfig=z.object({
     name: z.string(),
     address: z.string(),
     max_modules: z.any()
 });
 export type ioRackConfigType = z.infer<typeof ioRackConfig>;
 
-export const ioRack = z.object({
+export interface IioRack {
+    id: string,
+    modules: IioModule[],
+    rack_config: IioRackConfig
+}
+
+export const ioRack=z.object({
     id: z.string(),
     modules: z.array(ioModule),
     rack_config: ioRackConfig
 });
 export type ioRackType = z.infer<typeof ioRack>;
 
-export const ioConfiguration = z.object({
+export interface IioConfiguration {
+    racks: IioRack[],
+    last_updated: Date
+}
+
+export const ioConfiguration=z.object({
     racks: z.array(ioRack).default([]),
     last_updated: z.string().datetime().default(new Date().toISOString())
 });
 export type ioConfigurationType = z.infer<typeof ioConfiguration>;
 
-export const opcDataPoint = z.object({
+export interface IopcDataPoint {
+    id: string,
+    name: string,
+    type: number,
+    node_id: string,
+    is_writable: boolean,
+    children?: IopcDataPoint[]
+}
+
+export const opcDataPoint: z.ZodType<IopcDataPoint> = z.lazy(() =>z.object({
     id: z.string(),
     name: z.string(),
+    type: z.number(),
     node_id: z.string(),
-    is_writable: z.boolean()
-});
+    is_writable: z.boolean().default(false),
+    children: z.array(opcDataPoint).optional()
+}));
 export type opcDataPointType = z.infer<typeof opcDataPoint>;
 
-export const opcSubscriptionGroup = z.object({
+export const opcDataPoints = z.array(opcDataPoint);
+
+export type opcDataPointsType = z.infer<typeof opcDataPoints>;
+
+export interface IopcSubscriptionGroup {
+    id: string,
+    name: string,
+    endpoint: string,
+    interval: any,
+    data_points: IopcDataPoint[]
+}
+
+export const opcSubscriptionGroup=z.object({
     id: z.string(),
     name: z.string(),
     endpoint: z.string(),
@@ -190,13 +355,25 @@ export const opcSubscriptionGroup = z.object({
 });
 export type opcSubscriptionGroupType = z.infer<typeof opcSubscriptionGroup>;
 
-export const opcConfiguration = z.object({
+export interface IopcConfiguration {
+    subscription_groups: IopcSubscriptionGroup[],
+    last_updated: Date
+}
+
+export const opcConfiguration=z.object({
     subscription_groups: z.array(opcSubscriptionGroup).default([]),
     last_updated: z.string().datetime().default(new Date().toISOString())
 });
 export type opcConfigurationType = z.infer<typeof opcConfiguration>;
 
-export const fullConfiguration = z.object({
+export interface IfullConfiguration {
+    client_id: string,
+    ui_configuration: IuiConfiguration,
+    io_configuration: IioConfiguration,
+    opc_configuration: IopcConfiguration
+}
+
+export const fullConfiguration=z.object({
     client_id: z.string(),
     ui_configuration: uiConfiguration,
     io_configuration: ioConfiguration,

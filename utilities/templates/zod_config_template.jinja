@@ -2,10 +2,56 @@
 // DO NOT EDIT MANUALLY
 
 import { z } from "zod";
+import { v4 as uuidv4 } from 'uuid'
 
 {% for name, schema in schemas.items() %}
 {%- if schema.type == 'object' %}
-export const {{ name | camelcase }} = z.object({
+export interface I{{ name | camelcase }} {
+    {% for prop_name, prop_data in schema.properties.items() %}
+    {{- prop_name -}}{%- if prop_data.optional is defined -%}{%- if prop_data.optional -%}{% raw %}?{% endraw %}{%- endif -%}{%- endif -%}:{{' '}}
+    {%- if prop_data.ref is defined -%}
+        I{{ prop_data.ref | camelcase }}
+    {%- elif prop_data.type == 'object' -%}
+        z.object({{ prop_data.ref }}).optional()
+    {%- elif prop_data.type == 'array' -%}
+        {%- if prop_data.elements.ref is defined -%}
+        I{{ prop_data.elements.ref | camelcase }}
+        {%- else -%}
+        {{ prop_data.elements.type }}
+        {%- endif -%}
+        []
+    {%- elif prop_data.type == 'union' -%}
+        {% for variant in prop_data.variants -%}
+            {{ variant }}
+            {%- if not loop.last -%}|{%- endif -%}
+        {%- endfor -%}
+    {%- elif prop_data.type == 'enum' -%}
+    ['{{ "'| '".join(prop_data.valid_values) }}']
+    {%- elif prop_data.type == 'uuid' -%}
+    string
+    {%- elif prop_data.type == 'string' -%}
+    string
+    {%- elif prop_data.type == 'datetime' -%}
+    Date
+    {%- elif prop_data.type == 'number' -%}
+    number
+    {%- elif prop_data.type == 'boolean' -%}
+    boolean
+    {%- else -%}
+    any
+    {%- endif -%}
+    {%- if not loop.last -%},
+    {% endif -%}
+    {% endfor %}
+}
+
+export const {{ name | camelcase }}
+{%- if schema.circular is defined and schema.circular -%}
+: z.ZodType<I{{name | camelcase}}> = z.lazy(() => 
+{%- else -%}
+ = 
+{%- endif -%}
+z.object({
     {% for prop_name, prop_data in schema.properties.items() %}
     {{- prop_name }}:{{' '}}
     {%- if prop_data.ref is defined -%}
@@ -54,17 +100,26 @@ export const {{ name | camelcase }} = z.object({
         {%- endif -%}
     {%- elif prop_data.type == 'boolean' -%}
     z.boolean()
-        {%- if prop_data.default is defined -%}.default({{ prop_data.default }}){%- endif -%}
+        {%- if prop_data.default is defined -%}.default({{ prop_data.default | lower }}){%- endif -%}
     {%- else -%}
     z.any()
     {%- endif -%}
+    {%- if prop_data.optional is defined and prop_data.optional -%}.optional(){%- endif -%}
     {%- if not loop.last -%},
     {% endif -%}
 {% endfor %}
-});
+}){%- if schema.circular is defined and schema.circular -%}){%- endif -%};
+
 {%- elif schema.type == 'array' %}
 export const {{ name | camelcase }} = z.array({{ schema.elements.ref | camelcase }});
 {% elif schema.type == 'union' %}
+export type I{{ name | camelcase }} =
+    {% for variant in schema.variants -%}
+    I{{ variant | camelcase }}
+    {%- if not loop.last -%} | 
+    {% endif -%}
+    {%- endfor %}
+
 export const {{ name | camelcase }} = z.union([
     {% for variant in schema.variants -%}
     {{ variant | camelcase }},
