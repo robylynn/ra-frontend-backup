@@ -1,9 +1,10 @@
-import { CameraStreamPanel } from '@/lib/tiles/CameraPanel';
-import { JogPanel } from '@/lib/tiles/JogPanel';
-import { PlotPanel } from '@/lib/tiles/PlotPanel';
+import { CameraStreamPanel } from "@/lib/tiles/CameraPanel";
+import { AITrainingPanel } from "../tiles/AITrainingPanel";
+import { JogPanel } from "@/lib/tiles/JogPanel";
+import { PlotPanel } from "@/lib/tiles/PlotPanel";
 // import { TestStatisticsPanel } from '@/lib/tiles/TestInferencePanel';
-import { AIModelStatisticsPanel } from '../tiles/AIStatsPanels';
-import { ImageArchivePanel } from '../tiles/ImageArchivePanel';
+import { AIModelStatisticsPanel } from "../tiles/AIStatsPanels";
+import { ImageArchivePanel } from "../tiles/ImageArchivePanel";
 // import React from "react"
 // import { useState } from "react"
 
@@ -17,17 +18,17 @@ import { ImageArchivePanel } from '../tiles/ImageArchivePanel';
 // }
 
 export const ComponentMap = {
-    jogging: JogPanel,
-    charts: PlotPanel,
-    // charts: null,//(): React.FC => {return (
-    camera: CameraStreamPanel,
-    training: CameraStreamPanel,
-    image_archive: ImageArchivePanel,
-    vision_statistics: AIModelStatisticsPanel,
+  jogging: JogPanel,
+  charts: PlotPanel,
+  // charts: null,//(): React.FC => {return (
+  camera: CameraStreamPanel,
+  training: AITrainingPanel,
+  image_archive: ImageArchivePanel,
+  vision_statistics: AIModelStatisticsPanel,
 
-    // vision_statistics: TestStatisticsPanel,
+  // vision_statistics: TestStatisticsPanel,
 
-    // training: () => {},
-    // image_archive: () => {},
-    // vision_statistics: () => {}
+  // training: () => {},
+  // image_archive: () => {},
+  // vision_statistics: () => {}
 };

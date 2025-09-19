@@ -3,27 +3,26 @@
 
 import { z } from "zod";
 
-
 export const joggingMetadata = z.object({
-    message: z.string(),
-    version: z.string(),
-    pace: z.any()
+  message: z.string(),
+  version: z.string(),
+  pace: z.any(),
 });
 export type joggingMetadataType = z.infer<typeof joggingMetadata>;
 
 export const chartTraceMetadata = z.object({
-    table_name: z.string(),
-    column: z.string(),
-    color: z.string()
+  table_name: z.string(),
+  column: z.string(),
+  color: z.string(),
 });
 export type chartTraceMetadataType = z.infer<typeof chartTraceMetadata>;
 
 export const plotConfiguration = z.object({
-    id: z.string().uuid(),
-    name: z.string(),
-    type: z.enum(['line','bar','scatter']),
-    traces: z.array(chartTraceMetadata),
-    max_length: z.number()
+  id: z.string().uuid(),
+  name: z.string(),
+  type: z.enum(["line", "bar", "scatter"]),
+  traces: z.array(chartTraceMetadata),
+  max_length: z.number(),
 });
 export type plotConfigurationType = z.infer<typeof plotConfiguration>;
 
@@ -32,174 +31,178 @@ export const plotConfigurations = z.array(plotConfiguration);
 export type plotConfigurationsType = z.infer<typeof plotConfigurations>;
 
 export const imageArchiveMetadata = z.object({
-    number_of_images: z.number()
+  number_of_images: z.number(),
 });
 export type imageArchiveMetadataType = z.infer<typeof imageArchiveMetadata>;
 
 export const cameraMetadata = z.object({
-    camera_id: z.string(),
-    variant: z.enum(['full','compact','simple'])
+  camera_id: z.string(),
+  variant: z.enum(["full", "compact", "simple"]),
 });
 export type cameraMetadataType = z.infer<typeof cameraMetadata>;
 
 export const trainingMetadata = z.object({
-    source: z.string()
+  source: z.string(),
+  variant: z.enum(["full", "compact", "simple"]),
 });
 export type trainingMetadataType = z.infer<typeof trainingMetadata>;
 
 export const visionStatisticsMetadata = z.object({
-    refresh_interval: z.number(),
-    time_span_hours: z.number(),
-    defects_to_analyze: z.array(z.string())
+  refresh_interval: z.number(),
+  time_span_hours: z.number(),
+  defects_to_analyze: z.array(z.string()),
 });
-export type visionStatisticsMetadataType = z.infer<typeof visionStatisticsMetadata>;
+export type visionStatisticsMetadataType = z.infer<
+  typeof visionStatisticsMetadata
+>;
 
 export const joggingComponent = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(1),
-    type: z.any(),
-    metadata: joggingMetadata
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  type: z.any(),
+  metadata: joggingMetadata,
 });
 export type joggingComponentType = z.infer<typeof joggingComponent>;
 
 export const chartComponent = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(1),
-    type: z.any(),
-    metadata: plotConfiguration
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  type: z.any(),
+  metadata: plotConfiguration,
 });
 export type chartComponentType = z.infer<typeof chartComponent>;
 
 export const imageArchiveComponent = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(1),
-    tile_columns: z.number(),
-    type: z.any(),
-    metadata: imageArchiveMetadata
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  tile_columns: z.number(),
+  type: z.any(),
+  metadata: imageArchiveMetadata,
 });
 export type imageArchiveComponentType = z.infer<typeof imageArchiveComponent>;
 
 export const cameraComponent = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(1),
-    tile_columns: z.number(),
-    type: z.any(),
-    metadata: cameraMetadata
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  tile_columns: z.number(),
+  type: z.any(),
+  metadata: cameraMetadata,
 });
 export type cameraComponentType = z.infer<typeof cameraComponent>;
 
 export const trainingComponent = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(1),
-    tile_columns: z.number(),
-    type: z.any(),
-    metadata: trainingMetadata
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  tile_columns: z.number(),
+  type: z.any(),
+  metadata: trainingMetadata,
 });
 export type trainingComponentType = z.infer<typeof trainingComponent>;
 
 export const visionStatisticsComponent = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(1),
-    tile_columns: z.number(),
-    type: z.any(),
-    metadata: visionStatisticsMetadata
+  id: z.string().uuid(),
+  label: z.string().min(1),
+  tile_columns: z.number(),
+  type: z.any(),
+  metadata: visionStatisticsMetadata,
 });
-export type visionStatisticsComponentType = z.infer<typeof visionStatisticsComponent>;
+export type visionStatisticsComponentType = z.infer<
+  typeof visionStatisticsComponent
+>;
 
 export const uiComponent = z.union([
-    joggingComponent,
-    chartComponent,
-    imageArchiveComponent,
-    trainingComponent,
-    cameraComponent,
-    visionStatisticsComponent,
-    ]);
+  joggingComponent,
+  chartComponent,
+  imageArchiveComponent,
+  trainingComponent,
+  cameraComponent,
+  visionStatisticsComponent,
+]);
 export type uiComponentType = z.infer<typeof uiComponent>;
 
 export const uiConfiguration = z.object({
-    theme: z.enum(['light','dark','system']).default('system'),
-    tiles: z.array(uiComponent).min(0).default([]),
-    plots: z.array(plotConfiguration).default([]),
-    last_updated: z.string().datetime().default(new Date().toISOString())
+  theme: z.enum(["light", "dark", "system"]).default("system"),
+  tiles: z.array(uiComponent).min(0).default([]),
+  plots: z.array(plotConfiguration).default([]),
+  last_updated: z.string().datetime().default(new Date().toISOString()),
 });
 export type uiConfigurationType = z.infer<typeof uiConfiguration>;
 
 export const ioPointDescription = z.object({
-    label: z.string(),
-    type: z.enum(['DI','DO','AI','AO'])
+  label: z.string(),
+  type: z.enum(["DI", "DO", "AI", "AO"]),
 });
 export type ioPointDescriptionType = z.infer<typeof ioPointDescription>;
 
 export const ioPoint = z.object({
-    id: z.string(),
-    point_type: ioPointDescription,
-    point_value: z.union([
-        z.number(),z.boolean()])
+  id: z.string(),
+  point_type: ioPointDescription,
+  point_value: z.union([z.number(), z.boolean()]),
 });
 export type ioPointType = z.infer<typeof ioPoint>;
 
 export const ioModuleDescription = z.object({
-    name: z.string(),
-    icon: z.string(),
-    points: z.array(ioPointDescription)
+  name: z.string(),
+  icon: z.string(),
+  points: z.array(ioPointDescription),
 });
 export type ioModuleDescriptionType = z.infer<typeof ioModuleDescription>;
 
 export const ioModule = z.object({
-    id: z.string(),
-    name: z.string(),
-    type: ioModuleDescription,
-    points: z.array(ioPoint)
+  id: z.string(),
+  name: z.string(),
+  type: ioModuleDescription,
+  points: z.array(ioPoint),
 });
 export type ioModuleType = z.infer<typeof ioModule>;
 
 export const ioRackConfig = z.object({
-    name: z.string(),
-    address: z.string(),
-    max_modules: z.any()
+  name: z.string(),
+  address: z.string(),
+  max_modules: z.any(),
 });
 export type ioRackConfigType = z.infer<typeof ioRackConfig>;
 
 export const ioRack = z.object({
-    id: z.string(),
-    modules: z.array(ioModule),
-    rack_config: ioRackConfig
+  id: z.string(),
+  modules: z.array(ioModule),
+  rack_config: ioRackConfig,
 });
 export type ioRackType = z.infer<typeof ioRack>;
 
 export const ioConfiguration = z.object({
-    racks: z.array(ioRack).default([]),
-    last_updated: z.string().datetime().default(new Date().toISOString())
+  racks: z.array(ioRack).default([]),
+  last_updated: z.string().datetime().default(new Date().toISOString()),
 });
 export type ioConfigurationType = z.infer<typeof ioConfiguration>;
 
 export const opcDataPoint = z.object({
-    id: z.string(),
-    name: z.string(),
-    node_id: z.string(),
-    is_writable: z.boolean()
+  id: z.string(),
+  name: z.string(),
+  node_id: z.string(),
+  is_writable: z.boolean(),
 });
 export type opcDataPointType = z.infer<typeof opcDataPoint>;
 
 export const opcSubscriptionGroup = z.object({
-    id: z.string(),
-    name: z.string(),
-    endpoint: z.string(),
-    interval: z.any(),
-    data_points: z.array(opcDataPoint)
+  id: z.string(),
+  name: z.string(),
+  endpoint: z.string(),
+  interval: z.any(),
+  data_points: z.array(opcDataPoint),
 });
 export type opcSubscriptionGroupType = z.infer<typeof opcSubscriptionGroup>;
 
 export const opcConfiguration = z.object({
-    subscription_groups: z.array(opcSubscriptionGroup).default([]),
-    last_updated: z.string().datetime().default(new Date().toISOString())
+  subscription_groups: z.array(opcSubscriptionGroup).default([]),
+  last_updated: z.string().datetime().default(new Date().toISOString()),
 });
 export type opcConfigurationType = z.infer<typeof opcConfiguration>;
 
 export const fullConfiguration = z.object({
-    client_id: z.string(),
-    ui_configuration: uiConfiguration,
-    io_configuration: ioConfiguration,
-    opc_configuration: opcConfiguration
+  client_id: z.string(),
+  ui_configuration: uiConfiguration,
+  io_configuration: ioConfiguration,
+  opc_configuration: opcConfiguration,
 });
 export type fullConfigurationType = z.infer<typeof fullConfiguration>;
