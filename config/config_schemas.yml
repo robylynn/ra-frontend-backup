@@ -68,6 +68,9 @@ schemas:
     type: object
     properties:
       source: { type: string }
+      variant:
+        type: enum
+        valid_values: ['full', 'compact', 'simple']
 
   vision_statistics_metadata:
     type: object
@@ -212,7 +215,7 @@ schemas:
       point_type: { ref: io_point_description }
       point_value:
           type: union
-          variants: [float, boolean]
+          variants: [number, boolean]
 
   io_module_description:
     type: object
@@ -269,11 +272,21 @@ schemas:
   ##############
   opc_data_point:
     type: object
+    circular: true
     properties:
-      id: { type: string }
+      id: { type: string, default: '' }
       name: { type: string }
+      type: { type: integer }
       node_id: { type: string }
-      is_writable: { type: boolean }
+      is_writable: { type: boolean, default: false }
+      children:
+        type: array
+        elements: { ref: opc_data_point }
+        optional: true
+  
+  opc_data_points:
+    type: array
+    elements: { ref: opc_data_point }
   
   opc_subscription_group:
     type: object

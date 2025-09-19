@@ -18,6 +18,7 @@ import {
     CameraCommandServices,
     IOCommandServices,
     IOConfigurationServices,
+    RosServices,
     RosState,
 } from '@/lib/models/dashboard_context';
 import {
@@ -28,6 +29,7 @@ import {
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
     IRosTypeR2CInterfacesHeartbeat,
+    IRosTypeR2CInterfacesOpcuaData,
     IRosTypeR2CInterfacesTorques,
 } from '@/lib/models/ros_types';
 import { createAction, createReducer, UnknownAction } from '@reduxjs/toolkit';
@@ -71,6 +73,8 @@ export default function DashboardContextProvider(props: {
         createAction<ioConfigurationType>('io_config/set');
     const setOPCConfigurationAction =
         createAction<opcConfigurationType>('opc_config/set');
+        const setOPCDataAction =
+            createAction<IRosTypeR2CInterfacesOpcuaData>('opc/data/set');
     const setAvailableDatabaseTablesAction = createAction<{
         tables: availableTables;
     }>('database/tables/set');
@@ -87,11 +91,12 @@ export default function DashboardContextProvider(props: {
     const setROSAction = createAction<{
         ros_config_services: IOConfigurationServices;
         ros_io_state_services: IOCommandServices;
-        ros_application_services: ApplicationServices;
+        // ros_application_services: ApplicationServices;
         ros_axis_command_services: AxisCommandServices;
         ros_camera_command_services: CameraCommandServices;
         ros_ai_training_command_services: AITrainingCommandServices;
-        ra_ros_websocket: ROSLIB.Ros;
+        services: RosServices;
+        // ra_ros_websocket: ROSLIB.Ros;
         ros_state: RosState;
     }>('ros/set');
     const setAnalogInDataAction = createAction<{
@@ -198,6 +203,9 @@ export default function DashboardContextProvider(props: {
                 .addCase(setOPCConfigurationAction, (state, action) => {
                     state.opc_configuration = action.payload;
                 })
+                .addCase(setOPCDataAction, (state, action) => {
+                    state.opc_ua_data = action.payload;
+                })
                 .addCase(incrementHeartbeatAction, (state, action) => {
                     state.heartbeat = action.payload.heartbeat_valid;
                     if (action.payload.heartbeat_valid) {
@@ -211,21 +219,22 @@ export default function DashboardContextProvider(props: {
                     return state;
                 })
                 .addCase(setROSAction, (state, action) => {
-                    state.ra_ros_websocket = action.payload.ra_ros_websocket;
+                    // state.ra_ros_websocket = action.payload.ra_ros_websocket;
                     // state.ros_state.ros = action.payload.ros_state.
                     state.ros_state = action.payload.ros_state;
                     state.io_configuration_services =
                         action.payload.ros_config_services;
                     state.io_command_services =
                         action.payload.ros_io_state_services;
-                    state.application_services =
-                        action.payload.ros_application_services;
+                    // state.application_services =
+                    //     action.payload.ros_application_services;
                     state.axis_command_services =
                         action.payload.ros_axis_command_services;
                     state.camera_services =
                         action.payload.ros_camera_command_services;
                     state.ai_trainig_services =
                         action.payload.ros_ai_training_command_services;
+                    state.ros_services = action.payload.services;
                     return state;
                 })
                 .addCase(setAnalogInDataAction, (state, action) => {

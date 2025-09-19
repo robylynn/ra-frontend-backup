@@ -10,7 +10,7 @@ import uuid
 
 # MODELS FOR {{ schema_name.upper() }}
 
-{%- macro write_properties(schema) %}
+{%- macro write_properties(schema_name, schema) %}
 {%- for prop_name, prop_data in schema.properties.items() %}
     {%- if prop_data.ref is defined %}
     {{ prop_name }}: {{ prop_data.ref | pascalcase }} = Field(...)
@@ -31,7 +31,11 @@ import uuid
     {%- endif %}
     {%- elif prop_data.type == 'array' %}
     {% if prop_data.elements.ref is defined -%}
-    {{ prop_name }}: List[{{ prop_data.elements.ref | pascalcase }}] = {%- if prop_data.default is defined %} Field(default_factory=list) {%- else %} Field(...) {%- endif -%}
+    {%- if prop_data.elements.ref == schema_name -%}
+    {{ prop_name }}: List["{{ prop_data.elements.ref | pascalcase }}"] = {%- if prop_data.default is defined or (prop_data.optional is defined and prop_data.optional) %} Field(default_factory=list) {%- else %} Field(...) {%- endif -%}
+    {%- else -%}
+    {{ prop_name }}: List[{{ prop_data.elements.ref | pascalcase }}] = {%- if prop_data.default is defined or (prop_data.optional is defined and prop_data.optional) %} Field(default_factory=list) {%- else %} Field(...) {%- endif -%}
+    {%- endif -%}
     {%- else -%}
     {{ prop_name }}: List[{{ type_mappings[prop_data.elements.type] }}]
     {%- endif -%}
@@ -46,7 +50,7 @@ import uuid
     {%- elif prop_data.type == 'uuid' %}
     {{ prop_name }}: uuid.UUID = Field(...)
     {%- elif prop_data.type == 'string' %}
-    {{ prop_name }}: str = {%- if prop_data.default is defined %} Field(default_factory=str) {%- else %} Field(...) {%- endif -%}
+    {{ prop_name }}: str = {%- if prop_data.default is defined or (prop_data.optional is defined and prop_data.optional)%} Field(default_factory=str) {%- else %} Field(...) {%- endif -%}
     {%- elif prop_data.type == 'datetime' %}
     {{ prop_name }}: datetime = {%- if prop_data.default is defined %} Field(default_factory=partial(datetime.now, timezone.utc)) {%- else %} Field(...) {%- endif %}
     @field_serializer('{{ prop_name }}')
@@ -57,7 +61,7 @@ import uuid
     {%- elif prop_data.type == 'integer' or prop_data.type == 'float' or prop_data.type == 'number' %}
     {{ prop_name }}: {{type_mappings[prop_data.type]}} = Field(...)
     {%- elif prop_data.type == 'boolean' %}
-    {{ prop_name }}: bool = Field(...)
+    {{ prop_name }}: bool = {% if prop_data.default is defined -%}Field(default={{prop_data.default | lower | capitalize}}){%- else -%}Field(...){%- endif -%}
     {%- else %}
     {{ prop_name }}: any = Field(...)
     {%- endif %}
@@ -67,7 +71,7 @@ import uuid
 {% for name, schema in schemas.items() %}
 {%- if schema.type == 'object' %}
 class {{ name | pascalcase }}(BaseModel):
-    {{- write_properties(schema) }}
+    {{- write_properties(name, schema) }}
 {%- elif schema.type == 'union' %}
 {{ name | pascalcase }} = Union[
         {%- for variant in schema.variants %}

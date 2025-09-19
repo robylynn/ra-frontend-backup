@@ -17,6 +17,8 @@ import {
   CameraCommandServices,
   IOCommandServices,
   IOConfigurationServices,
+  OPCUAServices,
+  RosServices,
 } from "@/lib/models/dashboard_context";
 import {
   IRosTypeR2CInterfacesAnalogInData,
@@ -26,6 +28,7 @@ import {
   IRosTypeR2CInterfacesEncoderEstimates,
   IRosTypeR2CInterfacesGpioConfigurationState,
   IRosTypeR2CInterfacesHeartbeat,
+  IRosTypeR2CInterfacesOpcuaData,
   IRosTypeR2CInterfacesTorques,
   IRosTypeStdMsgsString,
 } from "@/lib/models/ros_types";
@@ -33,13 +36,6 @@ import timeoutServiceCall from "@/lib/utils/timeoutServiceCall";
 import { logMessage } from "@/lib/utils/utilities";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import ROSLIB from "roslib";
-
-// Define the properties for the Rosbridge component
-// interface RosbridgeWebSocketProps {
-//     rosbridgeUrl: string; // e.g., 'ws://localhost:9090'
-//     reconnectInterval?: number; // Time in milliseconds before attempting to reconnect (default: 3000ms)
-//     //   children?: ReactNode; // Allow children components to interact with the ROS connection
-// }
 
 // Interface for a simple Rosbridge Subscription
 interface RosSubscription {
@@ -188,7 +184,6 @@ function initializeCameraServices(
 function initializeAITrainingServices(
   ros_websocket: ROSLIB.Ros
 ): AITrainingCommandServices {
-  console.log("🚀 Initializing AI Training Services...");
 
   // Service for getting projects
   const ai_get_projects_service = new ROSLIB.Service({
@@ -237,7 +232,6 @@ function initializeApplicationServices(
 
   const application_services: ApplicationServices = new ApplicationServices();
 
-  // application_services.set_service('set_endpoint', endpoint_string_service);
   application_services.set_service("set_state", application_state_service);
   application_services.set_service("send_robot_command", robot_command_service);
 
@@ -282,48 +276,34 @@ function initializeAxisServices(
 export const RosWebsocket: React.FC<WebsocketProps> = ({
   websocketUrl,
   reconnectInterval = 3000,
-  //   children,
 }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  // const [error, setError] = useState<string | null>(null);
-  // const [debugLog, setDebugLog] = useState<string[]>([]); // To log connection events
   const { dashboardContext, setDashboardContext } =
     useContext(DashboardContext);
 
   const ros = useRef<ROSLIB.Ros | null>(null); // ROSLIB.Ros instance
   const isMounted = useRef<boolean>(true);
   const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
-  // const subscriptions = useRef<Subscriptions | null>(null);
-
-  // // --- Utility for logging events ---
-  // const logDebugMessage = useCallback((message: string) => {
-  //     setDebugLog((prevLogs) => {
-  //         const newLogs = [
-  //             ...prevLogs,
-  //             `[${new Date().toLocaleTimeString()}] ${message}`,
-  //         ];
-  //         return newLogs.slice(-10); // Keep last 10 log entries
-  //     });
-  //     console.log(`Rosbridge: ${message}`);
-  // }, []);
 
   const setRosContext = (
     config_services: IOConfigurationServices,
     io_state_services: IOCommandServices,
-    application_services: ApplicationServices,
+    // application_services: ApplicationServices,
     axis_command_services: AxisCommandServices,
     camera_services: CameraCommandServices,
     ai_training_services: AITrainingCommandServices,
+    services: RosServices,
     connected?: boolean
   ) => {
     setDashboardContext({
       payload: {
         ros_config_services: config_services,
         ros_io_state_services: io_state_services,
-        ros_application_services: application_services,
+        // ros_application_services: application_services,
         ros_axis_command_services: axis_command_services,
         ros_camera_services: camera_services,
-        ros_ai_training_services: ai_training_services,
+        ros_ai_training_command_services: ai_training_services,
+        services: services,
         // ra_ros_websocket: ros.current,
         ros_state: {
           ros: ros.current,
@@ -344,8 +324,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
       payload: {
         ros_config_services: null,
         ros_io_state_services: null,
-        ros_application_services: null,
-        // ra_ros_websocket: ros.current,
+        services: null,
         ros_state: {
           ros: ros.current,
           connected: false,
@@ -487,6 +466,22 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
         });
       },
     });
+
+    addSubscription({
+      topic: "/opc/subscription_data",
+      messageType: "r2c_interfaces/OPCUAData",
+      callback: (message: IRosTypeR2CInterfacesOpcuaData) => {
+        logMessage(
+          `Got OPC data update: ${JSON.stringify(message)}`,
+          "debug",
+          "ROS"
+        );
+        setDashboardContext({
+          payload: message,
+          type: "opc/data/set",
+        });
+      },
+    });
   };
 
   // --- ROSLIB.js Connection Logic ---
@@ -539,7 +534,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                 `Failed to find any ROS nodes. Is the ROS backend running? Error: ${error}`,
                 "error"
               );
-              return false;
+              return true;
             }
           )
           .then((res) => {
@@ -549,13 +544,21 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
 
               configureSubscriptions();
 
+              const services: RosServices = {
+                application_services: initializeApplicationServices(
+                  ros.current
+                ),
+                opc_services: new OPCUAServices(ros.current),
+              };
+
               setRosContext(
                 initializeIOConfigurationServices(ros.current),
                 initializeIOCommandServices(ros.current),
-                initializeApplicationServices(ros.current),
+                // initializeApplicationServices(ros.current),
                 initializeAxisServices(ros.current),
                 initializeCameraServices(ros.current),
                 initializeAITrainingServices(ros.current),
+                services,
                 true
               );
             } else {
@@ -594,7 +597,6 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
         logMessage(
           `Disconnected from Rosbridge. Reconnecting in ${reconnectInterval / 1000}s...`
         );
-        // setError(`Disconnected from ROSbridge.`);
 
         // Clear the current ROSLIB instance so a new one can be created for reconnection
         if (ros.current) {
@@ -623,7 +625,8 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
       isMounted.current = false; // Mark as unmounted
       logMessage(
         "Component unmounted. Cleaning up ROSLIB.Ros connection.",
-        "debug"
+        "debug",
+        "ROS"
       );
       if (ros.current) {
         ros.current.close(); // Close the ROSLIB.Ros connection
@@ -642,7 +645,11 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
   const addSubscription = useCallback(
     (sub: RosSubscription) => {
       if (ros.current && ros.current.isConnected) {
-        logMessage(`Adding subscription to topic: ${sub.topic}`, "debug");
+        logMessage(
+          `Adding subscription to topic: ${sub.topic}`,
+          "debug",
+          "ROS"
+        );
         const listener = new ROSLIB.Topic({
           ros: ros.current,
           name: sub.topic,
@@ -653,7 +660,8 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
       } else {
         logMessage(
           `Cannot add subscription for ${sub.topic}: Not connected.`,
-          "warning"
+          "warning",
+          "ROS"
         );
         return null;
       }
@@ -667,7 +675,8 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
       if (listener) {
         logMessage(
           `Removing subscription from topic: ${listener.name}`,
-          "debug"
+          "debug",
+          "ROS"
         );
         listener.unsubscribe();
       }
@@ -676,148 +685,64 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
     []
   );
 
-  const callServiceClient = useCallback(
-    (
-      client: RosServiceClient,
-      request: any,
-      onResponse: (result: any) => void,
-      onError: (errorMsg: string) => void
-    ) => {
-      if (ros.current && ros.current.isConnected) {
-        logMessage(`Calling service: ${client.name}`, "debug");
-        const serviceClient = new ROSLIB.Service({
-          ros: ros.current,
-          name: client.name,
-          serviceType: client.serviceType,
-        });
-        const rosRequest = new ROSLIB.ServiceRequest(request);
-        serviceClient.callService(rosRequest, onResponse, onError);
-      } else {
-        logMessage(
-          `Cannot call service ${client.name}: Not connected.`,
-          "error"
-        );
-        onError("Not connected to Rosbridge.");
-      }
-    },
-    // [logDebugMessage]
-    []
-  );
+  // const callServiceClient = useCallback(
+  //     (
+  //         client: RosServiceClient,
+  //         request: any,
+  //         onResponse: (result: any) => void,
+  //         onError: (errorMsg: string) => void
+  //     ) => {
+  //         if (ros.current && ros.current.isConnected) {
+  //             logMessage(`Calling service: ${client.name}`, 'debug');
+  //             const serviceClient = new ROSLIB.Service({
+  //                 ros: ros.current,
+  //                 name: client.name,
+  //                 serviceType: client.serviceType,
+  //             });
+  //             const rosRequest = new ROSLIB.ServiceRequest(request);
+  //             serviceClient.callService(rosRequest, onResponse, onError);
+  //         } else {
+  //             logMessage(
+  //                 `Cannot call service ${client.name}: Not connected.`,
+  //                 'error'
+  //             );
+  //             onError('Not connected to Rosbridge.');
+  //         }
+  //     },
+  //     // [logDebugMessage]
+  //     []
+  // );
 
   return <></>;
 };
 
-// export function RAServerWebSocket(props: WebsocketProps) {
-//     const [isConnected, setIsConnected] = useState<boolean>(false);
-//     const [lastMessage, setLastMessage] = useState<string | null>(null);
-//     const [error, setError] = useState<string | null>(null);
-
-//     // useRef to hold the WebSocket instance
-//     const ws = useRef<WebSocket | null>(null);
-//     // useRef to track if the component is mounted
-//     const isMounted = useRef<boolean>(true);
-//     // useRef for the reconnection timer
-//     const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
-
-//     // Function to establish WebSocket connection, memoized with useCallback
-//     const connectWebSocket = useCallback(() => {
-//         // Prevent multiple connection attempts if already open or connecting
-//         if (
-//             ws.current &&
-//             (ws.current.readyState === WebSocket.OPEN ||
-//                 ws.current.readyState === WebSocket.CONNECTING)
-//         ) {
-//             console.log('WebSocket is already open or connecting.');
-//             return;
-//         }
-
-//         setError(null); // Clear any previous errors
-//         console.log(
-//             `Attempting to connect to WebSocket: ${props.websocketUrl}`
-//         );
-
-//         const newWs = new WebSocket(props.websocketUrl);
-//         ws.current = newWs; // Store the new WebSocket instance
-
-//         newWs.onopen = () => {
-//             if (isMounted.current) {
-//                 setIsConnected(true);
-//                 console.log('WebSocket connected successfully.');
-//                 // Clear any pending reconnection timer on successful connection
-//                 if (reconnectTimer.current) {
-//                     clearTimeout(reconnectTimer.current);
-//                     reconnectTimer.current = null;
-//                 }
-//             }
-//         };
-
-//         newWs.onmessage = (event) => {
-//             if (isMounted.current) {
-//                 setLastMessage(event.data);
-//                 console.log('Received message:', event.data);
-//                 props.callback?.(event.data);
-//             }
-//         };
-
-//         newWs.onclose = (event) => {
-//             if (isMounted.current) {
-//                 setIsConnected(false);
-//                 console.warn(
-//                     'WebSocket disconnected:',
-//                     event.code,
-//                     event.reason
-//                 );
-//                 setError(
-//                     `Disconnected: ${event.reason || 'Unknown reason'}. Reconnecting in ${props.reconnectInterval / 1000}s...`
-//                 );
-
-//                 // Clear any existing timer to avoid duplicate reconnect attempts
-//                 if (reconnectTimer.current) {
-//                     clearTimeout(reconnectTimer.current);
-//                 }
-//                 // Set a new timer to attempt reconnection after the specified interval
-//                 reconnectTimer.current = setTimeout(() => {
-//                     connectWebSocket();
-//                 }, props.reconnectInterval);
-//             }
-//         };
-
-//         newWs.onerror = (event) => {
-//             if (isMounted.current) {
-//                 console.error('WebSocket error:', event);
-//                 setError('WebSocket error occurred. See console for details.');
-//                 // Force close to trigger onclose, which then handles reconnection
-//                 newWs.close();
-//             }
-//         };
-//     }, [props.websocketUrl, props.reconnectInterval]); // Dependencies for useCallback
-
-//     useEffect(() => {
-//         isMounted.current = true; // Mark component as mounted
-
-//         // Initiate the WebSocket connection when the component mounts
-//         connectWebSocket();
-
-//         // Cleanup function when the component unmounts
-//         return () => {
-//             isMounted.current = false; // Mark component as unmounted
-//             console.log('Cleaning up WebSocket and timers...');
-//             // Close the WebSocket connection if it's open or connecting
-//             if (
-//                 ws.current &&
-//                 (ws.current.readyState === WebSocket.OPEN ||
-//                     ws.current.readyState === WebSocket.CONNECTING)
-//             ) {
-//                 ws.current.close();
-//             }
-//             ws.current = null; // Clear the WebSocket instance
-//             // Clear any pending reconnection timer
-//             if (reconnectTimer.current) {
-//                 clearTimeout(reconnectTimer.current);
-//                 reconnectTimer.current = null;
-//             }
-//         };
-//     }, [connectWebSocket]); // Dependency array for useEffect
-
-//     return <></>;
-// }
+export function useRos() {
+  const context = useContext(DashboardContext);
+  if (context === undefined) {
+    // throw new Error('useWebSocket must be used within a WebSocketProvider');
+    return {
+      subscribeToTopic: (topic: string) => {},
+      // isInitialized: false,
+      // isConnected: false,
+      // clientId: null,
+      // // isConnected,
+      // // clientId,
+      // subscribedTables: [],
+      // subscribe: (
+      //     tableName: string,
+      //     sendHistorical?: boolean,
+      //     historicalLimit?: number
+      // ) => {},
+      // unsubscribe: (tableName: string) => {},
+      // // New: Function to register callbacks for specific messages
+      // registerMessageListener:
+      //     (
+      //         listenerId: string,
+      //         callback: (message: WebSocketMessage) => void,
+      //         filter?: WebSocketMessageFilter
+      //     ) =>
+      //     () => {}, // Returns an unregister function
+    };
+  }
+  return context;
+}

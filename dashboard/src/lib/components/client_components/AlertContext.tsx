@@ -22,8 +22,8 @@ interface AlertContextType {
     showAlert: (
         message: string,
         type: AlertType,
-        autoDismissDuration?: number,
-        header?: string
+        header?: string,
+        autoDismissDuration?: number
     ) => void;
     dismissAlert: (id: string) => void;
 }

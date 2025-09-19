@@ -1,45 +1,50 @@
 import ROSLIB from 'roslib';
 
-const timeoutServiceCall = (
+const timeoutServiceCall = <T>(
     service: ROSLIB.Service,
     request: ROSLIB.ServiceRequest,
     timeoutDuration = 5000
-) => {
-    return new Promise((resolve, reject) => {
-        let timeoutId: NodeJS.Timeout;
+): Promise<T> => {
+    let timeoutId: NodeJS.Timeout;
 
-        const timeoutPromise = new Promise((_, reject) => {
-            timeoutId = setTimeout(() => {
-                reject('Service call timed out.');
-            }, timeoutDuration);
-        });
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+            reject(new Error('Service call timed out.'));
+        }, timeoutDuration);
+    });
 
-        const serviceCallPromise = new Promise((resolve, reject) => {
-            service.callService(
-                request,
-                (result: ROSLIB.ServiceResponse) => {
-                    clearTimeout(timeoutId); // Clear the timeout if the service responds
-                    if ((result as any).success) {
-                        resolve(result);
-                    } else if (result) {
-                        resolve(result);
-                    } else {
-                        reject(
-                            `Service call failure: ${(result as any).message ?? 'Unkown error.'}`
-                        );
-                    }
-                },
-                (error) => {
-                    clearTimeout(timeoutId); // Clear the timeout if an error occurs
+    const serviceCallPromise = new Promise<T>((resolve, reject) => {
+        service.callService(
+            request,
+            (result: T) => {
+                clearTimeout(timeoutId); // Clear the timeout if the service responds
+                if (
+                    result &&
+                    typeof result === 'object' &&
+                    'success' in result &&
+                    !(result as any).success
+                ) {
+                    reject(
+                        new Error(
+                            `Service call failure: ${(result as any).message ?? 'Unknown error.'}`
+                        )
+                    );
+                } else {
+                    resolve(result);
+                }
+            },
+            (error) => {
+                clearTimeout(timeoutId); // Clear the timeout if an error occurs
+                if (typeof error === 'string') {
+                    reject(new Error(error));
+                } else {
                     reject(error);
                 }
-            );
-        });
-
-        Promise.race([serviceCallPromise, timeoutPromise])
-            .then(resolve)
-            .catch(reject);
+            }
+        );
     });
+
+    return Promise.race([serviceCallPromise, timeoutPromise]);
 };
 
 export default timeoutServiceCall;

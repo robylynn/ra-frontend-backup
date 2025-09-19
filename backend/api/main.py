@@ -114,12 +114,6 @@ async def lifespan(app: FastAPI):
             logger.warning(f"No deployment environment defined, defaulting to \'development\'")
             environment = "development"
         current_env_config = getattr(app_config, environment)
-        # if environment == "production":
-        #     current_env_config = app_config.production
-        # elif environment == "testing":
-        #     current_env_config = app_config.testing
-        # else:
-        #     current_env_config = app_config.development
         logger.info(f"Loaded database configuration for environment: '{environment}'.")
         app_state.enable_cloud_db = current_env_config.enable_cloud_db
     except Exception as e:
@@ -173,11 +167,6 @@ async def lifespan(app: FastAPI):
             "ENABLE_CLOUD_DB is false for this environment or no cloud pools available. Cloud database synchronization is disabled."
         )
         app_state.enable_db = False
-
-    # 5. Initialize WebSocket broadcast queues and active clients
-    # app_state.websocket_broadcast_queues = {}#: Dict[str, asyncio.Queue] = {}
-    # app_state.websocket_active_clients = {}#: Dict[str, List[asyncio.Queue]] = {}
-    # app_state.broadcast_consumer_tasks = []#: List[asyncio.Task] = []
 
     # --- Initialize SubscriptionManager for ZMQ-like WebSockets ---
     app_state.subscription_manager = SubscriptionManager()

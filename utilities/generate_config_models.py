@@ -19,7 +19,8 @@ PYTHON_TYPE_MAPPINGS = {
 
 ZOD_TYPE_MAPPINGS = {
     'boolean': 'z.boolean()',
-    'inteter': 'z.number()',
+    'integer': 'z.number()',
+    'number': 'z.number()',
     'float': 'z.number()',
     'string': 'z.string()'
 }
