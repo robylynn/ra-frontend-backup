@@ -47,7 +47,7 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({
             message: string,
             type: AlertType,
             headerOverride?: string,
-            autoDismissDurationOverride?: number,
+            autoDismissDurationOverride?: number
         ) => {
             setAlerts((prevAlerts) => {
                 const existingIndex = prevAlerts.findIndex(

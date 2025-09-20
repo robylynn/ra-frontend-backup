@@ -1,316 +1,339 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from 'react';
 
 interface ArchivedImage {
-  id: string;
-  timestamp: string;
-  status: "pass" | "fail";
-  defect_types: string[];
-  confidence: number;
-  batch_id: string;
-  thumbnail_url: string;
+    id: string;
+    timestamp: string;
+    status: 'pass' | 'fail';
+    defect_types: string[];
+    confidence: number;
+    batch_id: string;
+    thumbnail_url: string;
 }
 
 interface ImageArchiveContainerProps {
-  layout?: "compact" | "full";
-  showFilters?: boolean;
-  showDetails?: boolean;
-  maxImages?: number;
-  refreshInterval?: number;
-  className?: string;
+    layout?: 'compact' | 'full';
+    showFilters?: boolean;
+    showDetails?: boolean;
+    maxImages?: number;
+    refreshInterval?: number;
+    className?: string;
 }
 
 const ImageArchiveContainer = ({
-  layout = "full",
-  showFilters = true,
-  showDetails = true,
-  maxImages = 12,
-  refreshInterval = 10000,
-  className = "",
+    layout = 'full',
+    showFilters = true,
+    showDetails = true,
+    maxImages = 12,
+    refreshInterval = 10000,
+    className = '',
 }: ImageArchiveContainerProps) => {
-  const [images, setImages] = useState<ArchivedImage[]>([]);
-  const [filter, setFilter] = useState<"all" | "pass" | "fail">("all");
-  const [selectedImage, setSelectedImage] = useState<ArchivedImage | null>(
-    null
-  );
-  const [loading, setLoading] = useState(false);
+    const [images, setImages] = useState<ArchivedImage[]>([]);
+    const [filter, setFilter] = useState<'all' | 'pass' | 'fail'>('all');
+    const [selectedImage, setSelectedImage] = useState<ArchivedImage | null>(
+        null
+    );
+    const [loading, setLoading] = useState(false);
 
-  // Generate mock images
-  useEffect(() => {
-    const generateMockImages = () => {
-      const mockImages: ArchivedImage[] = [];
-      const defectTypes = ["dent", "crack", "spot"];
+    // Generate mock images
+    useEffect(() => {
+        const generateMockImages = () => {
+            const mockImages: ArchivedImage[] = [];
+            const defectTypes = ['dent', 'crack', 'spot'];
 
-      for (let i = 0; i < maxImages; i++) {
-        const isPass = Math.random() > 0.3; // 70% pass rate
-        const selectedDefects = isPass
-          ? []
-          : defectTypes.filter(() => Math.random() > 0.7);
+            for (let i = 0; i < maxImages; i++) {
+                const isPass = Math.random() > 0.3; // 70% pass rate
+                const selectedDefects = isPass
+                    ? []
+                    : defectTypes.filter(() => Math.random() > 0.7);
 
-        mockImages.push({
-          id: `img_${Date.now()}_${i}`,
-          timestamp: new Date(
-            Date.now() - Math.random() * 86400000
-          ).toISOString(),
-          status: isPass ? "pass" : "fail",
-          defect_types: selectedDefects,
-          confidence: Math.floor(Math.random() * 30) + 70, // 70-99%
-          batch_id: `B${Math.floor(Math.random() * 100) + 1}`,
-          // Use industrial-themed images from Unsplash
-          thumbnail_url: getIndustrialPlaceholder(
-            i,
-            isPass ? "pass" : "fail",
-            selectedDefects
-          ),
-        });
-      }
+                mockImages.push({
+                    id: `img_${Date.now()}_${i}`,
+                    timestamp: new Date(
+                        Date.now() - Math.random() * 86400000
+                    ).toISOString(),
+                    status: isPass ? 'pass' : 'fail',
+                    defect_types: selectedDefects,
+                    confidence: Math.floor(Math.random() * 30) + 70, // 70-99%
+                    batch_id: `B${Math.floor(Math.random() * 100) + 1}`,
+                    // Use industrial-themed images from Unsplash
+                    thumbnail_url: getIndustrialPlaceholder(
+                        i,
+                        isPass ? 'pass' : 'fail',
+                        selectedDefects
+                    ),
+                });
+            }
 
-      // Sort by timestamp descending (newest first)
-      mockImages.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-      setImages(mockImages);
+            // Sort by timestamp descending (newest first)
+            mockImages.sort(
+                (a, b) =>
+                    new Date(b.timestamp).getTime() -
+                    new Date(a.timestamp).getTime()
+            );
+            setImages(mockImages);
+        };
+
+        generateMockImages();
+
+        // Auto-refresh images
+        const interval = setInterval(() => {
+            generateMockImages();
+        }, refreshInterval);
+
+        return () => clearInterval(interval);
+    }, [maxImages, refreshInterval]);
+
+    const filteredImages = images.filter(
+        (img) => filter === 'all' || img.status === filter
+    );
+
+    const refreshImages = () => {
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+        }, 1000);
     };
 
-    generateMockImages();
+    const isCompact = layout === 'compact';
+    const gridCols = isCompact ? 'grid-cols-4' : 'grid-cols-3';
+    const imageSize = isCompact ? 'aspect-square' : 'aspect-square';
 
-    // Auto-refresh images
-    const interval = setInterval(() => {
-      generateMockImages();
-    }, refreshInterval);
+    return (
+        <div className={`w-full h-full flex flex-col ${className}`}>
+            {/* Controls */}
+            {showFilters && (
+                <div className="p-2 bg-gray-800 border-b border-gray-600">
+                    <div className="flex items-center gap-2 mb-2">
+                        {/* Filter Buttons */}
+                        <div className="flex gap-1 flex-1">
+                            {['all', 'pass', 'fail'].map((filterType) => (
+                                <button
+                                    key={filterType}
+                                    onClick={() =>
+                                        setFilter(filterType as typeof filter)
+                                    }
+                                    className={`px-2 py-1 text-xs rounded transition-colors ${
+                                        filter === filterType
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    }`}
+                                >
+                                    {filterType === 'all'
+                                        ? 'All'
+                                        : filterType === 'pass'
+                                          ? '✅'
+                                          : '❌'}
+                                </button>
+                            ))}
+                        </div>
 
-    return () => clearInterval(interval);
-  }, [maxImages, refreshInterval]);
+                        {/* Refresh Button */}
+                        <button
+                            onClick={refreshImages}
+                            disabled={loading}
+                            className="px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded text-xs"
+                        >
+                            {loading ? '🔄' : '↻'}
+                        </button>
+                    </div>
 
-  const filteredImages = images.filter(
-    (img) => filter === "all" || img.status === filter
-  );
-
-  const refreshImages = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  };
-
-  const isCompact = layout === "compact";
-  const gridCols = isCompact ? "grid-cols-4" : "grid-cols-3";
-  const imageSize = isCompact ? "aspect-square" : "aspect-square";
-
-  return (
-    <div className={`w-full h-full flex flex-col ${className}`}>
-      {/* Controls */}
-      {showFilters && (
-        <div className="p-2 bg-gray-800 border-b border-gray-600">
-          <div className="flex items-center gap-2 mb-2">
-            {/* Filter Buttons */}
-            <div className="flex gap-1 flex-1">
-              {["all", "pass", "fail"].map((filterType) => (
-                <button
-                  key={filterType}
-                  onClick={() => setFilter(filterType as typeof filter)}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    filter === filterType
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
-                >
-                  {filterType === "all"
-                    ? "All"
-                    : filterType === "pass"
-                      ? "✅"
-                      : "❌"}
-                </button>
-              ))}
-            </div>
-
-            {/* Refresh Button */}
-            <button
-              onClick={refreshImages}
-              disabled={loading}
-              className="px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded text-xs"
-            >
-              {loading ? "🔄" : "↻"}
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="text-xs text-gray-400">
-            {filteredImages.length} of {images.length} images
-          </div>
-        </div>
-      )}
-
-      {/* Image Grid */}
-      <div className="flex-1 p-2 overflow-y-auto">
-        <div className={`grid ${gridCols} gap-1`}>
-          {filteredImages.map((image) => (
-            <div
-              key={image.id}
-              className={`relative bg-gray-800 rounded border cursor-pointer transition-all hover:border-blue-500 ${
-                image.status === "pass" ? "border-green-600" : "border-red-600"
-              }`}
-              onClick={() => showDetails && setSelectedImage(image)}
-            >
-              {/* Thumbnail */}
-              <div
-                className={`${imageSize} bg-gray-700 rounded-t overflow-hidden`}
-              >
-                <img
-                  src={image.thumbnail_url}
-                  alt={`Inspection ${image.id}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==";
-                  }}
-                />
-              </div>
-
-              {/* Status Badge */}
-              <div
-                className={`absolute top-1 right-1 w-3 h-3 rounded-full ${
-                  image.status === "pass" ? "bg-green-500" : "bg-red-500"
-                }`}
-              ></div>
-
-              {/* Confidence Badge */}
-              <div className="absolute top-1 left-1 px-1 py-0.5 bg-blue-600 text-white rounded text-xs">
-                {image.confidence}%
-              </div>
-
-              {/* Info */}
-              <div className="p-1">
-                <div className="text-xs text-gray-400 truncate">
-                  {new Date(image.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                    {/* Stats */}
+                    <div className="text-xs text-gray-400">
+                        {filteredImages.length} of {images.length} images
+                    </div>
                 </div>
-                <div className="text-xs text-gray-300 truncate">
-                  {image.batch_id}
+            )}
+
+            {/* Image Grid */}
+            <div className="flex-1 p-2 overflow-y-auto">
+                <div className={`grid ${gridCols} gap-1`}>
+                    {filteredImages.map((image) => (
+                        <div
+                            key={image.id}
+                            className={`relative bg-gray-800 rounded border cursor-pointer transition-all hover:border-blue-500 ${
+                                image.status === 'pass'
+                                    ? 'border-green-600'
+                                    : 'border-red-600'
+                            }`}
+                            onClick={() =>
+                                showDetails && setSelectedImage(image)
+                            }
+                        >
+                            {/* Thumbnail */}
+                            <div
+                                className={`${imageSize} bg-gray-700 rounded-t overflow-hidden`}
+                            >
+                                <img
+                                    src={image.thumbnail_url}
+                                    alt={`Inspection ${image.id}`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src =
+                                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+                                    }}
+                                />
+                            </div>
+
+                            {/* Status Badge */}
+                            <div
+                                className={`absolute top-1 right-1 w-3 h-3 rounded-full ${
+                                    image.status === 'pass'
+                                        ? 'bg-green-500'
+                                        : 'bg-red-500'
+                                }`}
+                            ></div>
+
+                            {/* Confidence Badge */}
+                            <div className="absolute top-1 left-1 px-1 py-0.5 bg-blue-600 text-white rounded text-xs">
+                                {image.confidence}%
+                            </div>
+
+                            {/* Info */}
+                            <div className="p-1">
+                                <div className="text-xs text-gray-400 truncate">
+                                    {new Date(
+                                        image.timestamp
+                                    ).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                </div>
+                                <div className="text-xs text-gray-300 truncate">
+                                    {image.batch_id}
+                                </div>
+                                {image.defect_types.length > 0 && (
+                                    <div className="text-xs text-yellow-400 truncate">
+                                        {image.defect_types.join(', ')}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                {image.defect_types.length > 0 && (
-                  <div className="text-xs text-yellow-400 truncate">
-                    {image.defect_types.join(", ")}
-                  </div>
+
+                {filteredImages.length === 0 && (
+                    <div className="text-center text-gray-400 mt-8">
+                        <div className="text-2xl mb-2">📁</div>
+                        <div className="text-xs">No images found</div>
+                    </div>
                 )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredImages.length === 0 && (
-          <div className="text-center text-gray-400 mt-8">
-            <div className="text-2xl mb-2">📁</div>
-            <div className="text-xs">No images found</div>
-          </div>
-        )}
-      </div>
-
-      {/* Selected Image Modal */}
-      {selectedImage && showDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-4 max-w-sm mx-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-white font-medium text-sm">Image Details</h3>
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
             </div>
 
-            <img
-              src={selectedImage.thumbnail_url}
-              alt="Full size inspection"
-              className="w-full rounded mb-3"
-            />
+            {/* Selected Image Modal */}
+            {selectedImage && showDetails && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 rounded-lg p-4 max-w-sm mx-4">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-white font-medium text-sm">
+                                Image Details
+                            </h3>
+                            <button
+                                onClick={() => setSelectedImage(null)}
+                                className="text-gray-400 hover:text-white"
+                            >
+                                ✕
+                            </button>
+                        </div>
 
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Status:</span>
-                <span
-                  className={
-                    selectedImage.status === "pass"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }
-                >
-                  {selectedImage.status.toUpperCase()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Confidence:</span>
-                <span className="text-white">{selectedImage.confidence}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Batch:</span>
-                <span className="text-white">{selectedImage.batch_id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Time:</span>
-                <span className="text-white">
-                  {new Date(selectedImage.timestamp).toLocaleString()}
-                </span>
-              </div>
-              {selectedImage.defect_types.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Defects:</span>
-                  <span className="text-yellow-400">
-                    {selectedImage.defect_types.join(", ")}
-                  </span>
+                        <img
+                            src={selectedImage.thumbnail_url}
+                            alt="Full size inspection"
+                            className="w-full rounded mb-3"
+                        />
+
+                        <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                                <span className="text-gray-400">Status:</span>
+                                <span
+                                    className={
+                                        selectedImage.status === 'pass'
+                                            ? 'text-green-400'
+                                            : 'text-red-400'
+                                    }
+                                >
+                                    {selectedImage.status.toUpperCase()}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400">
+                                    Confidence:
+                                </span>
+                                <span className="text-white">
+                                    {selectedImage.confidence}%
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400">Batch:</span>
+                                <span className="text-white">
+                                    {selectedImage.batch_id}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400">Time:</span>
+                                <span className="text-white">
+                                    {new Date(
+                                        selectedImage.timestamp
+                                    ).toLocaleString()}
+                                </span>
+                            </div>
+                            {selectedImage.defect_types.length > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">
+                                        Defects:
+                                    </span>
+                                    <span className="text-yellow-400">
+                                        {selectedImage.defect_types.join(', ')}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
-              )}
-            </div>
-          </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 // Export different variations
 export const CompactImageArchive = (
-  props: Omit<ImageArchiveContainerProps, "layout">
+    props: Omit<ImageArchiveContainerProps, 'layout'>
 ) => <ImageArchiveContainer {...props} layout="compact" />;
 
 export const SimpleImageArchive = (
-  props: Omit<ImageArchiveContainerProps, "showFilters" | "showDetails">
+    props: Omit<ImageArchiveContainerProps, 'showFilters' | 'showDetails'>
 ) => (
-  <ImageArchiveContainer {...props} showFilters={false} showDetails={false} />
+    <ImageArchiveContainer {...props} showFilters={false} showDetails={false} />
 );
 
 // Default export
 export default ImageArchiveContainer;
 
 const getIndustrialPlaceholder = (
-  index: number,
-  status: "pass" | "fail",
-  defectTypes: string[]
+    index: number,
+    status: 'pass' | 'fail',
+    defectTypes: string[]
 ) => {
-  const baseColor = status === "pass" ? "#1F2937" : "#7F1D1D";
-  const accentColor = status === "pass" ? "#059669" : "#DC2626";
+    const baseColor = status === 'pass' ? '#1F2937' : '#7F1D1D';
+    const accentColor = status === 'pass' ? '#059669' : '#DC2626';
 
-  let defectMarkers = "";
-  if (status === "fail") {
-    defectTypes.forEach((defect, i) => {
-      const x = 20 + i * 20;
-      const y = 75;
-      if (defect === "crack") {
-        defectMarkers += `<line x1="${x}" y1="${y}" x2="${x + 10}" y2="${y + 10}" stroke="#DC2626" stroke-width="2"/>`;
-      } else if (defect === "dent") {
-        defectMarkers += `<circle cx="${x + 5}" cy="${y + 5}" r="3" fill="#DC2626"/>`;
-      } else if (defect === "spot") {
-        defectMarkers += `<circle cx="${x + 5}" cy="${y + 5}" r="2" fill="#F59E0B"/>`;
-      }
-    });
-  }
+    let defectMarkers = '';
+    if (status === 'fail') {
+        defectTypes.forEach((defect, i) => {
+            const x = 20 + i * 20;
+            const y = 75;
+            if (defect === 'crack') {
+                defectMarkers += `<line x1="${x}" y1="${y}" x2="${x + 10}" y2="${y + 10}" stroke="#DC2626" stroke-width="2"/>`;
+            } else if (defect === 'dent') {
+                defectMarkers += `<circle cx="${x + 5}" cy="${y + 5}" r="3" fill="#DC2626"/>`;
+            } else if (defect === 'spot') {
+                defectMarkers += `<circle cx="${x + 5}" cy="${y + 5}" r="2" fill="#F59E0B"/>`;
+            }
+        });
+    }
 
-  return `data:image/svg+xml;base64,${btoa(`
+    return `data:image/svg+xml;base64,${btoa(`
     <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="${baseColor}"/>
       <rect x="15" y="15" width="70" height="50" fill="#374151" stroke="${accentColor}" stroke-width="2"/>
@@ -319,7 +342,7 @@ const getIndustrialPlaceholder = (
       <circle cx="32" cy="50" r="5" fill="#6B7280"/>
       <circle cx="57" cy="50" r="5" fill="#6B7280"/>
       ${defectMarkers}
-      <text x="50%" y="95%" font-family="Arial" font-size="8" fill="#9CA3AF" text-anchor="middle">PART-${String(index + 1).padStart(3, "0")}</text>
+      <text x="50%" y="95%" font-family="Arial" font-size="8" fill="#9CA3AF" text-anchor="middle">PART-${String(index + 1).padStart(3, '0')}</text>
     </svg>
   `)}`;
 };

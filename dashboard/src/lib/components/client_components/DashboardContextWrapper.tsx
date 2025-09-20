@@ -13,7 +13,6 @@ import {
 import {
     AITrainingCommandServices,
     ApplicationContext,
-    ApplicationServices,
     AxisCommandServices,
     CameraCommandServices,
     IOCommandServices,
@@ -73,8 +72,8 @@ export default function DashboardContextProvider(props: {
         createAction<ioConfigurationType>('io_config/set');
     const setOPCConfigurationAction =
         createAction<opcConfigurationType>('opc_config/set');
-        const setOPCDataAction =
-            createAction<IRosTypeR2CInterfacesOpcuaData>('opc/data/set');
+    const setOPCDataAction =
+        createAction<IRosTypeR2CInterfacesOpcuaData>('opc/data/set');
     const setAvailableDatabaseTablesAction = createAction<{
         tables: availableTables;
     }>('database/tables/set');
@@ -232,7 +231,7 @@ export default function DashboardContextProvider(props: {
                         action.payload.ros_axis_command_services;
                     state.camera_services =
                         action.payload.ros_camera_command_services;
-                    state.ai_trainig_services =
+                    state.ai_training_services =
                         action.payload.ros_ai_training_command_services;
                     state.ros_services = action.payload.services;
                     return state;
