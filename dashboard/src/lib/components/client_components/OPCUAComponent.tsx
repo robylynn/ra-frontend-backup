@@ -345,7 +345,9 @@ const ServerDiscoveryModal: React.FC<ServerDiscoveryModalProps> = ({
 
         // const parsed_nodes = JSON.parse(nodes) as Node[];
         try {
-            const parsed_nodes = opcDataPoints.parse(JSON.parse(nodes)) as Node[];
+            const parsed_nodes = opcDataPoints.parse(
+                JSON.parse(nodes)
+            ) as Node[];
             const node_tree: Node = {
                 id: 'root',
                 node_id: '',

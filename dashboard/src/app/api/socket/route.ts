@@ -5,9 +5,9 @@ import { WebSocket, WebSocketServer } from 'ws';
 
 import { createAPIResponse } from '@/lib/models/api_models';
 import { socketPassthrough } from '@/lib/utils/socketPassthrough';
+import { logMessage } from '@/lib/utils/utilities';
 import { decode } from '@auth/core/jwt';
 import { NextApiRequest } from 'next';
-import { logMessage } from '@/lib/utils/utilities';
 
 function parseUrlQueryParams(urlString: string): Record<string, string> {
     const params: Record<string, string> = {};
@@ -52,7 +52,11 @@ export async function SOCKET(
     // Extract query parameters from the request
     // const query_params = request.query;
     const queryParameters = parseUrlQueryParams(request.url);
-    logMessage(`Query Params: ${JSON.stringify(queryParameters)}`, 'debug', 'WS');
+    logMessage(
+        `Query Params: ${JSON.stringify(queryParameters)}`,
+        'debug',
+        'WS'
+    );
 
     let sessionCookieValue = null;
     let authenticatedPayload = null;
@@ -84,12 +88,19 @@ export async function SOCKET(
 
         if (!secret) {
             // console.error('[WS] AUTH_SECRET environment variable is not set.');
-            logMessage('AUTH_SECRET environment variable is not set.', 'error', 'WS')
+            logMessage(
+                'AUTH_SECRET environment variable is not set.',
+                'error',
+                'WS'
+            );
             client.close(1011, 'Server Error: AUTH_SECRET missing'); // 1011: Internal Error
             return;
-        } else (
-            logMessage(`Using AUTH_SECRET: ${process.env.AUTH_SECRET} with node environment ${process.env.NODE_ENV}.`, 'debug', 'WS')
-        )
+        } else
+            logMessage(
+                `Using AUTH_SECRET: ${process.env.AUTH_SECRET} with node environment ${process.env.NODE_ENV}.`,
+                'debug',
+                'WS'
+            );
 
         try {
             // The `decode` function expects the secret as a string directly.
@@ -111,10 +122,16 @@ export async function SOCKET(
             }
         } catch (decodeError) {
             logMessage(
-                `Error decoding session token with @auth/core/jwt decode: ${decodeError}`, 'error', 'WS'
+                `Error decoding session token with @auth/core/jwt decode: ${decodeError}`,
+                'error',
+                'WS'
             );
             if (decodeError instanceof Error) {
-                logMessage(`Decode Error Message: ${decodeError.message}`, 'error', 'WS');
+                logMessage(
+                    `Decode Error Message: ${decodeError.message}`,
+                    'error',
+                    'WS'
+                );
             }
             authenticatedPayload = null; // Reset payload if decode failed
         }
@@ -122,7 +139,11 @@ export async function SOCKET(
 
     // --- AUTHENTICATION CHECK FOR WEBSOCKET CONNECTION ---
     if (!authenticatedPayload) {
-        logMessage('Unauthorized WebSocket connection. Closing connection.', 'warning', 'WS');
+        logMessage(
+            'Unauthorized WebSocket connection. Closing connection.',
+            'warning',
+            'WS'
+        );
         // Close the WebSocket connection immediately if not authenticated.
         // Code 1008 is "Policy Violation".
         client.close(1008, 'Unauthorized');
@@ -136,11 +157,17 @@ export async function SOCKET(
     const userName = user?.name || user?.email || 'Authenticated User'; // Use name or email from the token payload
 
     // console.log(`[WS] Client connected: User ID: ${userId}, Name: ${userName}`);
-    logMessage(`Client connected: User ID: ${userId}, Name: ${userName}`, 'info', 'WS');
+    logMessage(
+        `Client connected: User ID: ${userId}, Name: ${userName}`,
+        'info',
+        'WS'
+    );
 
     const target = queryParameters['target'];
     logMessage(
-        `Target Parameter: ${target === undefined ? 'Undefined' : target}`, 'debug', 'WS'
+        `Target Parameter: ${target === undefined ? 'Undefined' : target}`,
+        'debug',
+        'WS'
     );
 
     switch (target) {
@@ -171,7 +198,11 @@ export async function SOCKET(
                 streamUrl +
                 (streamParams.toString() ? `?${streamParams.toString()}` : '');
             // console.log(`[WS] Constructed stream URL: ${finalStreamUrl}`);
-            logMessage(`Constructed stream URL: ${finalStreamUrl}`, 'debug', 'WS');
+            logMessage(
+                `Constructed stream URL: ${finalStreamUrl}`,
+                'debug',
+                'WS'
+            );
 
             await socketPassthrough({
                 socket_name: 'streaming_websocket',

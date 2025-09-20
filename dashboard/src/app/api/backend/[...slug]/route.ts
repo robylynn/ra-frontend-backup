@@ -1,12 +1,14 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-import { auth } from '@/auth';
 import { NextRequest } from 'next/server';
 
 import { createAPIResponse } from '@/lib/models/api_models';
-import { authentication_enabled, debug_mode, validateAuthentication } from '@/lib/utils/utilities';
-
+import {
+    authentication_enabled,
+    debug_mode,
+    validateAuthentication,
+} from '@/lib/utils/utilities';
 
 // async function validateAuthentication(): Promise<boolean> {
 //     const session = await auth();

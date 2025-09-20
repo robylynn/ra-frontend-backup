@@ -36,7 +36,7 @@ export const DEFAULT_UI_CONFIG: uiConfigurationType = {
             tile_columns: 1,
             metadata: {
                 camera_id: 'camera0',
-                variant: 'full'
+                variant: 'full',
             },
         },
         {

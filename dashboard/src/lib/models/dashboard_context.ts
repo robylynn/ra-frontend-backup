@@ -43,7 +43,6 @@ import {
     IRosTypeR2CInterfacesJogAxisRequest,
     IRosTypeR2CInterfacesJogAxisRequestConst,
     IRosTypeR2CInterfacesOpcuaData,
-    IRosTypeR2CInterfacesOpcuaDataTypeType,
     IRosTypeR2CInterfacesSetAnalogOutputStatesRequest,
     IRosTypeR2CInterfacesSetApplicationStringRequest,
     IRosTypeR2CInterfacesSetAxisStateRequest,
@@ -733,20 +732,19 @@ export class OPCUAServices {
         onError = (e) => {},
         onComplete = () => {}
     ): Promise<boolean> => {
-        const request_data: IRosTypeR2CInterfacesSetOpcuaVariableRequest =
-            {
-                data: {
-                    stamp: {
-                        sec: 0,
-                        nanosec: 0
-                    },
-                    node_id: data_point.node_id,
-                    data_type: {type: data_point.type},
-                    numeric_value: typeof value === 'number' ? value : 0,
-                    string_value: typeof value === 'string' ? value : '',
-                    bool_value: typeof value === 'boolean' ? value : false
-                }
-            };
+        const request_data: IRosTypeR2CInterfacesSetOpcuaVariableRequest = {
+            data: {
+                stamp: {
+                    sec: 0,
+                    nanosec: 0,
+                },
+                node_id: data_point.node_id,
+                data_type: { type: data_point.type },
+                numeric_value: typeof value === 'number' ? value : 0,
+                string_value: typeof value === 'string' ? value : '',
+                bool_value: typeof value === 'boolean' ? value : false,
+            },
+        };
 
         const res =
             await this._call_service<IRosTypeR2CInterfacesSetOpcuaVariableResponse>(

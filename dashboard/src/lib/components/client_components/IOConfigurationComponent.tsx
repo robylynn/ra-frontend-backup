@@ -1015,9 +1015,7 @@ export const IOConfigurationComponent: React.FC = () => {
                     ))
                 ) : (
                     <div className="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
-                        <p className="text-lg">
-                            No IO racks configured.
-                        </p>
+                        <p className="text-lg">No IO racks configured.</p>
                         {/* <button
                                 onClick={handleAddGroup}
                                 className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"

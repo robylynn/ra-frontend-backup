@@ -107,11 +107,7 @@ export const DataUpdater = () => {
                             'info'
                         );
                         if (message) {
-                            showAlert(
-                                message,
-                                type,
-                                'Configuration Alert'
-                            );
+                            showAlert(message, type, 'Configuration Alert');
                         }
                     } else {
                         message =
@@ -119,18 +115,12 @@ export const DataUpdater = () => {
                         type = 'warning';
                         console.warn(message);
                         if (message) {
-                            showAlert(
-                                message,
-                                type,
-                                'Configuration Alert'
-                            );
+                            showAlert(message, type, 'Configuration Alert');
                         }
                     }
 
                     if (apiResponse.ui_configuration) {
-                        if (
-                            apiResponse.ui_configuration.tiles.length == 0
-                        ) {
+                        if (apiResponse.ui_configuration.tiles.length == 0) {
                             message =
                                 'Received empty UI configuration from backend. Falling back to default.';
                             type = 'warning';
@@ -145,11 +135,7 @@ export const DataUpdater = () => {
                             'info'
                         );
                         if (message) {
-                            showAlert(
-                                message,
-                                type,
-                                'Configuration Alert'
-                            );
+                            showAlert(message, type, 'Configuration Alert');
                         }
                     } else {
                         message =
@@ -157,11 +143,7 @@ export const DataUpdater = () => {
                         type = 'warning';
                         console.warn(message);
                         if (message) {
-                            showAlert(
-                                message,
-                                type,
-                                'Configuration Alert'
-                            );
+                            showAlert(message, type, 'Configuration Alert');
                         }
                     }
 
@@ -174,11 +156,7 @@ export const DataUpdater = () => {
                             'info'
                         );
                         if (message) {
-                            showAlert(
-                                message,
-                                type,
-                                'Configuration Alert'
-                            );
+                            showAlert(message, type, 'Configuration Alert');
                         }
                     } else {
                         message =
@@ -186,11 +164,7 @@ export const DataUpdater = () => {
                         type = 'warning';
                         console.warn(message);
                         if (message) {
-                            showAlert(
-                                message,
-                                type,
-                                'Configuration Alert'
-                            );
+                            showAlert(message, type, 'Configuration Alert');
                         }
                     }
                 }

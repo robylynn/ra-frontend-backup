@@ -461,7 +461,11 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
             topic: '/opc/subscription_data',
             messageType: 'r2c_interfaces/OPCUAData',
             callback: (message: IRosTypeR2CInterfacesOpcuaData) => {
-                logMessage(`Got OPC data update: ${JSON.stringify(message)}`, 'debug', 'ROS')
+                logMessage(
+                    `Got OPC data update: ${JSON.stringify(message)}`,
+                    'debug',
+                    'ROS'
+                );
                 setDashboardContext({
                     payload: message,
                     type: 'opc/data/set',
@@ -714,7 +718,7 @@ export function useRos() {
     if (context === undefined) {
         // throw new Error('useWebSocket must be used within a WebSocketProvider');
         return {
-            subscribeToTopic: (topic: string) => {}
+            subscribeToTopic: (topic: string) => {},
             // isInitialized: false,
             // isConnected: false,
             // clientId: null,

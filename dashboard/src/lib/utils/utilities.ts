@@ -38,8 +38,7 @@ export const logMessage = (
         ? LOG_LEVELS[process.env.LOG_LEVEL.toLowerCase()]
         : LOG_LEVELS[DEFAULT_LOG_LEVEL];
 
-    const messageLevel =
-        LOG_LEVELS[level.toLowerCase()];// || LOG_LEVELS[DEFAULT_LOG_LEVEL];
+    const messageLevel = LOG_LEVELS[level.toLowerCase()]; // || LOG_LEVELS[DEFAULT_LOG_LEVEL];
 
     // Only log the message if its level is greater than or equal to the
     // current configured log level.
