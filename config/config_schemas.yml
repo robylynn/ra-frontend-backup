@@ -11,7 +11,7 @@ schemas:
       message: { type: string }
       version: { type: string }
       pace:
-        type: float
+        type: number
         validations: { min: 5 }
 
   chart_trace_metadata:
@@ -68,6 +68,9 @@ schemas:
     type: object
     properties:
       source: { type: string }
+      variant:
+        type: enum
+        valid_values: ['full', 'compact', 'simple']
 
   vision_statistics_metadata:
     type: object

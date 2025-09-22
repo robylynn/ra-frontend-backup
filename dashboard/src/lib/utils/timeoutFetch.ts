@@ -148,10 +148,8 @@ export async function fetchFromBackendApi<T = unknown>(
         options.body = JSON.stringify(body);
     }
 
+    let rawData;
     try {
-        // const response = await fetch(url, {
-        //     signal: controller.signal,
-        // });
         const response = await fetch(url, options);
 
         // Clear the timeout if the request completes before the timer.
@@ -161,7 +159,7 @@ export async function fetchFromBackendApi<T = unknown>(
             throw new FetchError(`HTTP error! Status: ${response.status}`);
         }
 
-        const rawData = await response.json();
+        rawData = await response.json();
 
         if (schema) {
             // Case 1: Schema is provided, so validate the data field strictly.

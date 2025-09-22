@@ -1398,7 +1398,7 @@ export class AITrainingCommandServices extends AITrainingServices {
     }
 
     private _call_ai_training_service(
-        requst_data: any,
+        request_data: any,
         ai_training_command_type: AITrainingServiceType,
         onSuccess: (result: any) => void,
         onFailure: () => void,
@@ -1412,7 +1412,7 @@ export class AITrainingCommandServices extends AITrainingServices {
             return;
         }
 
-        timeoutServiceCall(service, 5000)
+        timeoutServiceCall(service, request_data, 5000)
             .then((result) => {
                 if ((result as any).success) {
                     onSuccess(result);
@@ -1469,7 +1469,8 @@ export class AITrainingCommandServices extends AITrainingServices {
     }
 
     public start_ai_training(
-        project_id: number,
+        train_project_id: number,
+        val_project_id: number,
         model_type: string,
         epochs: number,
         batch_size: number,
@@ -1479,7 +1480,8 @@ export class AITrainingCommandServices extends AITrainingServices {
         onComplete?: () => void
     ) {
         const request_data: IRosTypeR2CInterfacesConfigureAiTrainingRequest = {
-            project_id: project_id,
+            train_project_id: train_project_id,
+            val_project_id: val_project_id,
             model_type: model_type,
             epochs: epochs,
             batch_size: batch_size,
@@ -1490,21 +1492,18 @@ export class AITrainingCommandServices extends AITrainingServices {
             AITrainingServiceType.START_TRAINING,
             (result) => {
                 console.log(
-                    `Successfully started AI training for project ${project_id}`
+                    `Successfully started AI training with train: ${train_project_id}, val: ${val_project_id}`
                 );
                 if (onSuccess) onSuccess(result);
             },
             () => {
                 console.log(
-                    `Failed to start AI training for project ${project_id}`
+                    `Failed to start AI training with train: ${train_project_id}, val: ${val_project_id}`
                 );
                 if (onFailure) onFailure();
             },
             (error) => {
-                console.log(
-                    `Error starting AI training for project ${project_id}:`,
-                    error
-                );
+                console.log(`Error starting AI training:`, error);
                 if (onError) onError(error);
             },
             () => {
@@ -1520,7 +1519,7 @@ export class AITrainingCommandServices extends AITrainingServices {
         onError?: (error: any) => void,
         onComplete?: () => void
     ) {
-        const request_data: IRosTypeR2CInterfacesConfigureAiTrainingRequest = {
+        const request_data = {
             project_id: project_id,
             model_type: '',
             epochs: 0,
@@ -1555,21 +1554,21 @@ export class AITrainingCommandServices extends AITrainingServices {
         );
     }
 
+    // Updated get_projects method to match ROS2 service
     public get_projects(
         onSuccess?: (result: any) => void,
         onFailure?: () => void,
         onError?: (error: any) => void,
         onComplete?: () => void
     ) {
+        // ros2 service call /training/get_projects r2c_interfaces/srv/GetAIProjects "{}"
         const request_data = {};
 
         this._call_ai_training_service(
             request_data,
             AITrainingServiceType.GET_PROJECTS,
             (result) => {
-                console.log(
-                    `Successfully retrieved AI training projects; ${result}`
-                );
+                console.log(`Successfully retrieved AI training projects:`);
                 if (onSuccess) onSuccess(result);
             },
             () => {
@@ -1578,6 +1577,43 @@ export class AITrainingCommandServices extends AITrainingServices {
             },
             (error) => {
                 console.log(`Error retrieving AI training projects:`, error);
+                if (onError) onError(error);
+            },
+            () => {
+                if (onComplete) onComplete();
+            }
+        );
+    }
+
+    // TODO: Add deploy model
+    public deploy_model(
+        model_path: string,
+        camera_id: number,
+        onSuccess?: (result: any) => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
+        onComplete?: () => void
+    ) {
+        const request_data = {
+            model_path: model_path,
+            camera_id: camera_id,
+        };
+
+        this._call_ai_training_service(
+            request_data,
+            AITrainingServiceType.DEPLOY_MODEL,
+            (result) => {
+                console.log(
+                    `Successfully deployed model to camera ${camera_id}`
+                );
+                if (onSuccess) onSuccess(result);
+            },
+            () => {
+                console.log(`Failed to deploy model to camera ${camera_id}`);
+                if (onFailure) onFailure();
+            },
+            (error) => {
+                console.log(`Error deploying model:`, error);
                 if (onError) onError(error);
             },
             () => {
@@ -1595,6 +1631,8 @@ export interface RosState {
 export interface RosServices {
     opc_services: OPCUAServices;
     application_services: ApplicationServices;
+    camera_services: CameraCommandServices;
+    ai_training_services: AITrainingCommandServices;
 }
 
 export class ApplicationContext {
@@ -1619,12 +1657,12 @@ export class ApplicationContext {
     };
     available_database_tables: availableTables | null = null;
     // plot_configuration: PlotConfiguration[] = [];
-    io_configuration_services: IOConfigurationServices;
-    io_command_services: IOCommandServices;
-    application_services: ApplicationServices;
-    axis_command_services: AxisCommandServices;
-    camera_services: CameraCommandServices;
-    ai_trainig_services: AITrainingCommandServices;
+    // io_configuration_services: IOConfigurationServices;
+    // io_command_services: IOCommandServices;
+    // application_services: ApplicationServices;
+    // axis_command_services: AxisCommandServices;
+    // camera_services: CameraCommandServices;
+    // ai_trainig_services: AITrainingCommandServices;
     // opc_ua_services: OPCUAServices;
     ros_services: RosServices | null = null;
     application_state: ApplicationState;
@@ -1648,10 +1686,10 @@ export class ApplicationContext {
         // this.ui_configuration = null;
         // this.messages = new DatabaseMessageArray();
         // this.io_state = new DatabaseIOStateDocumentArray();
-        this.io_configuration_services = new IOConfigurationServices();
-        this.io_command_services = new IOCommandServices();
-        this.camera_services = new CameraCommandServices();
-        this.ai_trainig_services = new AITrainingCommandServices();
+        // this.io_configuration_services = new IOConfigurationServices();
+        // this.io_command_services = new IOCommandServices();
+        // this.camera_services = new CameraCommandServices();
+        // this.ai_trainig_services = new AITrainingCommandServices();
         this.application_state = new ApplicationState();
         // this.ros_state = {
         //     ros: null,

@@ -336,14 +336,6 @@ async def insert_data(
                 },
             ).model_dump(),
         )
-        # return ApiResponse(
-        #     success=False,
-        #     message=message,
-        #     data={
-        #         "local_results": local_insert_results,
-        #         "cloud_results": all_cloud_insert_results,
-        #     },
-        # )
     else:
         logger.info(
             f"Batch data ({len(validated_records_data)} records) inserted successfully into '{table_name}' on local DB."

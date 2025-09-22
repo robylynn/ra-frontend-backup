@@ -71,7 +71,7 @@ const CameraStreamContainer = ({
         setDetectingCameras(true);
         setDetectionError(null);
 
-        dashboardContext.camera_services?.detect_cameras(
+        dashboardContext.ros_services?.camera_services?.detect_cameras(
             (result) => {
                 try {
                     if (result.cameras_json) {
@@ -156,7 +156,7 @@ const CameraStreamContainer = ({
             `Starting camera: ID=${numericCameraId}, UVC=${isUvcCamera}, Type=${selectedCamera.camera_type}`
         );
 
-        dashboardContext.camera_services.start_camera_stream(
+        dashboardContext.ros_services.camera_services.start_camera_stream(
             numericCameraId,
             isUvcCamera,
             (result) => {
@@ -218,7 +218,7 @@ const CameraStreamContainer = ({
                 selectedCamera.camera_type === 'global_shutter';
         }
 
-        dashboardContext.camera_services.stop_camera_stream(
+        dashboardContext.ros_services?.camera_services.stop_camera_stream(
             numericCameraId,
             isUvcCamera,
             (result) => {
@@ -242,7 +242,7 @@ const CameraStreamContainer = ({
     const handleToggleModel = async () => {
         if (!isStreaming) return;
 
-        dashboardContext.camera_services.toggle_ai(
+        dashboardContext.ros_services?.camera_services.toggle_ai(
             selectedCameraId,
             !modelEnabled,
             '',

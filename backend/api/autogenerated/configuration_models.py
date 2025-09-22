@@ -41,6 +41,7 @@ class CameraMetadata(BaseModel):
 
 class TrainingMetadata(BaseModel):
     source: str = Field(...)
+    variant: Literal['full','compact','simple'] = ''
 
 class VisionStatisticsMetadata(BaseModel):
     refresh_interval: float = Field(...)

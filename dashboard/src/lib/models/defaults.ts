@@ -67,6 +67,7 @@ export const DEFAULT_UI_CONFIG: uiConfigurationType = {
             tile_columns: 2,
             metadata: {
                 source: 'model',
+                variant: 'compact',
             },
         },
     ],

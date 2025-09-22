@@ -27,6 +27,7 @@ from backend.api.models import ApiState
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
 from backend.api.models import typedAppState
+from backend.utilities.database_utilities import setup_table
 
 # load_dotenv()
 
@@ -167,6 +168,18 @@ async def lifespan(app: FastAPI):
             "ENABLE_CLOUD_DB is false for this environment or no cloud pools available. Cloud database synchronization is disabled."
         )
         app_state.enable_db = False
+
+
+    # Initialize tables from database from schema
+    for table_name, table_def in LOADED_RAW_SCHEMA.tables.items():
+        await setup_table(pool=app_state.local_db_pool, table_name=table_name, table_def=table_def)
+    
+        if app_state.enable_cloud_db and current_env_config.cloud_dbs:
+            logger.critical(
+                f"Cloud database table creation is not implemented. Exiting application."
+            )
+            sys.exit(1)
+
 
     # --- Initialize SubscriptionManager for ZMQ-like WebSockets ---
     app_state.subscription_manager = SubscriptionManager()

@@ -35,8 +35,8 @@ services:
       - 80:80  
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # networks:
-    #   - backend
+    depends_on:
+      - ra_backend
     restart: unless-stopped
 
   # ra_host_services:
@@ -91,29 +91,28 @@ services:
       timescaledb:
         condition: service_healthy
     restart: unless-stopped
-    # command: ["uvicorn", "api.__main__:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
     command: ["uvicorn", "backend.api.main:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
     volumes: # NEW: Ensure config directory is mounted
       - ./config:/app/config
     # networks:
     #   - backend
 
-
-
   # TimescaleDB service (Local)
   timescaledb:
     image: timescale/timescaledb:latest-pg16 # CHANGED: Corrected image name
     container_name: timescaledb
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES}
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
+      - ./scripts/database_setup/init_databases.sh:/docker-entrypoint-initdb.d/init_databases.sh
     ports:
       - "${POSTGRES_PORT}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_TEST_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -138,13 +137,47 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  label_studio:
+    image: heartexlabs/label-studio:latest
+    container_name: label_studio
+    ports:
+      - "8080:8080"
+    volumes:
+      - label_studio_data:/label-studio/data
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      # Use PostgreSQL database
+      - DJANGO_DB=postgresql
+      # - POSTGRE_NAME=${POSTGRES_DB:-label_studio_db}
+      - POSTGRE_NAME=${LABEL_STUDIO_DB_NAME}
+      - POSTGRE_HOST=timescaledb
+      - POSTGRE_PORT=5432
+      - POSTGRE_USER=${POSTGRES_USER:-label_studio_user}
+      - POSTGRE_PASSWORD=${POSTGRES_PASSWORD:-label_studio_password}
+      - LABEL_STUDIO_WITHOUT_USER_ACCOUNT=1
+    restart: always # Keep Label Studio running
+  
+  # label_studio_db:
+  #   image: postgres:13
+  #   container_name: label_studio_db
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB:-label_studio_db}
+  #     POSTGRES_USER: ${POSTGRES_USER:-label_studio_user}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-label_studio_password}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: always # Keep the database running
+
 volumes:
   timescaledb_data:
   grafana_data:
+  label_studio_data:
 
-networks:
-  backend:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.23.0.0/24
+# networks:
+#   backend:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.23.0.0/24

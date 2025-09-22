@@ -185,13 +185,28 @@ function initializeCameraServices(
 function initializeAITrainingServices(
     ros_websocket: ROSLIB.Ros
 ): AITrainingCommandServices {
+    // Service for getting projects
+    const ai_get_projects_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/training/get_projects',
+        serviceType: 'r2c_interfaces/srv/GetAIProjects',
+    });
+
+    // Service for starting training
     const ai_start_training_service = new ROSLIB.Service({
         ros: ros_websocket,
-        name: '/ai/train',
-        serviceType: 'r2c_interfaces/ConfigureAITraining',
+        name: '/training/start_training',
+        serviceType: 'r2c_interfaces/srv/ConfigureAITraining',
     });
 
     const ai_training_services = new AITrainingCommandServices();
+
+    // Set the services
+    ai_training_services.set_service(
+        AITrainingServiceType.GET_PROJECTS,
+        ai_get_projects_service
+    );
+
     ai_training_services.set_service(
         AITrainingServiceType.START_TRAINING,
         ai_start_training_service
@@ -274,21 +289,21 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
     const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
     const setRosContext = (
-        config_services: IOConfigurationServices,
-        io_state_services: IOCommandServices,
-        // application_services: ApplicationServices,
-        axis_command_services: AxisCommandServices,
-        camera_services: CameraCommandServices,
+        // config_services: IOConfigurationServices,
+        // io_state_services: IOCommandServices,
+        // // application_services: ApplicationServices,
+        // axis_command_services: AxisCommandServices,
+        // camera_services: CameraCommandServices,
         services: RosServices,
         connected?: boolean
     ) => {
         setDashboardContext({
             payload: {
-                ros_config_services: config_services,
-                ros_io_state_services: io_state_services,
-                // ros_application_services: application_services,
-                ros_axis_command_services: axis_command_services,
-                ros_camera_services: camera_services,
+                // ros_config_services: config_services,
+                // ros_io_state_services: io_state_services,
+                // // ros_application_services: application_services,
+                // ros_axis_command_services: axis_command_services,
+                // ros_camera_services: camera_services,
                 services: services,
                 // ra_ros_websocket: ros.current,
                 ros_state: {
@@ -308,8 +323,8 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
 
         setDashboardContext({
             payload: {
-                ros_config_services: null,
-                ros_io_state_services: null,
+                // ros_config_services: null,
+                // ros_io_state_services: null,
                 services: null,
                 ros_state: {
                     ros: ros.current,
@@ -544,14 +559,18 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                                 application_services:
                                     initializeApplicationServices(ros.current),
                                 opc_services: new OPCUAServices(ros.current),
+                                camera_services: initializeCameraServices(
+                                    ros.current
+                                ),
+                                ai_training_services: initializeAITrainingServices(ros.current)
                             };
 
                             setRosContext(
-                                initializeIOConfigurationServices(ros.current),
-                                initializeIOCommandServices(ros.current),
-                                // initializeApplicationServices(ros.current),
-                                initializeAxisServices(ros.current),
-                                initializeCameraServices(ros.current),
+                                // initializeIOConfigurationServices(ros.current),
+                                // initializeIOCommandServices(ros.current),
+                                // // initializeApplicationServices(ros.current),
+                                // initializeAxisServices(ros.current),
+                                // initializeCameraServices(ros.current),
                                 services,
                                 true
                             );

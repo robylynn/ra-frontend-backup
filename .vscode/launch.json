@@ -37,6 +37,25 @@
             ],
         },
         {
+            "name": "[Suli Env] Next.js: debug server-side frontend app",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "yarn dev",
+            "cwd": "${workspaceFolder}/dashboard",
+            "env": {
+                "NODE_OPTIONS": "--inspect",
+                "ROS_HOST": "10.0.0.240"
+            },
+            "serverReadyAction": {
+                "pattern": "started server on .+, url: (https?://.+)",
+                "uriFormat": "%s",
+                // "action": "debugWithChrome"
+            },
+            "outFiles": [
+                "${workspaceFolder}/.next/server/**/*.js"
+            ],
+        },
+        {
             "name": "Next.js: Node (Server-side)",
             "type": "node",
             "request": "launch",

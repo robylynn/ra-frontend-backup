@@ -88,12 +88,12 @@ export default function DashboardContextProvider(props: {
         hardware_configuration: HardwareConfiguration;
     }>('hardware_config/set');
     const setROSAction = createAction<{
-        ros_config_services: IOConfigurationServices;
-        ros_io_state_services: IOCommandServices;
-        // ros_application_services: ApplicationServices;
-        ros_axis_command_services: AxisCommandServices;
-        ros_camera_command_services: CameraCommandServices;
-        ros_ai_training_command_services: AITrainingCommandServices;
+        // ros_config_services: IOConfigurationServices;
+        // ros_io_state_services: IOCommandServices;
+        // // ros_application_services: ApplicationServices;
+        // ros_axis_command_services: AxisCommandServices;
+        // ros_camera_command_services: CameraCommandServices;
+        // ros_ai_training_command_services: AITrainingCommandServices;
         services: RosServices;
         // ra_ros_websocket: ROSLIB.Ros;
         ros_state: RosState;
@@ -221,18 +221,18 @@ export default function DashboardContextProvider(props: {
                     // state.ra_ros_websocket = action.payload.ra_ros_websocket;
                     // state.ros_state.ros = action.payload.ros_state.
                     state.ros_state = action.payload.ros_state;
-                    state.io_configuration_services =
-                        action.payload.ros_config_services;
-                    state.io_command_services =
-                        action.payload.ros_io_state_services;
-                    // state.application_services =
-                    //     action.payload.ros_application_services;
-                    state.axis_command_services =
-                        action.payload.ros_axis_command_services;
-                    state.camera_services =
-                        action.payload.ros_camera_command_services;
-                    state.ai_trainig_services =
-                        action.payload.ros_ai_training_command_services;
+                    // state.io_configuration_services =
+                    //     action.payload.ros_config_services;
+                    // state.io_command_services =
+                    //     action.payload.ros_io_state_services;
+                    // // state.application_services =
+                    // //     action.payload.ros_application_services;
+                    // state.axis_command_services =
+                    //     action.payload.ros_axis_command_services;
+                    // state.camera_services =
+                    //     action.payload.ros_camera_command_services;
+                    // state.ai_training_services =
+                    //     action.payload.ros_ai_training_command_services;
                     state.ros_services = action.payload.services;
                     return state;
                 })
