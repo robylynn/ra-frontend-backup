@@ -39,30 +39,30 @@ services:
       - ra_backend
     restart: unless-stopped
 
-  # ra_host_services:
-  #   build: 
-  #     context: ./
-  #     dockerfile: ./host_services/Dockerfile
-  #     args:
-  #       - APP_WORKDIR=$APP_WORKDIR
-  #       - PROJECT_ROOT=$PROJECT_ROOT  
-  #   image: robylynn/rac:ra_host_services
-  #   container_name: ra_host_services
-  #   hostname: ra_host_services
-  #   environment:
-  #     - APP_WORKDIR=$APP_WORKDIR
-  #     - HOST_SERVICES_PORT=$HOST_SERVICES_PORT
-  #     - CONTAINERIZED=true
-  #   volumes:
-  #     - /etc/timezone:/etc/timezone:ro
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - /var/run/dbus:/var/run/dbus
-  #   ports:
-  #     - 8001:8000
-  #   privileged: true
-  #   network_mode: host
-  #   user: "0:0"
-  #   restart: unless-stopped
+  ra_host_services:
+    build: 
+      context: ./
+      dockerfile: ./host_services/Dockerfile
+      # args:
+      #   - APP_WORKDIR=$APP_WORKDIR
+      #   - PROJECT_ROOT=$PROJECT_ROOT  
+    image: robylynn/rac:ra_host_services
+    container_name: ra_host_services
+    # hostname: ra_host_services
+    environment:
+      # - APP_WORKDIR=$APP_WORKDIR
+      - HOST_SERVICES_PORT=$HOST_SERVICES_PORT
+      # - CONTAINERIZED=true
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/dbus:/var/run/dbus
+    ports:
+      - ${HOST_SERVICES_PORT}:${HOST_SERVICES_PORT}
+    privileged: true
+    network_mode: host
+    user: "0:0"
+    restart: unless-stopped
   
   # # Python FastAPI API service
   ra_backend:

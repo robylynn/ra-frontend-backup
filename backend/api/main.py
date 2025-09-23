@@ -28,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
 from backend.api.models import typedAppState
 from backend.utilities.database_utilities import setup_table
-from backend.utilities.system_utilities import is_running_in_docker
+from common_models.system_utilities import is_running_in_docker
 
 # load_dotenv()
 
