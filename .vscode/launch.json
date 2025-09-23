@@ -12,7 +12,12 @@
             "cwd": "${workspaceFolder}", // Sets the current working directory for the launch process to 'backend/'
             "envFile": "${workspaceFolder}/.env", // Loads environment variables from the root .env file
             "justMyCode": true, // Focuses debugging on your code, ignoring library code
-            "console": "integratedTerminal" // Displays output in VS Code's integrated terminal
+            "console": "integratedTerminal", // Displays output in VS Code's integrated terminal
+            "env": {
+                "SIMULATE_WIFI_CONNECTIONS": "false",
+                "HOST_SERVICES_API_PORT": "8001",
+                "CONTAINERIZED": "false"
+            }
             // You can add "--reload" to the "args" array if you want live reloading for development.
             // "args": [
             //     "--reload" 

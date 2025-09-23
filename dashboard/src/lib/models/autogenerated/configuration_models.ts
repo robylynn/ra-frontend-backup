@@ -11,7 +11,7 @@ export interface IjoggingMetadata {
     pace: number
 }
 
-export const joggingMetadata=z.object({
+export const joggingMetadata = z.object({
     message: z.string(),
     version: z.string(),
     pace: z.number().min(5)
@@ -24,7 +24,7 @@ export interface IchartTraceMetadata {
     color: string
 }
 
-export const chartTraceMetadata=z.object({
+export const chartTraceMetadata = z.object({
     table_name: z.string(),
     column: z.string(),
     color: z.string()
@@ -39,7 +39,7 @@ export interface IplotConfiguration {
     max_length?: number
 }
 
-export const plotConfiguration=z.object({
+export const plotConfiguration = z.object({
     id: z.string().uuid(),
     name: z.string(),
     type: z.enum(['line','bar','scatter']),
@@ -56,7 +56,7 @@ export interface IimageArchiveMetadata {
     number_of_images: number
 }
 
-export const imageArchiveMetadata=z.object({
+export const imageArchiveMetadata = z.object({
     number_of_images: z.number()
 });
 export type imageArchiveMetadataType = z.infer<typeof imageArchiveMetadata>;
@@ -66,7 +66,7 @@ export interface IcameraMetadata {
     variant: ['full'| 'compact'| 'simple']
 }
 
-export const cameraMetadata=z.object({
+export const cameraMetadata = z.object({
     camera_id: z.string(),
     variant: z.enum(['full','compact','simple'])
 });
@@ -77,7 +77,7 @@ export interface ItrainingMetadata {
     variant: ['full'| 'compact'| 'simple']
 }
 
-export const trainingMetadata=z.object({
+export const trainingMetadata = z.object({
     source: z.string(),
     variant: z.enum(['full','compact','simple'])
 });
@@ -89,7 +89,7 @@ export interface IvisionStatisticsMetadata {
     defects_to_analyze: string[]
 }
 
-export const visionStatisticsMetadata=z.object({
+export const visionStatisticsMetadata = z.object({
     refresh_interval: z.number(),
     time_span_hours: z.number(),
     defects_to_analyze: z.array(z.string())
@@ -103,7 +103,7 @@ export interface IjoggingComponent {
     metadata: IjoggingMetadata
 }
 
-export const joggingComponent=z.object({
+export const joggingComponent = z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     type: z.any(),
@@ -118,7 +118,7 @@ export interface IchartComponent {
     metadata: IplotConfiguration
 }
 
-export const chartComponent=z.object({
+export const chartComponent = z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     type: z.any(),
@@ -134,7 +134,7 @@ export interface IimageArchiveComponent {
     metadata: IimageArchiveMetadata
 }
 
-export const imageArchiveComponent=z.object({
+export const imageArchiveComponent = z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -151,7 +151,7 @@ export interface IcameraComponent {
     metadata: IcameraMetadata
 }
 
-export const cameraComponent=z.object({
+export const cameraComponent = z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -168,7 +168,7 @@ export interface ItrainingComponent {
     metadata: ItrainingMetadata
 }
 
-export const trainingComponent=z.object({
+export const trainingComponent = z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -185,7 +185,7 @@ export interface IvisionStatisticsComponent {
     metadata: IvisionStatisticsMetadata
 }
 
-export const visionStatisticsComponent=z.object({
+export const visionStatisticsComponent = z.object({
     id: z.string().uuid(),
     label: z.string().min(1),
     tile_columns: z.number(),
@@ -213,13 +213,13 @@ export const uiComponent = z.union([
 export type uiComponentType = z.infer<typeof uiComponent>;
 
 export interface IuiConfiguration {
-    theme: ['light'| 'dark'| 'system'],
-    tiles: IuiComponent[],
-    plots: IplotConfiguration[],
-    last_updated: Date
+    theme?: ['light'| 'dark'| 'system'],
+    tiles?: IuiComponent[],
+    plots?: IplotConfiguration[],
+    last_updated?: Date
 }
 
-export const uiConfiguration=z.object({
+export const uiConfiguration = z.object({
     theme: z.enum(['light','dark','system']).default('system'),
     tiles: z.array(uiComponent).min(0).default([]),
     plots: z.array(plotConfiguration).default([]),
@@ -232,7 +232,7 @@ export interface IioPointDescription {
     type: ['DI'| 'DO'| 'AI'| 'AO']
 }
 
-export const ioPointDescription=z.object({
+export const ioPointDescription = z.object({
     label: z.string(),
     type: z.enum(['DI','DO','AI','AO'])
 });
@@ -244,7 +244,7 @@ export interface IioPoint {
     point_value: number|boolean
 }
 
-export const ioPoint=z.object({
+export const ioPoint = z.object({
     id: z.string(),
     point_type: ioPointDescription,
     point_value: z.union([
@@ -258,7 +258,7 @@ export interface IioModuleDescription {
     points: IioPointDescription[]
 }
 
-export const ioModuleDescription=z.object({
+export const ioModuleDescription = z.object({
     name: z.string(),
     icon: z.string(),
     points: z.array(ioPointDescription)
@@ -272,7 +272,7 @@ export interface IioModule {
     points: IioPoint[]
 }
 
-export const ioModule=z.object({
+export const ioModule = z.object({
     id: z.string(),
     name: z.string(),
     type: ioModuleDescription,
@@ -286,7 +286,7 @@ export interface IioRackConfig {
     max_modules: number
 }
 
-export const ioRackConfig=z.object({
+export const ioRackConfig = z.object({
     name: z.string(),
     address: z.string(),
     max_modules: z.number()
@@ -299,7 +299,7 @@ export interface IioRack {
     rack_config: IioRackConfig
 }
 
-export const ioRack=z.object({
+export const ioRack = z.object({
     id: z.string(),
     modules: z.array(ioModule),
     rack_config: ioRackConfig
@@ -307,27 +307,27 @@ export const ioRack=z.object({
 export type ioRackType = z.infer<typeof ioRack>;
 
 export interface IioConfiguration {
-    racks: IioRack[],
-    last_updated: Date
+    racks?: IioRack[],
+    last_updated?: Date
 }
 
-export const ioConfiguration=z.object({
+export const ioConfiguration = z.object({
     racks: z.array(ioRack).default([]),
     last_updated: z.string().datetime().default(new Date().toISOString())
 });
 export type ioConfigurationType = z.infer<typeof ioConfiguration>;
 
 export interface IopcDataPoint {
-    id: string,
+    id?: string,
     name: string,
     type: number,
     node_id: string,
-    is_writable: boolean,
+    is_writable?: boolean,
     children?: IopcDataPoint[]
 }
 
-export const opcDataPoint: z.ZodType<IopcDataPoint> = z.lazy(() =>z.object({
-    id: z.string(),
+export const opcDataPoint: z.ZodType<IopcDataPoint> = z.lazy(() => z.object({
+    id: z.string().optional(),
     name: z.string(),
     type: z.number(),
     node_id: z.string(),
@@ -348,7 +348,7 @@ export interface IopcSubscriptionGroup {
     data_points: IopcDataPoint[]
 }
 
-export const opcSubscriptionGroup=z.object({
+export const opcSubscriptionGroup = z.object({
     id: z.string(),
     name: z.string(),
     endpoint: z.string(),
@@ -358,11 +358,11 @@ export const opcSubscriptionGroup=z.object({
 export type opcSubscriptionGroupType = z.infer<typeof opcSubscriptionGroup>;
 
 export interface IopcConfiguration {
-    subscription_groups: IopcSubscriptionGroup[],
-    last_updated: Date
+    subscription_groups?: IopcSubscriptionGroup[],
+    last_updated?: Date
 }
 
-export const opcConfiguration=z.object({
+export const opcConfiguration = z.object({
     subscription_groups: z.array(opcSubscriptionGroup).default([]),
     last_updated: z.string().datetime().default(new Date().toISOString())
 });
@@ -375,7 +375,7 @@ export interface IfullConfiguration {
     opc_configuration: IopcConfiguration
 }
 
-export const fullConfiguration=z.object({
+export const fullConfiguration = z.object({
     client_id: z.string(),
     ui_configuration: uiConfiguration,
     io_configuration: ioConfiguration,

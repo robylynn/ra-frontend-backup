@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 {%- if schema.type == 'object' %}
 export interface I{{ name | camelcase }} {
     {% for prop_name, prop_data in schema.properties.items() %}
-    {{- prop_name -}}{%- if prop_data.optional is defined -%}{%- if prop_data.optional -%}{% raw %}?{% endraw %}{%- endif -%}{%- endif -%}:{{' '}}
+    {{- prop_name -}}{%- if prop_data.optional is defined or prop_data.default is defined-%}{%- if prop_data.optional or prop_data.default is defined -%}{% raw %}?{% endraw %}{%- endif -%}{%- endif -%}:{{' '}}
     {%- if prop_data.ref is defined -%}
         I{{ prop_data.ref | camelcase }}
     {%- elif prop_data.type == 'object' -%}
@@ -48,10 +48,7 @@ export interface I{{ name | camelcase }} {
 export const {{ name | camelcase }}
 {%- if schema.circular is defined and schema.circular -%}
 : z.ZodType<I{{name | camelcase}}> = z.lazy(() => 
-{%- else -%}
- = 
-{%- endif -%}
-z.object({
+{%- else %} = {%- endif %} z.object({
     {% for prop_name, prop_data in schema.properties.items() %}
     {{- prop_name }}:{{' '}}
     {%- if prop_data.ref is defined -%}
@@ -90,6 +87,7 @@ z.object({
             {%- if prop_data.validations.datetime is defined -%}.datetime(){%- endif -%}
             {%- if prop_data.default is defined -%}.default(''){%- endif -%}
         {%- endif -%}
+        {%- if prop_data.default is defined -%}.optional(){%- endif -%}
     {%- elif prop_data.type == 'datetime' -%}
     z.string(){%- if prop_data.default is defined -%}.datetime().default(new Date().toISOString()){%- endif -%}
     {%- elif prop_data.type == 'number' or prop_data.type == 'integer' -%}
@@ -102,7 +100,7 @@ z.object({
     z.boolean()
         {%- if prop_data.default is defined -%}.default({{ prop_data.default | lower }}){%- endif -%}
     {%- else -%}
-    z.any()
+    z.any(){%- if prop_data.default is defined -%}.optional(){%- endif -%}
     {%- endif -%}
     {%- if prop_data.optional is defined and prop_data.optional -%}.optional(){%- endif -%}
     {%- if not loop.last -%},

@@ -1,0 +1,29 @@
+schemas:
+  api_response:
+    type: object
+    properties:
+      message: { type: string, default: None }
+      success: { type: boolean }
+      data: { type: any, default: None }
+  
+  network_interface_definition:
+    type: object
+    properties:
+      name: { type: string }
+      address: { type: string, default: '' }
+      type: { type: string }
+      ssid: { type: string, default: '' }
+  
+  host_services_error:
+    type: object
+    properties:
+      description: { type: string }
+      details: { type: string, default: '' }
+      stderr: { type: string, default: '' }
+
+  base_network_interfaces:
+    type: object
+    properties:
+      interfaces:
+        type: array
+        elements: { ref: network_interface_definition }

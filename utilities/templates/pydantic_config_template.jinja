@@ -2,8 +2,8 @@
 # DO NOT EDIT MANUALLY
 
 from __future__ import annotations
-from typing import Literal, Union, List, Optional
-from pydantic import BaseModel, Field, field_serializer
+from typing import Literal, Union, List, Optional, Any
+from pydantic import BaseModel, Field, field_serializer, ConfigDict
 from datetime import datetime, timezone
 from functools import partial
 import uuid
@@ -50,7 +50,7 @@ import uuid
     {%- elif prop_data.type == 'uuid' %}
     {{ prop_name }}: uuid.UUID = Field(...)
     {%- elif prop_data.type == 'string' %}
-    {{ prop_name }}: str = {%- if prop_data.default is defined or (prop_data.optional is defined and prop_data.optional)%} Field(default_factory=str) {%- else %} Field(...) {%- endif -%}
+    {{ prop_name }}: {% if prop_data.default is defined or (prop_data.optional is defined and prop_data.optional)%}Optional[str] = None{% else %}str = Field(...){% endif %}
     {%- elif prop_data.type == 'datetime' %}
     {{ prop_name }}: datetime = {%- if prop_data.default is defined %} Field(default_factory=partial(datetime.now, timezone.utc)) {%- else %} Field(...) {%- endif %}
     @field_serializer('{{ prop_name }}')
@@ -63,7 +63,7 @@ import uuid
     {%- elif prop_data.type == 'boolean' %}
     {{ prop_name }}: bool = {% if prop_data.default is defined -%}Field(default={{prop_data.default | lower | capitalize}}){%- else -%}Field(...){%- endif -%}
     {%- else %}
-    {{ prop_name }}: any = Field(...)
+    {{ prop_name }}:{% if prop_data.default is defined or (prop_data.optional is defined and prop_data.optional)%} Optional[Any] = None {%- else %} Any = Field(...) {%- endif -%}
     {%- endif %}
     {%- endfor %}
 {% endmacro %}
@@ -71,6 +71,7 @@ import uuid
 {% for name, schema in schemas.items() %}
 {%- if schema.type == 'object' %}
 class {{ name | pascalcase }}(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     {{- write_properties(name, schema) }}
 {%- elif schema.type == 'union' %}
 {{ name | pascalcase }} = Union[

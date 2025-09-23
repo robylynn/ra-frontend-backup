@@ -94,8 +94,6 @@ services:
     command: ["uvicorn", "backend.api.main:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]
     volumes: # NEW: Ensure config directory is mounted
       - ./config:/app/config
-    # networks:
-    #   - backend
 
   # TimescaleDB service (Local)
   timescaledb:
@@ -150,7 +148,6 @@ services:
     environment:
       # Use PostgreSQL database
       - DJANGO_DB=postgresql
-      # - POSTGRE_NAME=${POSTGRES_DB:-label_studio_db}
       - POSTGRE_NAME=${LABEL_STUDIO_DB_NAME}
       - POSTGRE_HOST=timescaledb
       - POSTGRE_PORT=5432
@@ -158,26 +155,8 @@ services:
       - POSTGRE_PASSWORD=${POSTGRES_PASSWORD:-label_studio_password}
       - LABEL_STUDIO_WITHOUT_USER_ACCOUNT=1
     restart: always # Keep Label Studio running
-  
-  # label_studio_db:
-  #   image: postgres:13
-  #   container_name: label_studio_db
-  #   environment:
-  #     POSTGRES_DB: ${POSTGRES_DB:-label_studio_db}
-  #     POSTGRES_USER: ${POSTGRES_USER:-label_studio_user}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-label_studio_password}
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   restart: always # Keep the database running
 
 volumes:
   timescaledb_data:
   grafana_data:
   label_studio_data:
-
-# networks:
-#   backend:
-#     driver: bridge
-#     ipam:
-#       config:
-#         - subnet: 172.23.0.0/24
