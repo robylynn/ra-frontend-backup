@@ -59,6 +59,18 @@ services:
       - /var/run/dbus:/var/run/dbus
     ports:
       - ${HOST_SERVICES_PORT}:${HOST_SERVICES_PORT}
+    healthcheck:
+      # Use curl to check a health endpoint on the web server.
+      # The `$$` is needed to escape the `$` for the shell.
+      test: ["CMD-SHELL", "curl -f http://localhost:${HOST_SERVICES_PORT}/healthy || exit 1"]
+      # How often to run the check.
+      interval: 30s
+      # How long to wait for a response before timing out.
+      timeout: 10s
+      # The number of consecutive failures before the container is considered unhealthy.
+      retries: 3
+      # The initial grace period for the container to start.
+      start_period: 10s
     privileged: true
     network_mode: host
     user: "0:0"
@@ -89,6 +101,8 @@ services:
       - "${API_PORT:-8000}:${API_PORT:-8000}"
     depends_on:
       timescaledb:
+        condition: service_healthy
+      ra_host_services:
         condition: service_healthy
     restart: unless-stopped
     command: ["uvicorn", "backend.api.main:backend_api", "--host", "0.0.0.0", "--port", "${API_PORT:-5000}"]

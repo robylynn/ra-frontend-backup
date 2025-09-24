@@ -2,7 +2,7 @@ schemas:
   api_response:
     type: object
     properties:
-      message: { type: string, default: None }
+      message: { type: string, default: None, nullable: true }
       success: { type: boolean }
       data: { type: any, default: None }
   

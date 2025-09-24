@@ -103,8 +103,10 @@ export const {{ name | camelcase }}
     z.any(){%- if prop_data.default is defined -%}.optional(){%- endif -%}
     {%- endif -%}
     {%- if prop_data.optional is defined and prop_data.optional -%}.optional(){%- endif -%}
+    {%- if prop_data.nullable is defined and prop_data.nullable -%}.nullable(){%- endif -%}
     {%- if not loop.last -%},
     {% endif -%}
+    
 {% endfor %}
 }){%- if schema.circular is defined and schema.circular -%}){%- endif -%};
 

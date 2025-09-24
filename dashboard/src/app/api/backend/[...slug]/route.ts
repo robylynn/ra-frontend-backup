@@ -6,17 +6,9 @@ import { NextRequest } from 'next/server';
 import { createAPIResponse } from '@/lib/models/api_models';
 import {
     authentication_enabled,
-    debug_mode,
+    logMessage,
     validateAuthentication,
 } from '@/lib/utils/utilities';
-
-// async function validateAuthentication(): Promise<boolean> {
-//     const session = await auth();
-//     if (session == null) {
-//         return false;
-//     }
-//     return true;
-// }
 
 async function proxyBackendRequest(params: {
     request: NextRequest;
@@ -66,10 +58,11 @@ async function proxyBackendRequest(params: {
 function handleError(e: any, request: NextRequest, slug: string[]) {
     const error_message = e.toString();
 
-    console.error(
+    logMessage(
         `${request.method} to backend ${slug.join(
             '/'
-        )} failed due to: ${error_message}.`
+        )} failed due to: ${error_message}.`,
+        'error'
     );
     return createAPIResponse({
         authenticated: true,
@@ -82,17 +75,16 @@ async function handler(
     request: NextRequest,
     { params }: { params: { slug: string[] } }
 ) {
-    if (debug_mode())
-        console.log(
-            `Received ${request.method} request to /backend/${params.slug.join('/')}`
-        );
+    logMessage(
+        `Received ${request.method} request to /backend/${params.slug.join('/')}`,
+        'debug'
+    );
 
     if (authentication_enabled() && !(await validateAuthentication())) {
-        console.error(
-            `Unauthenicated ${request.method} request on /backend/${params.slug.join(
-                '/'
-            )}`
-        );
+            logMessage(
+                `Unauthenicated ${request.method} request on /backend/${params.slug.join('/')}`,
+                'error'
+            )
         return createAPIResponse({
             authenticated: false,
         });

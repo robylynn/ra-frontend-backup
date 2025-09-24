@@ -12,7 +12,7 @@ export interface IapiResponse {
 }
 
 export const apiResponse = z.object({
-    message: z.string().optional(),
+    message: z.string().optional().nullable(),
     success: z.boolean(),
     data: z.any().optional()
 });

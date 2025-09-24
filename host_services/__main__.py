@@ -50,18 +50,7 @@ def get_interfaces() -> NetworkInterfaces:
             address=ip_address,
             ssid=ssid
         ))
-
-        # # Add the device to the list for its type
-        # if interface_type not in interfaces_by_type:
-        #     interfaces_by_type[interface_type] = []
         
-        # interfaces_by_type[interface_type].append(NetworkInterfaceDefinition(
-        #     name=device_name,
-        #     type=interface_type,
-        #     address=ip_address,
-        #     ssid=ssid
-        # ))
-
     return NetworkInterfaces(interfaces=interfaces)
 
 def connected_ssids() -> List[str]:
@@ -86,6 +75,10 @@ def get_default_wifi_adapter() -> str | None:
         return wifi_interfaces[0]
     return None
 
+@ra_host_service_server.get("/healthy")
+def get_health_status() -> ApiResponse:
+    return ApiResponse(success=True)
+
 @ra_host_service_server.get("/interfaces")
 def get_available_interfaces() -> ApiResponse:
     return ApiResponse(
@@ -103,6 +96,14 @@ def get_connected_ssids():
         data=connected_ssids()
     )
 
+@ra_host_service_server.get("/default_ssid")
+def get_connected_ssids():
+    return ApiResponse(
+        success=True,
+        # message=None,
+        data=connected_ssids()[0] if len(connected_ssids) > 0 else None
+    )
+
 @ra_host_service_server.get("/scan")
 def scan_wifi():
     try:
@@ -113,106 +114,63 @@ def scan_wifi():
             if is_running_in_docker():
                 # if os.environ["CONTAINERIZED"].lower() == "true":
                 output = subprocess.check_output(
-                    ["iwlist", default_wifi_adapter, "scanning"], text=True, stderr=subprocess.PIPE
+                    # ["iwlist", default_wifi_adapter, "scanning"], text=True, stderr=subprocess.PIPE
+                    ["iw", default_wifi_adapter, "scan"], text=True, stderr=subprocess.PIPE, timeout=30
                 )
             else:
                 output = subprocess.check_output(
-                    ["sudo", "iwlist", default_wifi_adapter, "scanning"],
+                    # ["sudo", "iwlist", default_wifi_adapter, "scanning"],
+                    ["sudo", "iw", default_wifi_adapter, "scan"],
                     text=True,
                     stderr=subprocess.PIPE,
+                    timeout=30
                 )
 
-            ssid_output = [
-                line.strip()
-                for line in output.splitlines()
-                if line.strip() and line.strip().startswith("ESSID")
-            ]
-            ssids = [str(ssid.split(":")[1].replace('"', "")) for ssid in ssid_output]
+            ssid_pattern = r"SSID: (.*)"
 
-            return ApiResponse(success=True, message='', data=ssids)
+            # Use re.findall to get all matches and return them as a list
+            ssids = re.findall(ssid_pattern, output)
+            logger.info(f"Successfully detected SSIDs: {ssids}")
+
+            return ApiResponse(success=True, data=ssids)
         else:
             return ApiResponse(success=False, message='No Wi-Fi adapters available')
 
     except subprocess.CalledProcessError as e:
-        return ApiResponse(
-            success=False,
-            message="Wi-Fi scanning error.",
-            data=HostServicesError(
+        error_details = HostServicesError(
                 description="Subprocess error scanning Wi-Fi networks",
                 details=str(e),
                 stderr=e.stderr,
-            ),
-        )
+            )
     except Exception as e:
-        return ApiResponse(
-            success=False,
-            message="Wi-Fi scanning error.",
-            data=HostServicesError(
+        error_details = HostServicesError(
                 description=f"Failed scanning Wi-Fi networks",
                 details=f"{e}",
-            ),
-        )
+            )
+    logger.info(f"Failed to scan Wi-Fi networks, details: {error_details.model_dump()}")
+    return ApiResponse(
+        success=False,
+        message="Wi-Fi scanning error.",
+        data=error_details
+    )
+
 
 @ra_host_service_server.get("/wifi_ip")
 def wifi_ip():
     default_wifi_adapter = get_default_wifi_adapter()
     if default_wifi_adapter is not None:
         wifi_ip = get_interface_ip(interface_name=default_wifi_adapter)
-        return ApiResponse(success=True, message='', data=wifi_ip)
+        return ApiResponse(success=True, data=wifi_ip)
     else:
         return ApiResponse(success=False, message="No Wi-Fi adapters found.")
-
-    # try:
-    #     return ApiResponse(error=False, data=get_interface_ip(interface_name="wlan0"))
-    # except subprocess.CalledProcessError as e:
-    #     return ApiResponse(
-    #         error=True,
-    #         error_details=HostServicesError(
-    #             description="Subprocess error when getting Wi-Fi IP address",
-    #             details=str(e),
-    #             stderr=e.stderr,
-    #         ),
-    #     )
-    # except Exception as e:
-    #     return ApiResponse(
-    #         error=True,
-    #         error_details=HostServicesError(
-    #             description=f"Failed to get Wi-Fi IP address",
-    #             details=f"{e}",
-    #         ),
-    #     )
-
-
-
 
 @ra_host_service_server.get("/ethernet_ips")
 def ethernet_ips() -> ApiResponse:
     interfaces = get_interfaces()
     return ApiResponse(
         success=True,
-        message=None,
         data=[i for i in interfaces.ethernet_interfaces if i.address is not None]
     )
-    
-    # try:
-    #     return ApiResponse(error=False, data=get_interface_ip(interface_name="eth1"))
-    # except subprocess.CalledProcessError as e:
-    #     return ApiResponse(
-    #         error=True,
-    #         error_details=HostServicesError(
-    #             description="Subprocess error when getting ethernet IP address",
-    #             details=str(e),
-    #             stderr=e.stderr,
-    #         ),
-    #     )
-    # except Exception as e:
-    #     return ApiResponse(
-    #         error=True,
-    #         error_details=HostServicesError(
-    #             description=f"Failed to get ethernet IP address",
-    #             details=f"{e}",
-    #         ),
-    #     )
 
 
 @ra_host_service_server.post("/connect_wifi")
@@ -222,13 +180,8 @@ def connect_wifi(ssid: str, password: str) -> ApiResponse:
         # Assume only one connection
         if len(active_ssids) > 0 and ssid in active_ssids:
             return ApiResponse(success=False, message=f"Wi-Fi already connected to {ssid}")
-        # current_ssid = get_current_ssid()
-
-        # if current_ssid == ssid:
-        #     return ApiResponse(error=False, data={"already_connected": True})
 
         if is_running_in_docker():
-        # if os.environ["CONTAINERIZED"].lower() == "true":
             output = subprocess.check_output(
                 [
                     "nmcli",
@@ -262,29 +215,27 @@ def connect_wifi(ssid: str, password: str) -> ApiResponse:
 
         connect_output = [line.strip() for line in output.splitlines() if line.strip()]
         if any(["successfully activated" in s for s in connect_output]):
+            logger.info(f"Connected to network \'{ssid}\'.")
             return ApiResponse(success=True, data={"connect_success": True})
         else:
             return ApiResponse(success=False, data={"connect_success": False})
 
     except subprocess.CalledProcessError as e:
-        return ApiResponse(
-            # error=True,
-            success=False,
-            data=HostServicesError(
+        error_details = HostServicesError(
                 description=f"Subprocess error when connecting to Wi-Fi network {ssid}",
                 details=str(e),
                 stderr=e.stderr,
-            ),
-        )
+            )
     except Exception as e:
-        return ApiResponse(
-            # error=True,
-            success=False,
-            data=HostServicesError(
+        error_details = HostServicesError(
                 description=f"Failed to connect to Wi-Fi network {ssid}",
                 details=f"{e}",
-            ),
-        )
+            )
+    logger.info(f"Failed to connect to network \'{ssid}\', details: {error_details.model_dump()}")
+    return ApiResponse(
+        success=False,
+        error_details=error_details
+    )
 
 
 if __name__ == "__main__":

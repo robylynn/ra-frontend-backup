@@ -1,11 +1,10 @@
 # RA Backend Routers
 # Developed by R2 Labs
 
-import secrets, time, asyncio, random, subprocess, re, httpx, os, time
+import time, subprocess, re, httpx, os, time
 
-from fastapi import WebSocket, APIRouter, Body
-from datetime import datetime
-from typing import List, Dict, Callable, Literal
+from fastapi import APIRouter, Body
+from typing import Literal
 from loguru import logger
 
 from common_models.models import NetworkInterfaces
@@ -54,7 +53,6 @@ def execute_host_service_api_request(
         return ApiResponse(**response.json())
     except Exception as e:
         return ApiResponse(
-            # error=True,
             success=False,
             message=f"Host services API error: {e}",
             data=HostServicesError(
@@ -77,10 +75,16 @@ async def get_ssid() -> ApiResponse:
 @system_router.get("/connected_ssids", response_model=ApiResponse)
 def current_ssid() -> ApiResponse:
     if os.environ.get("SIMULATE_WIFI_CONNECTIONS", "false").lower() == "true":
-        return ApiResponse(success=True, message='', data={"ssid": SIMULATED_NETWORK_SSID})
+        return ApiResponse(success=True, message='', data=[SIMULATED_NETWORK_SSID])
     else:
         return execute_host_service_api_request(endpoint="connected_ssids")
 
+@system_router.get("/default_ssid", response_model=ApiResponse)
+def current_ssid() -> ApiResponse:
+    if os.environ.get("SIMULATE_WIFI_CONNECTIONS", "false").lower() == "true":
+        return ApiResponse(success=True, message='', data=SIMULATED_NETWORK_SSID)
+    else:
+        return execute_host_service_api_request(endpoint="default_ssid")
 
 @system_router.get("/wifi_ip", response_model=ApiResponse)
 def wifi_ip() -> ApiResponse:
@@ -112,6 +116,10 @@ def interface_ip(interface_name: str) -> ApiResponse:
             )
         else:
             return ApiResponse(success=False, message=f"No network interface named {interface_name} found", data=None)
+
+@system_router.get("/ethernet_ips", response_model=ApiResponse)
+def get_ethernet_ips() -> ApiResponse:
+    return execute_host_service_api_request(endpoint="ethernet_ips")
 
 @system_router.post("/connect_wifi", response_model=ApiResponse)
 async def connect_to_wifi_network(ssid: str, password: str) -> ApiResponse:

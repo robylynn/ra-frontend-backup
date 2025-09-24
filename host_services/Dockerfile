@@ -1,5 +1,5 @@
-FROM python:3.10
-# FROM ubuntu:22.04
+# FROM python:3.10
+FROM ubuntu:22.04
 
 # Variables from docker compose
 # ARG APP_WORKDIR
@@ -9,12 +9,19 @@ FROM python:3.10
 
 ENV CONTAINERIZED=true
 
-RUN apt-get update
-RUN apt-get install -y wireless-tools network-manager iproute2
+
 # RUN apt-get install -y python3.10
 
 # WORKDIR /${APP_WORKDIR}
 WORKDIR /app
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+# RUN apt-get update
+RUN apt-get update && apt-get install -y python3.10 python3-pip
+RUN apt-get install -y wireless-tools network-manager iproute2 iw curl
+RUN rm -rf /var/lib/apt/lists/*
 
 ## Copy over necessary files for building and deployment
 COPY host_services ./host_services
@@ -27,4 +34,4 @@ RUN python3 -m pip install -r ./host_services/requirements.txt
 
 EXPOSE ${HOST_SERVICES_PORT}
 
-CMD ["python", "-m", "host_services"]
+CMD ["python3", "-m", "host_services"]

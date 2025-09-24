@@ -1,0 +1,1 @@
+curl -X POST "127.0.0.1:8000/system/connect_wifi?ssid=Trevor%20and%20Cesar's%20Tiny%20Gay%20Orgy&password=railroad"
