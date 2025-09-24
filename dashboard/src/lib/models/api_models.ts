@@ -812,7 +812,7 @@ export function createAPIResponse(
     try {
         return NextResponse.json(backendApiResponseBaseSchema.parse(res));
     } catch (e) {
-        logMessage(`Error vavlidating backend response against schema: ${e}`);
+        logMessage(`Error validating backend response against schema: ${e}`);
         return NextResponse.json({});
     }
 }

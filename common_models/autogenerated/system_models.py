@@ -21,6 +21,7 @@ class NetworkInterfaceDefinition(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     name: str = Field(...)
     address: Optional[str] = None
+    subnet_mask: Optional[str] = None
     type: str = Field(...)
     ssid: Optional[str] = None
 
@@ -33,3 +34,13 @@ class HostServicesError(BaseModel):
 class BaseNetworkInterfaces(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     interfaces: List[NetworkInterfaceDefinition] = Field(...)
+
+class InterfaceSettings(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    interface_name: str = Field(...)
+    ipv4_address: str = Field(...)
+    subnet_mask: str = Field(...)
+    gateway: Optional[str] = None
+    dns: Optional[str] = None
+    method: Literal['auto','manual'] = ''
+    autoconnect: bool = Field(...)

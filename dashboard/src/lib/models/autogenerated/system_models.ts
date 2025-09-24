@@ -21,6 +21,7 @@ export type apiResponseType = z.infer<typeof apiResponse>;
 export interface InetworkInterfaceDefinition {
     name: string,
     address?: string,
+    subnet_mask?: string,
     type: string,
     ssid?: string
 }
@@ -28,6 +29,7 @@ export interface InetworkInterfaceDefinition {
 export const networkInterfaceDefinition = z.object({
     name: z.string(),
     address: z.string().optional(),
+    subnet_mask: z.string().optional(),
     type: z.string(),
     ssid: z.string().optional()
 });
@@ -54,3 +56,24 @@ export const baseNetworkInterfaces = z.object({
     interfaces: z.array(networkInterfaceDefinition)
 });
 export type baseNetworkInterfacesType = z.infer<typeof baseNetworkInterfaces>;
+
+export interface IinterfaceSettings {
+    interface_name: string,
+    ipv4_address: string,
+    subnet_mask: string,
+    gateway?: string,
+    dns?: string,
+    method: ['auto'| 'manual'],
+    autoconnect: boolean
+}
+
+export const interfaceSettings = z.object({
+    interface_name: z.string(),
+    ipv4_address: z.string(),
+    subnet_mask: z.string(),
+    gateway: z.string().optional(),
+    dns: z.string().optional(),
+    method: z.enum(['auto','manual']),
+    autoconnect: z.boolean()
+});
+export type interfaceSettingsType = z.infer<typeof interfaceSettings>;

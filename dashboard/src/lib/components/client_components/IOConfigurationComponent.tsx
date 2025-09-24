@@ -892,40 +892,40 @@ export const IOConfigurationComponent: React.FC = () => {
     };
 
     // Export & Import
-    const exportConfig = () => {
-        const configJson = JSON.stringify(racks, null, 2);
-        const blob = new Blob([configJson], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'plc_config.json';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        showAlert('Configuration exported as JSON!', 'success');
-    };
+    // const exportConfig = () => {
+    //     const configJson = JSON.stringify(racks, null, 2);
+    //     const blob = new Blob([configJson], { type: 'application/json' });
+    //     const url = URL.createObjectURL(blob);
+    //     const link = document.createElement('a');
+    //     link.href = url;
+    //     link.download = 'plc_config.json';
+    //     document.body.appendChild(link);
+    //     link.click();
+    //     document.body.removeChild(link);
+    //     URL.revokeObjectURL(url);
+    //     showAlert('Configuration exported as JSON!', 'success');
+    // };
 
-    const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) {
-            showAlert('No file selected.', 'error');
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const importedData = JSON.parse(event.target?.result as string);
-                ioConfiguration.parse(importedData); // Zod validation
-                setRacks(importedData);
-                showAlert('Configuration imported successfully!', 'success');
-            } catch (error: any) {
-                showAlert(`Failed to import config: ${error.message}`, 'error');
-                console.error('Import error:', error);
-            }
-        };
-        reader.readAsText(file);
-    };
+    // const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const file = e.target.files?.[0];
+    //     if (!file) {
+    //         showAlert('No file selected.', 'error');
+    //         return;
+    //     }
+    //     const reader = new FileReader();
+    //     reader.onload = (event) => {
+    //         try {
+    //             const importedData = JSON.parse(event.target?.result as string);
+    //             ioConfiguration.parse(importedData); // Zod validation
+    //             setRacks(importedData);
+    //             showAlert('Configuration imported successfully!', 'success');
+    //         } catch (error: any) {
+    //             showAlert(`Failed to import config: ${error.message}`, 'error');
+    //             console.error('Import error:', error);
+    //         }
+    //     };
+    //     reader.readAsText(file);
+    // };
 
     const currentModule = useMemo(() => {
         if (!editingModule) return null;

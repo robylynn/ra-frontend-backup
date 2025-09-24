@@ -1,93 +1,8 @@
 import {
     createApiResponseSchema,
-    // NextAPIResponseInterface,
 } from '@/lib/models/api_models';
 import { FetchError } from '@/lib/models/errors';
 import { z, ZodError } from 'zod';
-
-// export default async function timeoutFetch<Type>(
-//     path: string,
-//     timeout: number,
-//     method: string = 'GET'
-// ): Promise<Type> {
-//     const controller = new AbortController();
-//     const timeoutId = setTimeout(() => {
-//         controller.abort('Timeout');
-//     }, timeout);
-
-//     let request_params: RequestInit = {
-//         method: method,
-//         headers: { 'Content-Type': 'application/json' },
-//         signal: controller.signal,
-//         cache: 'no-store',
-//     };
-
-//     let ret: any;
-//     try {
-//         const fetch_response: NextAPIResponseInterface = await fetch(
-//             path,
-//             request_params
-//         ).then((res) => res.json());
-
-//         if (!fetch_response.authenticated) {
-//             console.log(`Attempted unauthenticated fetch to ${path}`);
-//             ret = null;
-//         }
-
-//         ret = fetch_response.backend_response.data;
-
-//         // if (fetch_response.error) {
-//         //     ret = fetch_response;
-//         // } else {
-//         //     ret = fetch_response.data.data;
-//         // }
-//     } catch (e) {
-//         console.log(`fetcher error getting ${path}: ` + e);
-//         ret = null;
-//     }
-
-//     clearTimeout(timeoutId);
-//     return ret;
-// }
-
-// export async function timeoutFetchWithErrors(
-//     path: string,
-//     timeout: number,
-//     method: string = 'GET'
-// ): Promise<NextAPIResponseInterface | null> {
-//     const controller = new AbortController();
-//     const timeoutId = setTimeout(() => {
-//         controller.abort('Timeout');
-//     }, timeout);
-
-//     let request_params: RequestInit = {
-//         method: method,
-//         headers: { 'Content-Type': 'application/json' },
-//         signal: controller.signal,
-//         cache: 'no-store',
-//     };
-
-//     let ret: any;
-//     try {
-//         const fetch_response: NextAPIResponseInterface = await fetch(
-//             path,
-//             request_params
-//         ).then((res) => res.json());
-
-//         if (!fetch_response.authenticated) {
-//             console.log(`Attempted unauthenticated fetch to ${path}`);
-//             ret = null;
-//         }
-
-//         ret = fetch_response;
-//     } catch (e) {
-//         console.log(`fetcher error getting ${path}: ` + e);
-//         ret = null;
-//     }
-
-//     clearTimeout(timeoutId);
-//     return ret;
-// }
 
 /**
  * Retries a promise-based async function with exponential backoff.
@@ -170,8 +85,9 @@ export async function fetchFromBackendApi<T = unknown>(
                 !validatedResponse.backend_response.success ||
                 !validatedResponse.backend_response.data
             ) {
+                
                 throw new FetchError(
-                    `API returned a failure: ${validatedResponse.backend_response.message}`
+                    `API returned a failure. Message: ${validatedResponse.backend_response.message}, Data: ${JSON.stringify(validatedResponse.backend_response.data)}`
                 );
             }
 
@@ -184,7 +100,7 @@ export async function fetchFromBackendApi<T = unknown>(
 
             if (!validatedResponse.backend_response.success) {
                 throw new FetchError(
-                    `API returned a failure: ${validatedResponse.backend_response.message}`
+                    `API returned a failure. Message: ${validatedResponse.backend_response.message}, Data: ${JSON.stringify(validatedResponse.backend_response.data)}`
                 );
             }
 

@@ -14,7 +14,8 @@ export default function DashboardMainPanel(props: { className?: string }) {
     const [fillTile, setFillTile] = useState<string>('');
 
     const grid_state = () =>
-        fillTile == ''
+        dashboardContext.ui_configuration
+        // fillTile == ''
             ? 'grid grid-cols-[50%_50%] grid-rows-auto'
             : 'grid grid-cols-1 grid-rows-1 h-full';
 
@@ -65,8 +66,8 @@ export default function DashboardMainPanel(props: { className?: string }) {
             ) : (
                 <>
                     <div>
-                        <p>WAITING FOR UI CONFIG</p>
-                        <LoadingIndicator />
+                        {/* <p>WAITING FOR UI CONFIG</p> */}
+                        <LoadingIndicator text='WAITING FOR UI CONFIG'/>
                     </div>
                 </>
             )}

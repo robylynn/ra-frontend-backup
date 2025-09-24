@@ -11,6 +11,7 @@ schemas:
     properties:
       name: { type: string }
       address: { type: string, default: '' }
+      subnet_mask: { type: string, default: '' }
       type: { type: string }
       ssid: { type: string, default: '' }
   
@@ -27,3 +28,17 @@ schemas:
       interfaces:
         type: array
         elements: { ref: network_interface_definition }
+  
+  interface_settings:
+    type: object
+    properties:
+      interface_name: { type: string }
+      ipv4_address: { type: string }
+      subnet_mask: { type: string }
+      gateway: { type: string, optional: true }
+      dns: { type: string, optional: true }
+      method:
+        variant:
+        type: enum
+        valid_values: ['auto', 'manual']
+      autoconnect: { type: boolean }
