@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 # Import the new Pydantic model for schema configuration
 # from backend.api.models import SchemaConfig
 
+
 # --- Models for Schema.yml Structure ---
 class ColumnDef(BaseModel):
     """Represents a column definition from schema.yml."""
@@ -29,14 +30,13 @@ class SchemaConfig(BaseModel):
 
     tables: Dict[str, TableDef]
 
+
 # LOADED_RAW_SCHEMA will now be an instance of SchemaConfig
 LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
 
 # Schema file path is now relative to the container's root working directory /app/config/schema.yml
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.join(
-    current_dir, "..", ".."
-)
+project_root = os.path.join(current_dir, "..", "..")
 sys.path.insert(0, project_root)
 SCHEMA_FILE_PATH = os.path.join(project_root, "config", "database_schema.yml")
 

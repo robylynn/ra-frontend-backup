@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter
 from loguru import logger
 from backend.api.models import CameraStreamRequestData, CameraStreamResponseData

@@ -16,15 +16,17 @@ class JoggingMetadata(BaseModel):
     version: str = Field(...)
     pace: float = Field(...)
 
+
 class ChartTraceMetadata(BaseModel):
     table_name: str = Field(...)
     column: str = Field(...)
     color: str = Field(...)
 
+
 class PlotConfiguration(BaseModel):
     id: uuid.UUID = Field(...)
     name: str = Field(...)
-    type: Literal['line','bar','scatter'] = ''
+    type: Literal["line", "bar", "scatter"] = ""
     traces: List[ChartTraceMetadata] = Field(...)
     max_length: float = Field(...)
 
@@ -32,82 +34,98 @@ class PlotConfiguration(BaseModel):
 class PlotConfigurations(BaseModel):
     plot_configurations: List[PlotConfiguration] = Field(...)
 
+
 class ImageArchiveMetadata(BaseModel):
     number_of_images: float = Field(...)
 
+
 class CameraMetadata(BaseModel):
     camera_id: str = Field(...)
-    variant: Literal['full','compact','simple'] = ''
+    variant: Literal["full", "compact", "simple"] = ""
+
 
 class TrainingMetadata(BaseModel):
     source: str = Field(...)
-    variant: Literal['full','compact','simple'] = ''
+    variant: Literal["full", "compact", "simple"] = ""
+
 
 class VisionStatisticsMetadata(BaseModel):
     refresh_interval: float = Field(...)
     time_span_hours: float = Field(...)
     defects_to_analyze: List[str]
 
+
 class JoggingComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
-    type: Literal['jogging'] = Field(...)
+    type: Literal["jogging"] = Field(...)
     metadata: JoggingMetadata = Field(...)
+
 
 class ChartComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
-    type: Literal['charts'] = Field(...)
+    type: Literal["charts"] = Field(...)
     metadata: PlotConfiguration = Field(...)
+
 
 class ImageArchiveComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal['image_archive'] = Field(...)
+    type: Literal["image_archive"] = Field(...)
     metadata: ImageArchiveMetadata = Field(...)
+
 
 class CameraComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal['camera'] = Field(...)
+    type: Literal["camera"] = Field(...)
     metadata: CameraMetadata = Field(...)
+
 
 class TrainingComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal['training'] = Field(...)
+    type: Literal["training"] = Field(...)
     metadata: TrainingMetadata = Field(...)
+
 
 class VisionStatisticsComponent(BaseModel):
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal['vision_statistics'] = Field(...)
+    type: Literal["vision_statistics"] = Field(...)
     metadata: VisionStatisticsMetadata = Field(...)
 
+
 UiComponent = Union[
-        JoggingComponent,
-        ChartComponent,
-        ImageArchiveComponent,
-        TrainingComponent,
-        CameraComponent,
-        VisionStatisticsComponent,
-    ]
+    JoggingComponent,
+    ChartComponent,
+    ImageArchiveComponent,
+    TrainingComponent,
+    CameraComponent,
+    VisionStatisticsComponent,
+]
+
+
 class UiConfiguration(BaseModel):
-    theme: Literal['light','dark','system'] = 'system'
+    theme: Literal["light", "dark", "system"] = "system"
     tiles: List[UiComponent] = Field(default_factory=list)
     plots: List[PlotConfiguration] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
-    @field_serializer('last_updated')
+
+    @field_serializer("last_updated")
     def serialize_last_updated(self, last_updated: datetime, _info):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
+
 class IoPointDescription(BaseModel):
     label: str = Field(...)
-    type: Literal['DI','DO','AI','AO'] = ''
+    type: Literal["DI", "DO", "AI", "AO"] = ""
+
 
 class IoPoint(BaseModel):
     id: str = Field(...)
@@ -115,12 +133,14 @@ class IoPoint(BaseModel):
     point_value: Union[
         float,
         bool,
-        ]
+    ]
+
 
 class IoModuleDescription(BaseModel):
     name: str = Field(...)
     icon: str = Field(...)
     points: List[IoPointDescription] = Field(...)
+
 
 class IoModule(BaseModel):
     id: str = Field(...)
@@ -128,22 +148,27 @@ class IoModule(BaseModel):
     type: IoModuleDescription = Field(...)
     points: List[IoPoint] = Field(...)
 
+
 class IoRackConfig(BaseModel):
     name: str = Field(...)
     address: str = Field(...)
     max_modules: int = Field(...)
+
 
 class IoRack(BaseModel):
     id: str = Field(...)
     modules: List[IoModule] = Field(...)
     rack_config: IoRackConfig = Field(...)
 
+
 class IoConfiguration(BaseModel):
     racks: List[IoRack] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
-    @field_serializer('last_updated')
+
+    @field_serializer("last_updated")
     def serialize_last_updated(self, last_updated: datetime, _info):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
 
 class OpcDataPoint(BaseModel):
     id: str = Field(default_factory=str)
@@ -157,6 +182,7 @@ class OpcDataPoint(BaseModel):
 class OpcDataPoints(BaseModel):
     opc_data_points: List[OpcDataPoint] = Field(...)
 
+
 class OpcSubscriptionGroup(BaseModel):
     id: str = Field(...)
     name: str = Field(...)
@@ -164,12 +190,15 @@ class OpcSubscriptionGroup(BaseModel):
     interval: int = Field(...)
     data_points: List[OpcDataPoint] = Field(...)
 
+
 class OpcConfiguration(BaseModel):
     subscription_groups: List[OpcSubscriptionGroup] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
-    @field_serializer('last_updated')
+
+    @field_serializer("last_updated")
     def serialize_last_updated(self, last_updated: datetime, _info):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
 
 class FullConfiguration(BaseModel):
     client_id: str = Field(...)

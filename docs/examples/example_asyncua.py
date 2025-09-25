@@ -16,23 +16,28 @@ app = FastAPI(
 )
 opc_router = APIRouter(prefix="/opc")
 
+
 # --- Pydantic Models for API Data Validation ---
 class BrowseRequest(BaseModel):
     endpoint_url: str
 
+
 class SubscribeRequest(BaseModel):
     node_ids: List[str]
+
 
 # --- Global state to hold active subscriptions and clients ---
 # Note: In a production system, this should be more robust
 # and handle disconnections gracefully.
 active_clients: Dict[str, Client] = {}
 
+
 # --- WebSocket Subscription Handler ---
 class SubHandler:
     """
     Subscription Handler. To receive events from server for a subscription
     """
+
     def __init__(self, websocket: WebSocket):
         self.websocket = websocket
         self.is_active = True
@@ -46,8 +51,10 @@ class SubHandler:
             try:
                 # Use asyncio.run_coroutine_threadsafe to run the send_json in the main event loop
                 asyncio.run_coroutine_threadsafe(
-                    self.websocket.send_json({"nodeId": node.nodeid.to_string(), "value": val}),
-                    asyncio.get_event_loop()
+                    self.websocket.send_json(
+                        {"nodeId": node.nodeid.to_string(), "value": val}
+                    ),
+                    asyncio.get_event_loop(),
                 )
             except Exception as e:
                 _logger.error(f"Error sending data to WebSocket: {e}")
@@ -59,13 +66,20 @@ class SubHandler:
         """
         _logger.info("New event notification: %s", event)
 
+
 # --- Recursive Node Browsing Function ---
-async def browse_nodes_recursively(client: Client, parent_node: ua.Node, max_depth: int = 3, current_depth: int = 0) -> Dict[str, Any]:
+async def browse_nodes_recursively(
+    client: Client, parent_node: ua.Node, max_depth: int = 3, current_depth: int = 0
+) -> Dict[str, Any]:
     """
     Recursively browses the OPC-UA node tree from a starting node.
     """
     if current_depth >= max_depth:
-        return {"name": await parent_node.read_browse_name(), "nodeId": parent_node.nodeid.to_string(), "children": []}
+        return {
+            "name": await parent_node.read_browse_name(),
+            "nodeId": parent_node.nodeid.to_string(),
+            "children": [],
+        }
 
     try:
         children = await parent_node.get_children()
@@ -77,19 +91,25 @@ async def browse_nodes_recursively(client: Client, parent_node: ua.Node, max_dep
 
             if node_class in [ua.NodeClass.Object, ua.NodeClass.ObjectType]:
                 # Recursively browse objects
-                sub_tree = await browse_nodes_recursively(client, child, max_depth, current_depth + 1)
-                children_list.append({
-                    "name": node_name,
-                    "nodeId": child.nodeid.to_string(),
-                    "children": sub_tree.get("children", [])
-                })
+                sub_tree = await browse_nodes_recursively(
+                    client, child, max_depth, current_depth + 1
+                )
+                children_list.append(
+                    {
+                        "name": node_name,
+                        "nodeId": child.nodeid.to_string(),
+                        "children": sub_tree.get("children", []),
+                    }
+                )
             elif node_class == ua.NodeClass.Variable:
                 # Add variables as leaf nodes
-                children_list.append({
-                    "name": node_name,
-                    "nodeId": child.nodeid.to_string(),
-                })
-        
+                children_list.append(
+                    {
+                        "name": node_name,
+                        "nodeId": child.nodeid.to_string(),
+                    }
+                )
+
         return {
             "name": (await parent_node.read_display_name()).to_string(),
             "nodeId": parent_node.nodeid.to_string(),
@@ -98,7 +118,12 @@ async def browse_nodes_recursively(client: Client, parent_node: ua.Node, max_dep
 
     except Exception as e:
         _logger.error(f"Error browsing nodes: {e}")
-        return {"name": "Error", "nodeId": parent_node.nodeid.to_string(), "children": []}
+        return {
+            "name": "Error",
+            "nodeId": parent_node.nodeid.to_string(),
+            "children": [],
+        }
+
 
 # --- API Routes ---
 @opc_router.post("/browse")
@@ -110,7 +135,7 @@ async def browse_server_nodes(request: BrowseRequest):
         client = Client(url=request.endpoint_url)
         await client.connect()
         _logger.info(f"Connected to OPC-UA server at {request.endpoint_url}")
-        
+
         objects_node = await client.nodes.objects.get_children()
         browse_tree = []
         for obj in objects_node:
@@ -123,6 +148,7 @@ async def browse_server_nodes(request: BrowseRequest):
     except Exception as e:
         _logger.error(f"Failed to browse server: {e}")
         return {"status": "error", "message": str(e)}, 500
+
 
 @opc_router.websocket("/subscribe")
 async def websocket_endpoint(websocket: WebSocket):
@@ -141,9 +167,13 @@ async def websocket_endpoint(websocket: WebSocket):
         data = await websocket.receive_json()
         endpoint_url = data.get("endpoint_url")
         node_ids = data.get("node_ids", [])
-        
+
         if not endpoint_url or not node_ids:
-            await websocket.send_json({"error": "Invalid request. 'endpoint_url' and 'node_ids' are required."})
+            await websocket.send_json(
+                {
+                    "error": "Invalid request. 'endpoint_url' and 'node_ids' are required."
+                }
+            )
             await websocket.close()
             return
 
@@ -153,10 +183,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
         # Create subscription
         sub = await client.create_subscription(500, handler)
-        
+
         nodes = [client.get_node(node_id) for node_id in node_ids]
         handles = await sub.subscribe_data_change(nodes)
-        
+
         # Keep the connection open until closed by the client
         while True:
             # We need a small delay to keep the loop from spinning too fast
@@ -180,10 +210,11 @@ async def websocket_endpoint(websocket: WebSocket):
         _logger.info("Subscription and client disconnected.")
         await websocket.close()
 
+
 app.include_router(opc_router)
 
 # --- Main Entry Point for running with uvicorn ---
 # To run this file, save it as main.py and execute:
 # uvicorn main:app --reload
 #
-# A sample of the backend in action might look like this: 
+# A sample of the backend in action might look like this:

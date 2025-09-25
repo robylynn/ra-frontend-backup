@@ -372,11 +372,12 @@ async def main():
             local_connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{MANAGER_DB_CONFIG.local_db_host}:{MANAGER_DB_CONFIG.local_db_port}/{MANAGER_DB_CONFIG.local_db}"
             print(local_connection_string)
             # local_db_name = urlparse(MANAGER_DB_CONFIG.local_db_url).path.lstrip("/")
-            
-            
+
             if not await _ensure_database_exists(
                 # MANAGER_DB_CONFIG.local_db_url, local_db_name, "Local"
-                local_connection_string, MANAGER_DB_CONFIG.local_db, "Local"
+                local_connection_string,
+                MANAGER_DB_CONFIG.local_db,
+                "Local",
             ):
                 raise Exception(
                     f"Failed to ensure database '{local_db_name}' exists for Local DB."

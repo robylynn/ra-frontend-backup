@@ -20,12 +20,11 @@ status_router = APIRouter(
 
 
 # --- Helper Function: Get Database Connection Pool ---
-async def get_db_connection_pool(request: Request, state: ApiState = Depends(typedAppState)) -> AsyncpgPool:
+async def get_db_connection_pool(
+    request: Request, state: ApiState = Depends(typedAppState)
+) -> AsyncpgPool:
     """Dependency to get the local database connection pool."""
-    if (
-        not hasattr(state, "local_db_pool")
-        or state.local_db_pool is None
-    ):
+    if not hasattr(state, "local_db_pool") or state.local_db_pool is None:
         logger.error("Database pool not initialized in app.state.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -47,7 +46,17 @@ async def get_available_tables():
     logger.info("Endpoint /tables called to retrieve available table names.")
     if LOADED_RAW_SCHEMA and LOADED_RAW_SCHEMA.tables:
         return ApiResponse(
-            success=True, message="Available tables retrieved.", data=[{"table_name": table_name, "columns": list(LOADED_RAW_SCHEMA.tables[table_name].columns.keys())} for table_name in LOADED_RAW_SCHEMA.tables.keys()]
+            success=True,
+            message="Available tables retrieved.",
+            data=[
+                {
+                    "table_name": table_name,
+                    "columns": list(
+                        LOADED_RAW_SCHEMA.tables[table_name].columns.keys()
+                    ),
+                }
+                for table_name in LOADED_RAW_SCHEMA.tables.keys()
+            ],
         )
     else:
         logger.warning("No schema loaded or no tables defined in schema.yml.")
@@ -78,14 +87,11 @@ async def health_check(request: Request, state: ApiState = Depends(typedAppState
                 list(LOADED_RAW_SCHEMA.tables.keys()) if LOADED_RAW_SCHEMA else []
             ),
             "cloud_db_sync_enabled": (
-                state.enable_cloud_db
-                if hasattr(state, "enable_cloud_db")
-                else False
+                state.enable_cloud_db if hasattr(state, "enable_cloud_db") else False
             ),
             "active_cloud_db_pools": (
                 len(state.cloud_db_pools)
-                if hasattr(state, "cloud_db_pools")
-                and state.enable_cloud_db
+                if hasattr(state, "cloud_db_pools") and state.enable_cloud_db
                 else 0
             ),
             "deployment_environment": deployment_environment,

@@ -4,28 +4,35 @@ from typing import Any, List
 from backend.api.schema_models import TableDef
 from loguru import logger
 
+
 async def check_existing_tables(pool: AsyncpgPool) -> List[str]:
     get_tables_query = """
             SELECT table_name
             FROM information_schema.tables
             WHERE table_schema = 'public'
             """
-    
+
     async with pool.acquire() as conn:
         # await conn.execute(get_tables_query)
         data_records = await conn.fetch(get_tables_query)
         table_names = [r.get("table_name") for r in data_records]
         return table_names
 
+
 async def setup_table(
-    pool: AsyncpgPool, table_name: str, table_def: TableDef, db_identifier: str = "Local"
+    pool: AsyncpgPool,
+    table_name: str,
+    table_def: TableDef,
+    db_identifier: str = "Local",
 ):
     """Creates a table and hypertable in a given database pool."""
     tables = await check_existing_tables(pool=pool)
     if table_name in tables:
-        logger.info(f"Table {table_name} already exists in {db_identifier} database, skipping creation.")
+        logger.info(
+            f"Table {table_name} already exists in {db_identifier} database, skipping creation."
+        )
         return
-    
+
     logger.info(f"INFO: Setting up table '{table_name}' in {db_identifier} DB...")
 
     columns = table_def.columns

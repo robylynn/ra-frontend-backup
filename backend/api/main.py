@@ -35,7 +35,7 @@ from common_models.system_utilities import is_running_in_docker
 # Ensure backend root is in path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_root = os.path.join(current_dir, "..")
-project_root = os.path.join(backend_root, '..')
+project_root = os.path.join(backend_root, "..")
 sys.path.insert(0, backend_root)
 
 # Import necessary modules
@@ -44,7 +44,12 @@ from backend.api.models import (
     DeploymentConfig,
     DatabaseConnectionConfig,
 )
-from backend.api.schema_models import LOADED_RAW_SCHEMA, SCHEMA_FILE_PATH, load_raw_schema, SchemaConfig
+from backend.api.schema_models import (
+    LOADED_RAW_SCHEMA,
+    SCHEMA_FILE_PATH,
+    load_raw_schema,
+    SchemaConfig,
+)
 from backend.api.data_router import data_router
 from backend.api.ui_router import ui_router
 from backend.api.auth_router import auth_router
@@ -63,7 +68,10 @@ logger.add(
 
 # --- Configuration Loading ---
 # DATABASE_CONFIGS_PATH = os.path.join(os.getcwd(), "config", "dummy_database_configs.yml")
-DATABASE_CONFIGS_PATH = os.path.join(project_root, "config", os.getenv("DB_CONFIG_FILE", "dummy_database_configs.yaml"))
+DATABASE_CONFIGS_PATH = os.path.join(
+    project_root, "config", os.getenv("DB_CONFIG_FILE", "dummy_database_configs.yaml")
+)
+
 
 def load_database_configs() -> DeploymentConfig:
     """Loads database connection configurations from database_configs.yml."""
@@ -93,16 +101,17 @@ def load_database_configs() -> DeploymentConfig:
 app_config: Optional[DeploymentConfig] = None
 current_env_config: Optional[DatabaseConnectionConfig] = None
 
+
 # --- Lifespan Events ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Application starting up...")
-    
+
     if is_running_in_docker():
         logger.info(f"Backend API detected containerized deployment...")
     else:
         logger.info(f"Backend API detected bare metal deployment...")
-    
+
     app_state: ApiState = cast(ApiState, app.state)
 
     # 1. Load Schema Configuration (ensure it's loaded before DB pools or routers)
@@ -118,7 +127,9 @@ async def lifespan(app: FastAPI):
         app_config = load_database_configs()
         environment = os.getenv("DEPLOYMENT_ENV", "development").lower()
         if environment is None:
-            logger.warning(f"No deployment environment defined, defaulting to \'development\'")
+            logger.warning(
+                f"No deployment environment defined, defaulting to 'development'"
+            )
             environment = "development"
         current_env_config = getattr(app_config, environment)
         logger.info(f"Loaded database configuration for environment: '{environment}'.")
@@ -138,7 +149,9 @@ async def lifespan(app: FastAPI):
             # current_env_config.local_db_url
             local_connection_string
         )
-        app_state.local_db_url = local_connection_string#current_env_config.local_db_url
+        app_state.local_db_url = (
+            local_connection_string  # current_env_config.local_db_url
+        )
         logger.info("Asyncpg LOCAL database connection pool initialized successfully.")
     except Exception as e:
         logger.critical(
@@ -147,8 +160,8 @@ async def lifespan(app: FastAPI):
         sys.exit(1)
 
     # 4. Initialize asyncpg CLOUD database connection pools (if enabled)
-    app_state.cloud_db_pools = []#: List[AsyncpgPool] = []
-    app_state.cloud_db_urls = []#: List[str] = []
+    app_state.cloud_db_pools = []  #: List[AsyncpgPool] = []
+    app_state.cloud_db_urls = []  #: List[str] = []
     if app_state.enable_cloud_db and current_env_config.cloud_dbs:
         logger.info(f"Initializing asyncpg CLOUD database connection pools...")
         for idx, cloud_db in enumerate(current_env_config.cloud_dbs):
@@ -175,17 +188,17 @@ async def lifespan(app: FastAPI):
         )
         app_state.enable_db = False
 
-
     # Initialize tables from database from schema
     for table_name, table_def in LOADED_RAW_SCHEMA.tables.items():
-        await setup_table(pool=app_state.local_db_pool, table_name=table_name, table_def=table_def)
-    
+        await setup_table(
+            pool=app_state.local_db_pool, table_name=table_name, table_def=table_def
+        )
+
         if app_state.enable_cloud_db and current_env_config.cloud_dbs:
             logger.critical(
                 f"Cloud database table creation is not implemented. Exiting application."
             )
             sys.exit(1)
-
 
     # --- Initialize SubscriptionManager for ZMQ-like WebSockets ---
     app_state.subscription_manager = SubscriptionManager()
@@ -287,11 +300,14 @@ backend_api.state = ApiState()
 
 @backend_api.exception_handler(StarletteHTTPException)
 async def starlette_http_exception_handler(request: Request, exc: HTTPException):
-    api_response = json.dumps(ApiResponse(
+    api_response = json.dumps(
+        ApiResponse(
             success=False, message=f"Backend API exception: {exc.detail}"
-    ).model_dump())
+        ).model_dump()
+    )
     exc.detail = api_response
     return await http_exception_handler(request, exc)
+
 
 # Custom Exception Handler for HTTPException
 @backend_api.exception_handler(HTTPException)
@@ -351,20 +367,13 @@ async def health_check_status(state: ApiState = Depends(typedAppState)):
     """
     db_status = (
         "Connected"
-        if hasattr(state, "local_db_pool")
-        and state.local_db_pool
+        if hasattr(state, "local_db_pool") and state.local_db_pool
         else "Disconnected"
     )
 
     cloud_db_status = "Disabled"
-    if (
-        hasattr(state, "enable_cloud_db")
-        and state.enable_cloud_db
-    ):
-        if (
-            hasattr(state, "cloud_db_pools")
-            and state.cloud_db_pools
-        ):
+    if hasattr(state, "enable_cloud_db") and state.enable_cloud_db:
+        if hasattr(state, "cloud_db_pools") and state.cloud_db_pools:
             cloud_db_status = f"{len(state.cloud_db_pools)} pools active"
         else:
             cloud_db_status = "Enabled, but no pools active"

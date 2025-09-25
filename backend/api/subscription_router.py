@@ -7,7 +7,9 @@ import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, status, Query
 from loguru import logger
 
-from backend.api.data_router import _fetch_historical_data  # Reusing the existing helper
+from backend.api.data_router import (
+    _fetch_historical_data,
+)  # Reusing the existing helper
 from backend.api.schema_models import (
     LOADED_RAW_SCHEMA,
 )  # To get table names for historical data

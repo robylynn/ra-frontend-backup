@@ -11,6 +11,7 @@ import uuid, asyncio
 
 from backend.api.subscription_manager import SubscriptionManager
 
+
 class ApiState(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -22,8 +23,9 @@ class ApiState(BaseModel):
     cloud_db_urls: List[str] = []
     enable_db: bool = False
     enable_cloud_db: bool = False
-    local_db_url: str = ''
+    local_db_url: str = ""
     subscription_manager: SubscriptionManager = None
+
 
 def typedAppState(request: Request) -> ApiState:
     return cast(ApiState, request.app.state)
@@ -49,9 +51,7 @@ class DatabaseConnectionConfig(BaseModel):
     # local_db_url: str = Field(
     #     ..., description="The connection URL for the local database."
     # )
-    local_db_host: str = Field(
-        ..., description="The host for the local database."
-    )
+    local_db_host: str = Field(..., description="The host for the local database.")
     local_db: str = Field(
         ..., description="The database to use for the local connection."
     )
@@ -86,7 +86,8 @@ class ConfigData(BaseModel):
     """
 
     config_json: Dict[str, Any] = Field(
-        ..., description="The actual JSON object containing frontend UI configurations."#, default_factory=dict
+        ...,
+        description="The actual JSON object containing frontend UI configurations.",  # , default_factory=dict
     )
     # io_config_json: Dict[str, Any] = Field(
     #     ..., description="The actual JSON object containing IO configurations.", default_factory=dict

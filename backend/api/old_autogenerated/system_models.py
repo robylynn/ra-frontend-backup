@@ -16,11 +16,13 @@ class ApiResponse(BaseModel):
     success: bool = Field(...)
     data: any = Field(...)
 
+
 class NetworkInterfaceDefinition(BaseModel):
     name: str = Field(...)
     address: str = Field(default_factory=str)
     type: str = Field(...)
     ssid: str = Field(default_factory=str)
+
 
 class NetworkInterfaces(BaseModel):
     interfaces: List[NetworkInterfaceDefinition] = Field(...)

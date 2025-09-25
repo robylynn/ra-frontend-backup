@@ -17,6 +17,7 @@ class ApiResponse(BaseModel):
     success: bool = Field(...)
     data: Optional[Any] = None
 
+
 class NetworkInterfaceDefinition(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     name: str = Field(...)
@@ -25,15 +26,18 @@ class NetworkInterfaceDefinition(BaseModel):
     type: str = Field(...)
     ssid: Optional[str] = None
 
+
 class HostServicesError(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     description: str = Field(...)
     details: Optional[str] = None
     stderr: Optional[str] = None
 
+
 class BaseNetworkInterfaces(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     interfaces: List[NetworkInterfaceDefinition] = Field(...)
+
 
 class InterfaceSettings(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -42,5 +46,5 @@ class InterfaceSettings(BaseModel):
     subnet_mask: str = Field(...)
     gateway: Optional[str] = None
     dns: Optional[str] = None
-    method: Literal['auto','manual'] = ''
+    method: Literal["auto", "manual"] = ""
     autoconnect: bool = Field(...)
