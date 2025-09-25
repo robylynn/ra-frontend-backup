@@ -50,16 +50,10 @@ enum WIFI_NEW_CONNECTION_STATE {
     CONNECTION_FAILED,
 }
 
-// interface InterfaceDefinition {
-//     name: string;
-//     address?: string;
-// }
-
 interface NetworkStats {
     current_ssid?: string | null;
-    // ethernet_ip: string | null;
     ethernet_interfaces?: networkInterfaceDefinitionType[];
-    wifi_ip?: string | null;
+    wifi_interfaces?: networkInterfaceDefinitionType[];
     tunnnel_interfaces?: networkInterfaceDefinitionType[];
     error_message?: string | null;
 }
@@ -104,8 +98,8 @@ const NetworkSelectionContainer = (props: {
     set_new_connection_state: React.Dispatch<
         React.SetStateAction<WIFI_NEW_CONNECTION_STATE>
     >;
-    network_stats: NetworkStats;
-    set_network_stats: Dispatch<SetStateAction<NetworkStats>>;
+    // network_stats: NetworkStats;
+    // set_network_stats: Dispatch<SetStateAction<NetworkStats>>;
 }) => {
     const [selectedWifiNetwork, setSelectedWifiNetwork] = useState<string>();
     const [wifiPassword, setWifiPassword] = useState<string>();
@@ -136,22 +130,12 @@ const NetworkSelectionContainer = (props: {
 
                 const message = `Error scanning Wi-Fi networks: ${e}`;
 
-                props.set_network_stats((stats) => ({
-                    ...stats,
-                    error_message: message,
-                }));
-
                 logMessage(message, 'error');
                 showAlert(message, 'error');
             });
     };
 
     const connect_wifi_network = async () => {
-        props.set_network_stats((stats) => ({
-            ...stats,
-            wifi_ip: null,
-            current_ssid: null,
-        }));
         props.set_new_connection_state(WIFI_NEW_CONNECTION_STATE.CONNECTING);
 
         await fetchFromBackendApi<null>(
@@ -178,10 +162,6 @@ const NetworkSelectionContainer = (props: {
                 const message = `Error connecting to Wi-Fi network ${selectedWifiNetwork}: ${e}`;
                 logMessage(message, 'error');
                 showAlert(message, 'error');
-                props.set_network_stats((stats) => ({
-                    ...stats,
-                    error_message: `Error connecting to Wi-Fi network: ${e}`,
-                }));
                 props.set_new_connection_state(
                     WIFI_NEW_CONNECTION_STATE.CONNECTION_FAILED
                 );
@@ -199,7 +179,7 @@ const NetworkSelectionContainer = (props: {
                         <div className="flex flex-col">
                             <TextBlock>Password</TextBlock>
                             <input
-                                className="text-center"
+                                className="text-center text-black"
                                 onChange={(e) =>
                                     setWifiPassword(e.target.value)
                                 }
@@ -241,7 +221,7 @@ const NetworkSelectionContainer = (props: {
                             <div className="flex flex-col">
                                 <TextBlock>Available Networks</TextBlock>
                                 <select
-                                    className="text-center"
+                                    className="text-center text-black"
                                     onChange={(e) =>
                                         setSelectedWifiNetwork(e.target.value)
                                     }
@@ -293,15 +273,7 @@ const NetworkSelectionContainer = (props: {
 
     return (
         <div className="flex flex-col h-[20%] w-full justify-center">
-            {/* <ErrorDialog error_message={'test message\ntest'} /> */}
-            {props.network_stats?.error_message ? (
-                <ErrorDialog
-                    error_message={props.network_stats.error_message}
-                    set_network_stats={props.set_network_stats}
-                />
-            ) : (
-                connection_state_handler()
-            )}
+            {connection_state_handler()}
         </div>
     );
 };
@@ -311,7 +283,7 @@ export const SubTile = (props: {
     children: ReactNode;
     className?: string;
 }) => [
-    <div className="border min-h-[40%] w-[50%] flex flex-col rounded-xl px-2 pb-2 bg-r2-dark-background-400">
+    <div className="border min-h-[40%] w-[50%] flex flex-col rounded-xl px-2 py-2 pb-2 bg-r2-dark-background-400">
         <TextBlock className="py-2">{props.header}</TextBlock>
         <div className="bg-r2-dark-background-300 rounded-xl grow">
             {props.children}
@@ -319,50 +291,50 @@ export const SubTile = (props: {
     </div>,
 ];
 
-// networkInterfaceModal = (
-//     isOpen: boolean;
-//     onClose: () => void;
-//     // onSelectNode: (node: opcDataPointType) => void;
-//     // endpoint: string;
-// )
-
 interface NetworkInterfaceSettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    interface_definition: networkInterfaceDefinitionType;
-    // onSelectNode: (node: opcDataPointType) => void;
-    // endpoint: string;
+    interfaceDefinition: networkInterfaceDefinitionType;
+    refreshConnections: () => void;
+    wifiConnectionState: CONNECTION_STATE;
+    setWifiConnectionState: (state: CONNECTION_STATE) => void;
 }
 
 const NetworkInterfaceSettingsModal: React.FC<
     NetworkInterfaceSettingsModalProps
-> = ({ isOpen, onClose, interface_definition }) => {
-    if (!interface_definition) return <></>;
+> = ({
+    isOpen,
+    onClose,
+    interfaceDefinition: interfaceDefinition,
+    refreshConnections,
+    wifiConnectionState,
+    setWifiConnectionState,
+}) => {
+    if (!interfaceDefinition) return <></>;
 
     const [formData, setFormData] = useState<interfaceSettingsType>({
-        interface_name: interface_definition.name,
-        ipv4_address: interface_definition.address,
-        subnet_mask: interface_definition.subnet_mask,
+        interface_name: interfaceDefinition.name,
+        ipv4_address: interfaceDefinition.address,
+        subnet_mask: interfaceDefinition.subnet_mask,
         autoconnect: true,
         method: 'auto',
     });
 
     const [isApplying, setIsApplying] = useState(false);
+    const [SSIDs, setSSIDs] = useState<Array<string>>([]);
+    const [newWifiConnectionState, setNewWifiConnectionState] =
+        useState<WIFI_NEW_CONNECTION_STATE>(WIFI_NEW_CONNECTION_STATE.IDLE);
+
     const { showAlert } = useAlert();
 
     const postSettings = async (settings: interfaceSettingsType) => {
         setIsApplying(true);
-        // const settings: interfaceSettingsType = {
-        //     interface_name: 'usb0',
-        //     ipv4_address: '192.168.5.5',
-        //     method: 'auto',
-        //     subnet_mask: '255.255.255.0',
-        //     autoconnect: true,
-        // };
         await fetchFromBackendApi<null>(
             '/api/backend/system/set_interface_settings',
             'POST',
-            settings
+            settings,
+            undefined,
+            10000
         )
             .then(() => {
                 showAlert(
@@ -376,7 +348,11 @@ const NetworkInterfaceSettingsModal: React.FC<
                     'error'
                 );
             })
-            .finally(() => setIsApplying(false));
+            .finally(() => {
+                setIsApplying(false);
+                onClose();
+                refreshConnections();
+            });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,165 +366,132 @@ const NetworkInterfaceSettingsModal: React.FC<
     return (
         <Modal
             isOpen={isOpen}
-            modalTitle={`${interface_definition.name} Interface Configuration`}
+            modalTitle={`${interfaceDefinition.name} Interface Configuration`}
             onClose={onClose}
         >
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    // handleSave();
-                    postSettings(formData);
-                }}
-                className="flex flex-col"
-            >
-                <div className="mb-4 flex flex-row justify-between">
-                    <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                        Method:
-                    </label>
-                    {/* <input
-                        type="checkbox"
-                        name="address"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    /> */}
-                    <div className="flex flex-row space-x-2">
-                        <span>MANUAL</span>
-                        <SliderToggle
-                            // <button
-                            onClick={() =>
-                                setFormData((data) => ({
-                                    ...data,
-                                    method:
-                                        data.method === 'manual'
-                                            ? 'auto'
-                                            : 'manual',
-                                }))
-                            }
-                            isActive={isAutoConfiguration()}
-                        />
-
-                        <span>AUTO</span>
-                    </div>
+            {interfaceDefinition.type === 'wifi' ? (
+                // <>WIFI</>
+                <div className="flex flex-col grow items-center justify-center">
+                    <NetworkSelectionContainer
+                        ssids={SSIDs}
+                        set_ssids={setSSIDs}
+                        current_connection_state={wifiConnectionState}
+                        set_current_connection_state={setWifiConnectionState}
+                        new_connection_state={newWifiConnectionState}
+                        set_new_connection_state={setNewWifiConnectionState}
+                        // network_stats={networkStats}
+                        // set_network_stats={setNetworkStats}
+                    />
                 </div>
-                {!isAutoConfiguration() ? (
-                    <>
-                        <div className="mb-4">
-                            <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                                IP Address:
-                            </label>
-                            <input
-                                type="text"
-                                name="ipv4_address"
-                                value={formData.ipv4_address}
-                                onChange={handleInputChange}
-                                className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                                Subnet Mask:
-                            </label>
-                            <input
-                                type="text"
-                                name="subnet_mask"
-                                value={formData.subnet_mask}
-                                onChange={handleInputChange}
-                                className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                                Gateway (Optional):
-                            </label>
-                            <input
-                                type="text"
-                                name="gateway"
-                                value={formData.gateway}
-                                onChange={handleInputChange}
-                                className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                                DNS (Optional):
-                            </label>
-                            <input
-                                type="text"
-                                name="dns"
-                                value={formData.dns}
-                                onChange={handleInputChange}
-                                className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div className="mb-4 flex flex-row justify-between">
-                            <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                                Autoconnect:
-                            </label>
+            ) : (
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        // handleSave();
+                        postSettings(formData);
+                    }}
+                    className="flex flex-col"
+                >
+                    <div className="mb-4 flex flex-row justify-between">
+                        <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                            Method:
+                        </label>
+                        <div className="flex flex-row space-x-2">
+                            <span>MANUAL</span>
                             <SliderToggle
-                                isActive={formData.autoconnect}
+                                // <button
                                 onClick={() =>
                                     setFormData((data) => ({
                                         ...data,
-                                        autoconnect: !data.autoconnect,
+                                        method:
+                                            data.method === 'manual'
+                                                ? 'auto'
+                                                : 'manual',
                                     }))
                                 }
+                                isActive={isAutoConfiguration()}
                             />
-                            {/* <input
-                        type="text"
-                        name="dns"
-                        value={formData.dns}
-                        onChange={handleInputChange}
-                        className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    /> */}
+
+                            <span>AUTO</span>
                         </div>
-                    </>
-                ) : (
-                    <></>
-                )}
-                {/* <div className="mb-4">
-                    <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
-                        Module Type:
-                    </label>
-                    <select
-                        value={formData.type.name}
-                        onChange={handleTypeChange}
-                        className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {ioModuleTypes.map((type) => (
-                            <option key={type.name} value={type.name}>
-                                {type.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <h4 className="text-lg font-bold text-r2-dark-modal-subtext-header mt-6 mb-2">
-                    I/O Points
-                </h4> */}
-                {/* <div className="space-y-2 flex-grow overflow-y-scroll">
-                    {formData.points.map((point) => (
-                        <IOPointComponent
-                            key={point.id}
-                            point={point}
-                            onUpdateValue={handleUpdatePointValue}
-                            // onUpdateValue={() => {}}
+                    </div>
+                    {!isAutoConfiguration() ? (
+                        <>
+                            <div className="mb-4">
+                                <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                                    IP Address:
+                                </label>
+                                <input
+                                    type="text"
+                                    name="ipv4_address"
+                                    value={formData.ipv4_address}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                                    Subnet Mask:
+                                </label>
+                                <input
+                                    type="text"
+                                    name="subnet_mask"
+                                    value={formData.subnet_mask}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                                    Gateway (Optional):
+                                </label>
+                                <input
+                                    type="text"
+                                    name="gateway"
+                                    value={formData.gateway}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                                    DNS (Optional):
+                                </label>
+                                <input
+                                    type="text"
+                                    name="dns"
+                                    value={formData.dns}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="mb-4 flex flex-row justify-between">
+                                <label className="block text-r2-dark-modal-subtext font-semibold mb-1">
+                                    Autoconnect:
+                                </label>
+                                <SliderToggle
+                                    isActive={formData.autoconnect}
+                                    onClick={() =>
+                                        setFormData((data) => ({
+                                            ...data,
+                                            autoconnect: !data.autoconnect,
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <></>
+                    )}
+                    <div className="flex justify-end mt-6">
+                        <LoadingButton
+                            type="submit"
+                            buttonText="Apply"
+                            isLoading={isApplying}
                         />
-                    ))}
-                </div> */}
-                <div className="flex justify-end mt-6">
-                    <LoadingButton
-                        type="submit"
-                        buttonText="Apply"
-                        isLoading={isApplying}
-                    />
-                    {/* <button
-                        type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
-                    >
-                        Apply
-                    </button> */}
-                </div>
-            </form>
+                    </div>
+                </form>
+            )}
         </Modal>
     );
 };
@@ -562,7 +505,7 @@ export default function AdministrationPanel(props: {
     const { dashboardContext, setDashboardContext } =
         useContext(DashboardContext);
 
-    const [SSIDs, setSSIDs] = useState<Array<string>>([]);
+    // const [SSIDs, setSSIDs] = useState<Array<string>>([]);
     const [networkStats, setNetworkStats] = useState<NetworkStats>({});
     const [
         interfaceConfigurationModalOpen,
@@ -574,8 +517,8 @@ export default function AdministrationPanel(props: {
     const [wifiConnectionState, setWifiConnectionState] =
         useState<CONNECTION_STATE>(CONNECTION_STATE.INITIALIZING);
 
-    const [newWifiConnectionState, setNewWifiConnectionState] =
-        useState<WIFI_NEW_CONNECTION_STATE>(WIFI_NEW_CONNECTION_STATE.IDLE);
+    // const [newWifiConnectionState, setNewWifiConnectionState] =
+    //     useState<WIFI_NEW_CONNECTION_STATE>(WIFI_NEW_CONNECTION_STATE.IDLE);
 
     useEffect(() => {
         const get_interfaces = async () => {
@@ -583,9 +526,9 @@ export default function AdministrationPanel(props: {
                 fetchFromBackendApi<baseNetworkInterfacesType>(
                     `/api/backend/system/interfaces`
                 ).then((interfaces) => {
-                    const wifi_ip = interfaces.interfaces.find(
-                        (i) => i.type === 'wifi' && i.address
-                    )?.address;
+                    // const wifi_ip = interfaces.interfaces.find(
+                    //     (i) => i.type === 'wifi' && i.address
+                    // )?.address;
 
                     const ssid = interfaces.interfaces.find(
                         (i) => i.ssid
@@ -600,29 +543,16 @@ export default function AdministrationPanel(props: {
                     const tunnnel_interfaces = interfaces.interfaces.filter(
                         (i) => i.type === 'tun'
                     );
-                    // .map((i) => ({
-                    //     name: i.name,
-                    //     address: i.address,
-                    // }));
-
-                    // const tunnnel_interfaces = interfaces.interfaces
-                    // .filter((i) => i.type === 'tun')
-                    // .map((i) => ({
-                    //     name: i.name,
-                    //     address: i.address,
-                    // }));
+                    const wifi_interfaces = interfaces.interfaces.filter(
+                        (i) => i.type === 'wifi'
+                    );
 
                     setNetworkStats((stats) => ({
                         ...stats,
                         ethernet_interfaces: ethernet_interfaces,
-                        // ethernet_interfaces: interfaces.interfaces
-                        //     .filter((i) => i.type === 'ethernet')
-                        //     .map((i) => ({
-                        //         name: i.name,
-                        //         address: i.address ?? '',
-                        //     })),
-                        current_ssid: ssid, //interfaces.interfaces.find((i) => i.ssid)?.ssid,
-                        wifi_ip: wifi_ip, //interfaces.interfaces.find((i) => i.type === 'wifi' && i.address)?.address
+                        wifi_interfaces: wifi_interfaces,
+                        current_ssid: ssid,
+                        // wifi_ip: wifi_ip,
                         tunnnel_interfaces: tunnnel_interfaces,
                     }));
                 })
@@ -630,23 +560,43 @@ export default function AdministrationPanel(props: {
         };
 
         get_interfaces();
-        // }, [JSON.stringify(wifiConnectionState === CONNECTION_STATE.INITIALIZING)]);
     }, [wifiConnectionState === CONNECTION_STATE.INITIALIZING]);
 
-    // const set_interface_settings = async () => {
-    //     const settings: interfaceSettingsType = {
-    //         interface_name: 'usb0',
-    //         ipv4_address: '192.168.5.5',
-    //         method: 'manual',
-    //         subnet_mask: '255.255.255.0',
-    //         autoconnect: true,
-    //     };
-    //     fetchFromBackendApi<null>(
-    //         '/api/backend/system/set_interface_settings',
-    //         'POST',
-    //         settings
-    //     );
-    // };
+    const InterfaceStatistics = (props: {
+        interfaces: networkInterfaceDefinitionType[];
+    }) => {
+        return (
+            <div className="grid grid-cols-2 items-center text-center auto-rows-fr border rounded gap-y-4">
+                {props.interfaces.map((i) => (
+                    // return
+                    <>
+                        <div className="flex flex-col items-center justify-center">
+                            <p>
+                                {i.type === 'wifi'
+                                    ? `${i.name} (${i.ssid ?? 'No SSID'})`
+                                    : i.name}
+                            </p>
+                            <p className="text-sm font-normal">
+                                {i.address ?? 'No IP Assigned'}
+                            </p>
+                        </div>
+                        {i.address ? (
+                            <LoadingButton
+                                className="w-full"
+                                onClick={() => {
+                                    setSelectedNetworkInterface(i);
+                                    setInterfaceConfigurationModalOpen(true);
+                                }}
+                                buttonText="Configure"
+                            />
+                        ) : (
+                            <span></span>
+                        )}
+                    </>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <SimplifiedDashboardHeaderContainer
@@ -654,112 +604,64 @@ export default function AdministrationPanel(props: {
             icon_path={'/icons/user.svg'}
             className={props.className || ''}
         >
-            <SubTile header="Select Wireless Network">
+            <SubTile header="Network Interfaces">
                 {!(wifiConnectionState === CONNECTION_STATE.INITIALIZING) ? (
                     <>
-                        <div className="flex flex-col h-full relative px-2 py-2">
-                            <div className="grid grid-cols-[30%_70%] grid-rows-auto gap-x-2 gap-y-2 border rounded-xl items-center">
-                                <TextBlock>Current SSID</TextBlock>
-                                <TextBlock>
-                                    {networkStats.current_ssid ??
-                                        'No Wi-Fi Connection'}
-                                </TextBlock>
-                                <TextBlock>Wi-Fi IP</TextBlock>
-                                <TextBlock>
-                                    {networkStats.wifi_ip ??
-                                        'No Wi-Fi IP Assigned'}
-                                </TextBlock>
-                                <TextBlock>Ethernet IPs</TextBlock>
-                                <TextBlock>
-                                    <div className="flex flex-col w-full">
-                                        {networkStats.ethernet_interfaces ? (
-                                            networkStats.ethernet_interfaces
-                                                .filter(
-                                                    (i) => i.address || true
-                                                )
-                                                .map((i) => (
-                                                    <div className="grid grid-cols-3 items-center justify-center space-y-2">
-                                                        <span>{i.name}</span>
-                                                        <span>{i.address}</span>
-                                                        <button
-                                                            className="px-1 py-1 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
-                                                            onClick={
-                                                                // set_interface_settings
-                                                                () => {
-                                                                    setSelectedNetworkInterface(
-                                                                        i
-                                                                    );
-                                                                    setInterfaceConfigurationModalOpen(
-                                                                        true
-                                                                    );
-                                                                }
-                                                            }
-                                                        >
-                                                            Set
-                                                        </button>
-                                                    </div>
-                                                ))
-                                        ) : (
-                                            <span>
-                                                No Known Ethernet Interfaces
-                                            </span>
-                                        )}
-                                    </div>
-                                </TextBlock>
-                                <TextBlock>Tunnel IPs</TextBlock>
-                                <TextBlock>
-                                    <div className="flex flex-col w-full">
-                                        {networkStats.tunnnel_interfaces ? (
-                                            networkStats.tunnnel_interfaces
-                                                .filter(
-                                                    (i) => i.address || true
-                                                )
-                                                .map((i) => (
-                                                    <div className="grid grid-cols-2 items-center justify-center">
-                                                        <span>{i.name}</span>
-                                                        <span>{i.address}</span>
-                                                    </div>
-                                                ))
-                                        ) : (
-                                            <span>No Known Tunnels</span>
-                                        )}
-                                    </div>
-                                </TextBlock>
-                            </div>
-                            <div className="flex flex-col grow items-center justify-center">
-                                <NetworkSelectionContainer
-                                    ssids={SSIDs}
-                                    set_ssids={setSSIDs}
-                                    current_connection_state={
-                                        wifiConnectionState
-                                    }
-                                    set_current_connection_state={
-                                        setWifiConnectionState
-                                    }
-                                    new_connection_state={
-                                        newWifiConnectionState
-                                    }
-                                    set_new_connection_state={
-                                        setNewWifiConnectionState
-                                    }
-                                    network_stats={networkStats}
-                                    set_network_stats={setNetworkStats}
+                        <div className="grid grid-cols-[30%_70%] grid-rows-auto gap-x-2 gap-y-2 border rounded-xl items-center w-full box-content text-center text-r2-white font-bold">
+                            <p>Wi-Fi Adapters</p>
+                            {networkStats.wifi_interfaces ? (
+                                <InterfaceStatistics
+                                    interfaces={networkStats.wifi_interfaces}
                                 />
-                            </div>
+                            ) : (
+                                <>
+                                    <p>No Known Wi-Fi Adapters</p>
+                                </>
+                            )}
+                            <TextBlock>Ethernet Adapters</TextBlock>
+                            {networkStats.ethernet_interfaces ? (
+                                <InterfaceStatistics
+                                    interfaces={networkStats.ethernet_interfaces.filter(
+                                        (i) => i.address || true
+                                    )}
+                                />
+                            ) : (
+                                <>
+                                    <p>No Known Ethernet Adapters</p>
+                                </>
+                            )}
+                            <TextBlock>Tunnel IPs</TextBlock>
+                            <TextBlock>
+                                <div className="flex flex-col w-full">
+                                    {networkStats.tunnnel_interfaces ? (
+                                        networkStats.tunnnel_interfaces
+                                            .filter((i) => i.address || true)
+                                            .map((i) => (
+                                                <div className="grid grid-cols-2 items-center justify-center">
+                                                    <span>{i.name}</span>
+                                                    <span>{i.address}</span>
+                                                </div>
+                                            ))
+                                    ) : (
+                                        <span>No Known Tunnels</span>
+                                    )}
+                                </div>
+                            </TextBlock>
                         </div>
                         <NetworkInterfaceSettingsModal
                             isOpen={interfaceConfigurationModalOpen}
-                            // modalTitle={`${selectedNetworkInterface} Interface Configuration`}
-                            interface_definition={selectedNetworkInterface}
+                            interfaceDefinition={selectedNetworkInterface}
                             onClose={() =>
                                 setInterfaceConfigurationModalOpen(false)
                             }
+                            refreshConnections={() =>
+                                setWifiConnectionState(
+                                    CONNECTION_STATE.INITIALIZING
+                                )
+                            }
+                            wifiConnectionState={wifiConnectionState}
+                            setWifiConnectionState={setWifiConnectionState}
                         />
-                        {/* <Modal
-                        isOpen={interfaceConfigurationModalOpen}
-                        modalTitle={`${selectedNetworkInterface} Interface Configuration`}
-                        onClose={() => setInterfaceConfigurationModalOpen(false)}
-                    /> */}
                     </>
                 ) : (
                     <LoadingIndicator />

@@ -35,12 +35,12 @@ def get_host_ip() -> str:
 
 
 def execute_host_service_api_request(
-    endpoint: str, method: Literal["GET", "POST"] = "GET", body: Dict = None
+    endpoint: str, method: Literal["GET", "POST"] = "GET", body: Dict = None, timeout: int = 25
 ) -> ApiResponse:
     try:
         host_ip = get_host_ip()
         host_port = int(os.environ.get("HOST_SERVICES_API_PORT", 8001))
-        http_client = httpx.Client(timeout=25)
+        http_client = httpx.Client(timeout=timeout)
         if method == "GET":
             response = http_client.get(f"http://{host_ip}:{host_port}/{endpoint}")
         elif method == "POST":
@@ -72,7 +72,7 @@ async def get_ssid() -> ApiResponse:
         time.sleep(2)
         return ApiResponse(success=True, data=ssids)
     else:
-        return execute_host_service_api_request(endpoint="scan")
+        return execute_host_service_api_request(endpoint="scan", timeout=45)
 
 
 @system_router.get("/connected_ssids", response_model=ApiResponse)

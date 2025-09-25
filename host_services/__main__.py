@@ -12,10 +12,24 @@ from common_models.system_utilities import is_running_in_docker
 
 ra_host_service_server = FastAPI()
 
-def get_interfaces() -> NetworkInterfaces:
-    output_string = subprocess.check_output(
-        ["nmcli", "dev", "show"], text=True, stderr=subprocess.PIPE
+def execute_shell_command(command: str, timeout: int = 15):
+    if not is_running_in_docker():
+        command = 'sudo ' + command
+
+    split_pattern = r'"([^"]*)"|(\S+)'
+    raw_tokens = re.findall(split_pattern, command)
+    clean_tokens = [item for sublist in raw_tokens for item in sublist if item]
+
+    return subprocess.check_output(
+        # command.split(' '),
+        clean_tokens,
+        text=True,
+        stderr=subprocess.PIPE,
+        timeout=timeout
     )
+
+def get_interfaces() -> NetworkInterfaces:
+    output_string = execute_shell_command("nmcli dev show")
 
     # interfaces_by_type: Dict[str, List[str]] = {}
     interfaces: List[NetworkInterfaces] = []
@@ -116,22 +130,15 @@ def scan_wifi():
 
         # For now assume only one wifi interface and take the first one
         if default_wifi_adapter is not None:
-            if is_running_in_docker():
-                # if os.environ["CONTAINERIZED"].lower() == "true":
-                output = subprocess.check_output(
-                    # ["iwlist", default_wifi_adapter, "scanning"], text=True, stderr=subprocess.PIPE
-                    ["iw", default_wifi_adapter, "scan"], text=True, stderr=subprocess.PIPE, timeout=30
-                )
-            else:
-                output = subprocess.check_output(
-                    # ["sudo", "iwlist", default_wifi_adapter, "scanning"],
-                    ["sudo", "iw", default_wifi_adapter, "scan"],
-                    text=True,
-                    stderr=subprocess.PIPE,
-                    timeout=30
-                )
+            if False:
+                output = execute_shell_command(f"iw {default_wifi_adapter} scan", timeout=30)
+                ssid_pattern = r"SSID: (.*)"
 
-            ssid_pattern = r"SSID: (.*)"
+            # Scan twice to make sure it is refreshed
+            output = execute_shell_command(f"iwlist {default_wifi_adapter} scan", timeout=20)
+            output = execute_shell_command(f"iwlist {default_wifi_adapter} scan", timeout=20)
+
+            ssid_pattern = r"ESSID:\"(.*)\""
 
             # Use re.findall to get all matches and return them as a list
             ssids = re.findall(ssid_pattern, output)
@@ -159,7 +166,6 @@ def scan_wifi():
         data=error_details
     )
 
-
 @ra_host_service_server.get("/wifi_ip")
 def wifi_ip():
     default_wifi_adapter = get_default_wifi_adapter()
@@ -177,7 +183,6 @@ def ethernet_ips() -> ApiResponse:
         data=[i for i in interfaces.ethernet_interfaces if i.address is not None]
     )
 
-
 @ra_host_service_server.post("/connect_wifi")
 def connect_wifi(ssid: str, password: str) -> ApiResponse:
     try:
@@ -186,37 +191,7 @@ def connect_wifi(ssid: str, password: str) -> ApiResponse:
         if len(active_ssids) > 0 and ssid in active_ssids:
             return ApiResponse(success=False, message=f"Wi-Fi already connected to {ssid}")
 
-        if is_running_in_docker():
-            output = subprocess.check_output(
-                [
-                    "nmcli",
-                    "dev",
-                    "wifi",
-                    # get_default_wifi_adapter(),
-                    "connect",
-                    f"{ssid}",
-                    "password",
-                    f"{password}",
-                ],
-                text=True,
-                stderr=subprocess.PIPE,
-            )
-        else:
-            output = subprocess.check_output(
-                [
-                    "sudo",
-                    "nmcli",
-                    "dev",
-                    "wifi",
-                    # get_default_wifi_adapter(),
-                    "connect",
-                    f"{ssid}",
-                    "password",
-                    f"{password}",
-                ],
-                text=True,
-                stderr=subprocess.PIPE,
-            )
+        output = execute_shell_command(f"nmcli dev wifi connect \"{ssid}\" password \"{password}\"", timeout=40)
 
         connect_output = [line.strip() for line in output.splitlines() if line.strip()]
         if any(["successfully activated" in s for s in connect_output]):
@@ -244,18 +219,25 @@ def connect_wifi(ssid: str, password: str) -> ApiResponse:
 
 @ra_host_service_server.post("/set_interface_settings")
 def set_interface_ip(interface_settings: InterfaceSettings) -> ApiResponse:
+    static_connection_name = "_".join([interface_settings.interface_name, "static"])
+
+    # First delete any existing connection profile
+    command_string = f"nmcli connection delete {static_connection_name}"
+    try:
+        execute_shell_command(command_string)
+    except Exception as e:
+        logger.warning(f"Error deleting connection {static_connection_name}: {e}")
+
+    command_string = [f"nmcli connection add type ethernet con-name {static_connection_name} ifname {interface_settings.interface_name}"]
+    
     if interface_settings.method == 'auto':
-        command_string = [
+        command_string.extend([
             "ipv4.method", f"{interface_settings.method}"
-        ]
-        pass
+        ])
     else:
-        command_string = [
-            # "ipv4.addresses", f"{interface_settings.ipv4_address}",
+        command_string.extend([
             "ipv4.method", "manual"
-            # "ipv4.gateway", f"{interface_settings.gateway}",
-            # "ipv4.dns", f"{interface_settings.dns}"
-        ]
+        ])
 
         # Validate IP settings
         try:
@@ -277,25 +259,6 @@ def set_interface_ip(interface_settings: InterfaceSettings) -> ApiResponse:
         command_string.extend(
             ["ipv4.addresses", f"{interface_settings.ipv4_address}/{cidr_network.prefixlen}"]
             )
-
-        # try:
-        #     # cidr_network = ipaddress.IPv4Network(f'{interface_settings.ipv4_address}/{interface_settings.subnet_mask}', strict=False)
-
-        # except Exception as e:
-        #     error_details = HostServicesError(
-        #         description=f"Failed to parse IP address {interface_settings.ipv4_address}/{interface_settings.subnet_mask}",
-        #         details=f"{e}",
-        #     )
-        #     return ApiResponse(
-        #         success=False,
-        #         error_details=error_details
-        #     )
-            # "ipv4.gateway", f"{interface_settings.gateway}",
-            # "ipv4.dns", f"{interface_settings.dns}"
-        
-            # subnet_bytes = [int(b) for b in interface_settings.subnet_mask.split('.')]
-            # cidr_mask = sum([math.log()])
-        # if interface_settings.subnet_mask
         
         if gateway_address:
             command_string.extend(
@@ -313,48 +276,18 @@ def set_interface_ip(interface_settings: InterfaceSettings) -> ApiResponse:
             )
 
     try:
-        command_string = [
-                "nmcli",
-                "connection",
-                "modify",
-                f"{interface_settings.interface_name}",
-                *command_string
-            ]
+        execute_shell_command(' '.join(command_string))
         
-        restart_connection_command_strings = [
-            [
-                "nmcli", "connection", "down", f"{interface_settings.interface_name}"
-            ],
-            [
-                "nmcli", "connection", "up", f"{interface_settings.interface_name}"
-            ]
-        ]
-
-        if not is_running_in_docker():
-            command_string.insert(0, 'sudo')
-            # restart_connection_command_string = "&&".join(['sudo'] + string for string in restart_connection_command_strings)
-            restart_connection_command_strings = [['sudo'] + string for string in restart_connection_command_strings]
-        # else:
-        #     restart_connection_command_string = "&&".join(restart_connection_command_strings)
-            # restart_connection_command_strings.insert(0, 'sudo') for string in restart_connection_command_strings
+        try:
+            execute_shell_command(f"nmcli dev down {interface_settings.interface_name}")
+        except Exception as e:
+            logger.warning(f"Error bringing down interface {interface_settings.interface_name}: {e}")
         
-        modify_output = subprocess.check_output(
-            command_string,
-            text=True,
-            stderr=subprocess.PIPE,
-        )
+        execute_shell_command(f"nmcli connection up {static_connection_name}")
 
-        for restart_command in restart_connection_command_strings:
-            restart_output = subprocess.check_output(
-                restart_command,
-                text=True,
-                stderr=subprocess.PIPE,
-            )
-        # sudo nmcli connection down "Wired connection 1" && sudo nmcli connection up "Wired connection 1"
-
+        logger.info(f"Changed interface settings for {interface_settings.interface_name} to {interface_settings.model_dump()}")
         return ApiResponse(
             success=True,
-            # error_details=error_details
         )
     
     except subprocess.CalledProcessError as e:
@@ -369,17 +302,13 @@ def set_interface_ip(interface_settings: InterfaceSettings) -> ApiResponse:
                 details=f"{e}",
             )
     
-    logger.info(f"Failed to modify interface \'{interface_settings.interface_name}\', details: {error_details.model_dump()}")
+    logger.error(f"Failed to modify interface \'{interface_settings.interface_name}\', details: {error_details.model_dump()}")
     
     return ApiResponse(
         success=False,
         message=f"Failed to modify interface \'{interface_settings.interface_name}\'",
         data=error_details
     )
-    
-    # sudo nmcli connection modify "Wired connection 1" ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.dns "8.8.8.8,8.8.4.4" ipv4.method manual connection.autoconnect yes
-
-
 
 if __name__ == "__main__":
     logger.info(f"Starting host services API...")

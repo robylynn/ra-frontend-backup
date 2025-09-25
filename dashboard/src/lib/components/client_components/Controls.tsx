@@ -19,20 +19,27 @@ export const SliderToggle = (props: SliderToggleInterface) => {
 };
 
 interface LoadingButtonProps {
-    type: 'button' | 'submit' | 'reset';
+    className?: string;
+    type?: 'button' | 'submit' | 'reset';
     onClick?: () => void;
-    isLoading: boolean;
+    isLoading?: boolean;
     buttonText: string;
 }
 
-export const LoadingButton = (props: LoadingButtonProps) => {
+export const LoadingButton: React.FC<LoadingButtonProps> = ({
+    type = 'button',
+    onClick,
+    isLoading = false,
+    buttonText,
+    className = undefined,
+}) => {
     return (
         <button
-            onClick={props.onClick ?? undefined}
-            type={props.type}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
+            onClick={onClick ?? undefined}
+            type={type}
+            className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold ${className ?? ''}`}
         >
-            {props.isLoading ? <SpinnerIcon /> : props.buttonText}
+            {isLoading ? <SpinnerIcon /> : buttonText}
             {/* {props.buttonText} */}
         </button>
     );
