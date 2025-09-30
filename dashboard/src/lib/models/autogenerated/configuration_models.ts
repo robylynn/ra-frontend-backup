@@ -227,13 +227,28 @@ export const uiConfiguration = z.object({
 });
 export type uiConfigurationType = z.infer<typeof uiConfiguration>;
 
+export interface IioPointLocation {
+    point_index: number,
+    module_index: number,
+    rack_index: number
+}
+
+export const ioPointLocation = z.object({
+    point_index: z.number(),
+    module_index: z.number(),
+    rack_index: z.number()
+});
+export type ioPointLocationType = z.infer<typeof ioPointLocation>;
+
 export interface IioPointDescription {
     label: string,
+    ros_point_type: number,
     type: ['DI'| 'DO'| 'AI'| 'AO']
 }
 
 export const ioPointDescription = z.object({
     label: z.string(),
+    ros_point_type: z.number(),
     type: z.enum(['DI','DO','AI','AO'])
 });
 export type ioPointDescriptionType = z.infer<typeof ioPointDescription>;
@@ -241,26 +256,41 @@ export type ioPointDescriptionType = z.infer<typeof ioPointDescription>;
 export interface IioPoint {
     id: string,
     point_type: IioPointDescription,
+    location: IioPointLocation,
     point_value: number|boolean
 }
 
 export const ioPoint = z.object({
     id: z.string(),
     point_type: ioPointDescription,
+    location: ioPointLocation,
     point_value: z.union([
         z.number(),z.boolean()])
 });
 export type ioPointType = z.infer<typeof ioPoint>;
 
+export interface IioModuleLocation {
+    module_index: number,
+    rack_index: number
+}
+
+export const ioModuleLocation = z.object({
+    module_index: z.number(),
+    rack_index: z.number()
+});
+export type ioModuleLocationType = z.infer<typeof ioModuleLocation>;
+
 export interface IioModuleDescription {
     name: string,
     icon: string,
+    ros_module_type: number,
     points: IioPointDescription[]
 }
 
 export const ioModuleDescription = z.object({
     name: z.string(),
     icon: z.string(),
+    ros_module_type: z.number(),
     points: z.array(ioPointDescription)
 });
 export type ioModuleDescriptionType = z.infer<typeof ioModuleDescription>;
@@ -269,6 +299,7 @@ export interface IioModule {
     id: string,
     name: string,
     type: IioModuleDescription,
+    location: IioModuleLocation,
     points: IioPoint[]
 }
 
@@ -276,6 +307,7 @@ export const ioModule = z.object({
     id: z.string(),
     name: z.string(),
     type: ioModuleDescription,
+    location: ioModuleLocation,
     points: z.array(ioPoint)
 });
 export type ioModuleType = z.infer<typeof ioModule>;
@@ -283,24 +315,28 @@ export type ioModuleType = z.infer<typeof ioModule>;
 export interface IioRackConfig {
     name: string,
     address: string,
+    port: number,
     max_modules: number
 }
 
 export const ioRackConfig = z.object({
     name: z.string(),
     address: z.string(),
+    port: z.number(),
     max_modules: z.number()
 });
 export type ioRackConfigType = z.infer<typeof ioRackConfig>;
 
 export interface IioRack {
     id: string,
+    rack_index: number,
     modules: IioModule[],
     rack_config: IioRackConfig
 }
 
 export const ioRack = z.object({
     id: z.string(),
+    rack_index: z.number(),
     modules: z.array(ioModule),
     rack_config: ioRackConfig
 });

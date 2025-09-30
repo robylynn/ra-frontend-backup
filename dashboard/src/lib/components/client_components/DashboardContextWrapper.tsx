@@ -11,12 +11,12 @@ import {
     IOPointType,
 } from '@/lib/models/api_models';
 import {
-    AITrainingCommandServices,
+    // AITrainingCommandServices,
     ApplicationContext,
-    AxisCommandServices,
-    CameraCommandServices,
-    IOCommandServices,
-    IOConfigurationServices,
+    // AxisCommandServices,
+    // CameraCommandServices,
+    // IOCommandServices,
+    // IOConfigurationServices,
     RosServices,
     RosState,
 } from '@/lib/models/dashboard_context';
@@ -28,6 +28,8 @@ import {
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
     IRosTypeR2CInterfacesHeartbeat,
+    IRosTypeR2CInterfacesIoRackState,
+    IRosTypeR2CInterfacesIoSystemState,
     IRosTypeR2CInterfacesOpcuaData,
     IRosTypeR2CInterfacesTorques,
 } from '@/lib/models/ros_types';
@@ -74,6 +76,8 @@ export default function DashboardContextProvider(props: {
         createAction<opcConfigurationType>('opc_config/set');
     const setOPCDataAction =
         createAction<IRosTypeR2CInterfacesOpcuaData>('opc/data/set');
+    const setModbusIODataAction =
+        createAction<IRosTypeR2CInterfacesIoSystemState>('modbus_io/data/set');
     const setAvailableDatabaseTablesAction = createAction<{
         tables: availableTables;
     }>('database/tables/set');
@@ -132,20 +136,20 @@ export default function DashboardContextProvider(props: {
     // const addMotionPlotAction = createAction<{
     //     configuration: PlotConfiguration;
     // }>('motion_plots/add');
-    const updatePlotConfiguration =
-        createAction<ModifyPlotInterface>('io_plots/update');
-    const updateMotionPlotConfiguration = createAction<ModifyPlotInterface>(
-        'motion_plots/update'
-    );
-    const deletePlotAction = createAction<{
-        plot_type: IOPointType;
-        plot_index: number;
-    }>('plots/delete');
-    const deleteMotionPlotAction = createAction<{ plot_index: number }>(
-        'motion_plots/delete'
-    );
-    const saveMotionPlotsAction = createAction<{}>('motion_plots/save');
-    const saveIOPlotsAction = createAction<{}>('io_plots/save');
+    // const updatePlotConfiguration =
+    //     createAction<ModifyPlotInterface>('io_plots/update');
+    // const updateMotionPlotConfiguration = createAction<ModifyPlotInterface>(
+    //     'motion_plots/update'
+    // );
+    // const deletePlotAction = createAction<{
+    //     plot_type: IOPointType;
+    //     plot_index: number;
+    // }>('plots/delete');
+    // const deleteMotionPlotAction = createAction<{ plot_index: number }>(
+    //     'motion_plots/delete'
+    // );
+    // const saveMotionPlotsAction = createAction<{}>('motion_plots/save');
+    // const saveIOPlotsAction = createAction<{}>('io_plots/save');
     const setApplicationStateAction = createAction<{
         state_name: string;
         state_value: string | number;
@@ -204,6 +208,9 @@ export default function DashboardContextProvider(props: {
                 })
                 .addCase(setOPCDataAction, (state, action) => {
                     state.opc_ua_data = action.payload;
+                })
+                .addCase(setModbusIODataAction, (state, action) => {
+                    state.modbus_io_state = action.payload;
                 })
                 .addCase(incrementHeartbeatAction, (state, action) => {
                     state.heartbeat = action.payload.heartbeat_valid;

@@ -17,19 +17,17 @@ class JoggingMetadata(BaseModel):
     version: str = Field(...)
     pace: float = Field(...)
 
-
 class ChartTraceMetadata(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     table_name: str = Field(...)
     column: str = Field(...)
     color: str = Field(...)
 
-
 class PlotConfiguration(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     name: str = Field(...)
-    type: Literal["line", "bar", "scatter"] = ""
+    type: Literal['line','bar','scatter'] = ''
     traces: List[ChartTraceMetadata] = Field(...)
     max_length: float = Field(...)
 
@@ -37,23 +35,19 @@ class PlotConfiguration(BaseModel):
 class PlotConfigurations(BaseModel):
     plot_configurations: List[PlotConfiguration] = Field(...)
 
-
 class ImageArchiveMetadata(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     number_of_images: float = Field(...)
 
-
 class CameraMetadata(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     camera_id: str = Field(...)
-    variant: Literal["full", "compact", "simple"] = ""
-
+    variant: Literal['full','compact','simple'] = ''
 
 class TrainingMetadata(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     source: str = Field(...)
-    variant: Literal["full", "compact", "simple"] = ""
-
+    variant: Literal['full','compact','simple'] = ''
 
 class VisionStatisticsMetadata(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -61,135 +55,133 @@ class VisionStatisticsMetadata(BaseModel):
     time_span_hours: float = Field(...)
     defects_to_analyze: List[str]
 
-
 class JoggingComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     label: str = Field(...)
-    type: Literal["jogging"] = Field(...)
+    type: Literal['jogging'] = Field(...)
     metadata: JoggingMetadata = Field(...)
-
 
 class ChartComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     label: str = Field(...)
-    type: Literal["charts"] = Field(...)
+    type: Literal['charts'] = Field(...)
     metadata: PlotConfiguration = Field(...)
-
 
 class ImageArchiveComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal["image_archive"] = Field(...)
+    type: Literal['image_archive'] = Field(...)
     metadata: ImageArchiveMetadata = Field(...)
-
 
 class CameraComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal["camera"] = Field(...)
+    type: Literal['camera'] = Field(...)
     metadata: CameraMetadata = Field(...)
-
 
 class TrainingComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal["training"] = Field(...)
+    type: Literal['training'] = Field(...)
     metadata: TrainingMetadata = Field(...)
-
 
 class VisionStatisticsComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: uuid.UUID = Field(...)
     label: str = Field(...)
     tile_columns: float = Field(...)
-    type: Literal["vision_statistics"] = Field(...)
+    type: Literal['vision_statistics'] = Field(...)
     metadata: VisionStatisticsMetadata = Field(...)
 
-
 UiComponent = Union[
-    JoggingComponent,
-    ChartComponent,
-    ImageArchiveComponent,
-    TrainingComponent,
-    CameraComponent,
-    VisionStatisticsComponent,
-]
-
-
+        JoggingComponent,
+        ChartComponent,
+        ImageArchiveComponent,
+        TrainingComponent,
+        CameraComponent,
+        VisionStatisticsComponent,
+    ]
 class UiConfiguration(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    theme: Literal["light", "dark", "system"] = "system"
+    theme: Literal['light','dark','system'] = 'system'
     tiles: List[UiComponent] = Field(default_factory=list)
     plots: List[PlotConfiguration] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
-
-    @field_serializer("last_updated")
+    @field_serializer('last_updated')
     def serialize_last_updated(self, last_updated: datetime, _info):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
+class IoPointLocation(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    point_index: float = Field(...)
+    module_index: float = Field(...)
+    rack_index: float = Field(...)
 
 class IoPointDescription(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     label: str = Field(...)
-    type: Literal["DI", "DO", "AI", "AO"] = ""
-
+    ros_point_type: float = Field(...)
+    type: Literal['DI','DO','AI','AO'] = ''
 
 class IoPoint(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str = Field(...)
     point_type: IoPointDescription = Field(...)
+    location: IoPointLocation = Field(...)
     point_value: Union[
         float,
         bool,
-    ]
+        ]
 
+class IoModuleLocation(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    module_index: float = Field(...)
+    rack_index: float = Field(...)
 
 class IoModuleDescription(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     name: str = Field(...)
     icon: str = Field(...)
+    ros_module_type: float = Field(...)
     points: List[IoPointDescription] = Field(...)
-
 
 class IoModule(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str = Field(...)
     name: str = Field(...)
     type: IoModuleDescription = Field(...)
+    location: IoModuleLocation = Field(...)
     points: List[IoPoint] = Field(...)
-
 
 class IoRackConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     name: str = Field(...)
     address: str = Field(...)
+    port: float = Field(...)
     max_modules: int = Field(...)
-
 
 class IoRack(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str = Field(...)
+    rack_index: float = Field(...)
     modules: List[IoModule] = Field(...)
     rack_config: IoRackConfig = Field(...)
-
 
 class IoConfiguration(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     racks: List[IoRack] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
-
-    @field_serializer("last_updated")
+    @field_serializer('last_updated')
     def serialize_last_updated(self, last_updated: datetime, _info):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
 
 class OpcDataPoint(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -204,7 +196,6 @@ class OpcDataPoint(BaseModel):
 class OpcDataPoints(BaseModel):
     opc_data_points: List[OpcDataPoint] = Field(...)
 
-
 class OpcSubscriptionGroup(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str = Field(...)
@@ -213,16 +204,13 @@ class OpcSubscriptionGroup(BaseModel):
     interval: int = Field(...)
     data_points: List[OpcDataPoint] = Field(...)
 
-
 class OpcConfiguration(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     subscription_groups: List[OpcSubscriptionGroup] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=partial(datetime.now, timezone.utc))
-
-    @field_serializer("last_updated")
+    @field_serializer('last_updated')
     def serialize_last_updated(self, last_updated: datetime, _info):
         return last_updated.isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
 
 class FullConfiguration(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)

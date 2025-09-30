@@ -27,9 +27,14 @@ import { ioModuleTypes } from '@/lib/models/io_modules';
 import { Modal } from '@/lib/components/client_components/Modal';
 import { ToolTipButtonProps } from '@/lib/components/client_components/ToolTipButtonsColumn';
 import { MultiColumnPanelContainer } from '@/lib/components/server_components/MultiColumnPanelContainer';
+import {
+    IRosTypeR2CInterfacesConfigureIoRackRequest,
+    IRosTypeR2CInterfacesIoPointStatePointType,
+} from '@/lib/models/ros_types';
 import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
 import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
 import { useSession } from 'next-auth/react';
+import { produce } from 'immer';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -56,7 +61,8 @@ const SignalIcon = () => (
 
 interface IOPointProps {
     point: ioPointType;
-    onUpdateValue: (id: string, value: any) => void;
+    // onUpdateValue: (id: string, value: any) => void;
+    onUpdateValue: (point: ioPointType, value: number) => void;
 }
 
 const IOPointComponent: React.FC<IOPointProps> = ({ point, onUpdateValue }) => {
@@ -64,16 +70,19 @@ const IOPointComponent: React.FC<IOPointProps> = ({ point, onUpdateValue }) => {
     const isInput = point.point_type.type.endsWith('I');
 
     const handleDigitalToggle = () =>
-        onUpdateValue(point.id, !point.point_value);
+        // onUpdateValue(point.id, !point.point_value);
+        onUpdateValue(point, !point.point_value ? 1 : 0);
 
     const handleAnalogChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (value === '') {
-            onUpdateValue(point.id, ''); // Or 0, depending on desired behavior
+            // onUpdateValue(point.id, ''); // Or 0, depending on desired behavior
+            onUpdateValue(point, 0); // Or 0, depending on desired behavior
         } else {
             const numberValue = Number(value);
             if (!isNaN(numberValue)) {
-                onUpdateValue(point.id, numberValue);
+                // onUpdateValue(point.id, numberValue);
+                onUpdateValue(point, numberValue);
             }
         }
     };
@@ -143,6 +152,8 @@ const ModuleModal: React.FC<ModuleModalProps> = ({
 
     // Keep a reference to the initial module to avoid unnecessary re-renders
     const initialModuleRef = useRef(module);
+    const { dashboardContext } = useContext(DashboardContext);
+    const { showAlert } = useAlert();
 
     // Use formData state to manage form inputs
     const [formData, setFormData] = useState(module);
@@ -164,9 +175,14 @@ const ModuleModal: React.FC<ModuleModalProps> = ({
                 }
 
                 // Create a new array of points only if the type has changed
-                const newPoints = newType.points.map((p) => ({
+                const newPoints = newType.points.map((p, i) => ({
                     id: uuidv4(), // Generate a new ID for each point
                     point_type: p, // Assign the correct point type
+                    location: {
+                        rack_index: prev.location.rack_index,
+                        module_index: prev.location.module_index,
+                        point_index: i,
+                    },
                     point_value:
                         p.type === 'DO'
                             ? false
@@ -184,12 +200,26 @@ const ModuleModal: React.FC<ModuleModalProps> = ({
         }
     };
 
-    const handleUpdatePointValue = (pointId: string, value: any) => {
+    // const handleUpdatePointValue = (pointId: string, value: any) => {
+    const handleUpdatePointValue = (point: ioPointType, value: number) => {
+        // const io_point =
+        dashboardContext.ros_services.io_services.setIOPoint(
+            point.location.rack_index,
+            point.location.module_index,
+            point.location.point_index,
+            value,
+            () =>
+                showAlert(
+                    `Successfully set point ${point.location.rack_index}.${point.location.module_index}.${point.location.point_index} to ${value}`,
+                    'success'
+                )
+        );
+
         setFormData((prev) => ({
             ...prev,
             points: prev.points.map((p) =>
                 // Correct the property name from `value` to `point_value`
-                p.id === pointId ? { ...p, point_value: value } : p
+                p.id === point.id ? { ...p, point_value: value } : p
             ),
         }));
     };
@@ -710,6 +740,73 @@ export const IOConfigurationComponent: React.FC = () => {
         }
     }, [dashboardContext?.io_configuration]);
 
+    // useEffect(() => {
+    //     const newRacks = [...racks];
+
+    //     newRacks.forEach((rack) => {
+    //         rack.modules.forEach((module) => {
+    //             module.points.forEach((point) => {
+    //                 newRacks[point.location.rack_index].modules[
+    //                     point.location.module_index
+    //                 ].points[point.location.point_index].point_value =
+    //                     dashboardContext.modbus_io_state?.rack_states[
+    //                         point.location.rack_index
+    //                     ].module_states[point.location.module_index]
+    //                         .point_states[point.location.point_index].state ??
+    //                     0;
+    //             });
+    //         });
+    //     });
+
+    //     setRacks(newRacks);
+    // }, [JSON.stringify(dashboardContext.modbus_io_state)]);
+
+    useEffect(() => {
+        const modbusState = dashboardContext.modbus_io_state;
+
+        // Optional: Skip the run if the required context data is not yet available
+        if (!modbusState || !modbusState.rack_states) {
+            return;
+        }
+
+        // Use the functional update form of setRacks
+        setRacks((prevRacks) =>
+            // 1. Immer's 'produce' takes the current state (prevRacks)
+            produce(prevRacks, (draftRacks) => {
+                // 2. The second argument is a 'recipe' function that gets a mutable 'draft'
+
+                // Iterate over the draft structure
+                draftRacks.forEach((rack) => {
+                    rack.modules.forEach((module) => {
+                        module.points.forEach((point) => {
+                            // Extract indices from the point's location for clean access
+                            const { rack_index, module_index, point_index } =
+                                point.location;
+
+                            // Safely access the new value from the context
+                            const newStateValue =
+                                modbusState.rack_states[rack_index]
+                                    ?.module_states[module_index]?.point_states[
+                                    point_index
+                                ]?.state;
+
+                            // 3. Perform the "mutation" on the draft.
+                            //    Immer tracks this change and handles the deep cloning internally.
+                            draftRacks[rack_index].modules[module_index].points[
+                                point_index
+                            ].point_value = newStateValue ?? 0;
+                        });
+                    });
+                });
+                // 4. No need to return anything from this inner function.
+                //    Immer returns the *next immutable state* from 'produce'.
+            })
+        );
+
+        // The dependency is now only the object that holds the source of truth data
+        // We rely on standard reference equality check for updates.
+    }, [dashboardContext.modbus_io_state]);
+
     // Rack and Module CRUD
     const handleAddRack = () => {
         const newRack: ioRackType = {
@@ -717,9 +814,12 @@ export const IOConfigurationComponent: React.FC = () => {
             rack_config: {
                 name: `Rack ${racks.length + 1}`,
                 address: `192.168.1.${100 + racks.length}`,
+                port: 502,
                 max_modules: 8,
             },
             modules: [],
+            // rack_index: racks.length + 1,
+            rack_index: racks.length,
         };
         setRacks((prev) => [...prev, newRack]);
     };
@@ -747,14 +847,26 @@ export const IOConfigurationComponent: React.FC = () => {
                     const newModule: ioModuleType = {
                         id: uuidv4(),
                         name: `Module_${rack.modules.length + 1}`,
+                        location: {
+                            rack_index: rack.rack_index,
+                            module_index: rack.modules.length, // + 1,
+                        },
                         type: defaultType,
-                        points: defaultType.points.map((p) => ({
+                        points: defaultType.points.map((p, i) => ({
                             ...p,
                             id: uuidv4(),
                             // point_type: p.type,
+                            ros_point_type: p.ros_point_type,
                             point_type: {
                                 type: p.type,
                                 label: p.label,
+                                ros_point_type: p.ros_point_type,
+                                // point_index: i,
+                            },
+                            location: {
+                                rack_index: rack.rack_index,
+                                module_index: rack.modules.length, // + 1,
+                                point_index: i,
                             },
                             point_value:
                                 p.type === 'DO'
@@ -846,50 +958,50 @@ export const IOConfigurationComponent: React.FC = () => {
         }
     };
 
-    const loadConfigFromCloud = async () => {
-        // if (!isAuthReady || !userId) {
-        //     showAlert('Authentication in progress. Please wait.', 'error');
-        //     return;
-        // }
-        setIsLoading(true);
-        showAlert('Loading configuration...', 'success');
-        try {
-            // const userDocRef = doc(
-            //     db,
-            //     'artifacts',
-            //     appId,
-            //     'users',
-            //     userId,
-            //     'config',
-            //     'plc_config'
-            // );
-            // const docSnap = await getDoc(userDocRef);
-            // if (docSnap.exists()) {
-            //     const data = docSnap.data();
-            //     if (data.racks) {
-            //         const parsedRacks = JSON.parse(data.racks);
-            //         ConfigurationSchema.parse(parsedRacks); // Zod validation
-            //         setRacks(parsedRacks);
-            //         showAlert(
-            //             'Configuration loaded from the cloud!',
-            //             'success'
-            //         );
-            //     } else {
-            //         throw new Error('No racks data found.');
-            //     }
-            // } else {
-            //     showAlert('No saved configuration found.', 'info');
-            // }
-        } catch (error) {
-            console.error('Error loading config:', error);
-            showAlert(
-                `Failed to load configuration. ${error.message}`,
-                'error'
-            );
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // const loadConfigFromCloud = async () => {
+    //     // if (!isAuthReady || !userId) {
+    //     //     showAlert('Authentication in progress. Please wait.', 'error');
+    //     //     return;
+    //     // }
+    //     setIsLoading(true);
+    //     showAlert('Loading configuration...', 'success');
+    //     try {
+    //         // const userDocRef = doc(
+    //         //     db,
+    //         //     'artifacts',
+    //         //     appId,
+    //         //     'users',
+    //         //     userId,
+    //         //     'config',
+    //         //     'plc_config'
+    //         // );
+    //         // const docSnap = await getDoc(userDocRef);
+    //         // if (docSnap.exists()) {
+    //         //     const data = docSnap.data();
+    //         //     if (data.racks) {
+    //         //         const parsedRacks = JSON.parse(data.racks);
+    //         //         ConfigurationSchema.parse(parsedRacks); // Zod validation
+    //         //         setRacks(parsedRacks);
+    //         //         showAlert(
+    //         //             'Configuration loaded from the cloud!',
+    //         //             'success'
+    //         //         );
+    //         //     } else {
+    //         //         throw new Error('No racks data found.');
+    //         //     }
+    //         // } else {
+    //         //     showAlert('No saved configuration found.', 'info');
+    //         // }
+    //     } catch (error) {
+    //         console.error('Error loading config:', error);
+    //         showAlert(
+    //             `Failed to load configuration. ${error.message}`,
+    //             'error'
+    //         );
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
 
     // Export & Import
     // const exportConfig = () => {
@@ -940,6 +1052,62 @@ export const IOConfigurationComponent: React.FC = () => {
         ? racks.find((r) => r.id === editingRack) || null
         : null;
 
+    const pointTypeToRosPointType = (point_type: ioPointType): number => {
+        switch (point_type.point_type.type) {
+            case 'DI':
+                return IRosTypeR2CInterfacesIoPointStatePointType.DI;
+            case 'DO':
+                return IRosTypeR2CInterfacesIoPointStatePointType.DO;
+            case 'AI':
+                return IRosTypeR2CInterfacesIoPointStatePointType.AI;
+            case 'AO':
+                return IRosTypeR2CInterfacesIoPointStatePointType.AO;
+        }
+    };
+
+    // const moduleTypeToRosModuleType = (module_type: ioModuleType): number => {
+    //     switch (module_type.type.name) {
+    //         case ("T8PT_DI")
+    //     }
+    // }
+
+    const rackConfigToRosMessage = (rack_index: number) => {
+        const rack = racks[rack_index];
+        const output_message: IRosTypeR2CInterfacesConfigureIoRackRequest = {
+            rack_config: {
+                stamp: {
+                    sec: 0,
+                    nanosec: 0,
+                },
+                ip_address: rack.rack_config.address
+                    .split('.')
+                    .map((o) => Number.parseInt(o)),
+                port: rack.rack_config.port,
+                rack_name: rack.rack_config.name,
+                rack_index: rack_index,
+                module_states: rack.modules.map((m, index) => ({
+                    stamp: {
+                        sec: 0,
+                        nanosec: 0,
+                    },
+                    module_type: m.type.ros_module_type,
+                    module_index: index,
+                    point_states: m.points.map((p, index) => ({
+                        stamp: {
+                            sec: 0,
+                            nanosec: 0,
+                        },
+                        state: 0,
+                        point_type: p.point_type.ros_point_type,
+                        point_index: index,
+                    })),
+                })),
+            },
+        };
+
+        return output_message;
+    };
+
     const buttons: ToolTipButtonProps[] = [
         {
             svgIcon: PlusSquareIcon,
@@ -955,7 +1123,29 @@ export const IOConfigurationComponent: React.FC = () => {
         },
         {
             svgIcon: RobotIcon,
-            onClick: () => {},
+            onClick: () => {
+                racks.forEach((rack, rack_index) => {
+                    dashboardContext.ros_services.io_services.configureIoRack(
+                        rack,
+                        rack_index,
+                        () =>
+                            showAlert(
+                                `Configured IO rack ${rack_index} at ${rack.rack_config.address}`,
+                                'success'
+                            ),
+                        () =>
+                            showAlert(
+                                `Failed to configure rack ${rack_index}`,
+                                'error'
+                            ),
+                        (error) =>
+                            showAlert(
+                                `Error configuring rack ${rack_index}: ${error}`,
+                                'error'
+                            )
+                    );
+                });
+            },
             tooltipText: 'Load Configuration to ROS',
             isLoading: isLoadingToRos,
         },

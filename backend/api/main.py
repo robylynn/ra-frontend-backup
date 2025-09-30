@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exception_handlers import (
     http_exception_handler,
     request_validation_exception_handler,
+    RequestValidationError
 )
 from loguru import logger
 import asyncpg
@@ -323,6 +324,27 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         status_code=exc.status_code,
         content={"success": False, "message": exc.detail},
         headers=exc.headers,
+    )
+
+@backend_api.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # -------------------------------------------------------------------
+    # This is the line that prints the error detail to your console
+    # -------------------------------------------------------------------
+    request_body = await request.json()
+    
+    logger.error(f"422 Validation Error at {request.url}:")
+    for error in exc.errors():
+        logger.error(f"  Field: {error['loc']}")
+        logger.error(f"  Message: {error['msg']}")
+        logger.error(f"  Type: {error['type']}")
+    logger.error("-" * 30)
+    # -------------------------------------------------------------------
+    
+    # Return the standard 422 JSON response to the client
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
     )
 
 

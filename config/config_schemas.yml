@@ -200,10 +200,19 @@ schemas:
   #############
   ## IO Schemas
   #############
+  io_point_location:
+    type: object
+    properties:
+      point_index: { type: number }
+      module_index: { type: number }
+      rack_index: { type: number }
+  
   io_point_description:
     type: object
     properties:
       label: { type: string }
+      ros_point_type: { type: number }
+      # point_index: { type: number }
       type:
         type: enum
         valid_values: [DI, DO, AI, AO]
@@ -213,15 +222,23 @@ schemas:
     properties:
       id: { type: string }
       point_type: { ref: io_point_description }
+      location: { ref: io_point_location }
       point_value:
           type: union
           variants: [number, boolean]
+
+  io_module_location:
+    type: object
+    properties:
+      module_index: { type: number }
+      rack_index: { type: number }
 
   io_module_description:
     type: object
     properties:
       name: { type: string }
       icon: { type: string }
+      ros_module_type: { type: number }
       points:
         type: array
         elements: { ref: io_point_description }
@@ -232,6 +249,7 @@ schemas:
       id: { type: string }
       name: { type: string }
       type: { ref: io_module_description }
+      location: { ref: io_module_location }
       points:
         type: array
         elements: { ref: io_point }
@@ -241,6 +259,7 @@ schemas:
     properties:
       name: { type: string }
       address: { type: string }
+      port: { type: number }
       max_modules:
         type: integer
         validations: { minimum: 1 }
@@ -249,6 +268,7 @@ schemas:
     type: object
     properties:
       id: { type: string }
+      rack_index: { type: number }
       modules:
         type: array
         elements: { ref: io_module }

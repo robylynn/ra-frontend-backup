@@ -15,8 +15,9 @@ import {
     ApplicationServices,
     AxisCommandServices,
     CameraCommandServices,
-    IOCommandServices,
-    IOConfigurationServices,
+    IOServices,
+    // IOCommandServices,
+    // IOConfigurationServices,
     OPCUAServices,
     RosServices,
 } from '@/lib/models/dashboard_context';
@@ -28,6 +29,7 @@ import {
     IRosTypeR2CInterfacesEncoderEstimates,
     IRosTypeR2CInterfacesGpioConfigurationState,
     IRosTypeR2CInterfacesHeartbeat,
+    IRosTypeR2CInterfacesIoSystemState,
     IRosTypeR2CInterfacesOpcuaData,
     IRosTypeR2CInterfacesTorques,
     IRosTypeStdMsgsString,
@@ -56,83 +58,83 @@ interface WebsocketProps {
     callback?: (message: any) => void;
 }
 
-function initializeIOConfigurationServices(
-    ros_websocket: ROSLIB.Ros
-): IOConfigurationServices {
-    const digital_in_config_service = new ROSLIB.Service({
-        ros: ros_websocket,
-        name: '/configure_digital_in',
-        serviceType: 'r2c_interfaces/ConfigureDigitalIn',
-    });
+// function initializeIOConfigurationServices(
+//     ros_websocket: ROSLIB.Ros
+// ): IOConfigurationServices {
+//     const digital_in_config_service = new ROSLIB.Service({
+//         ros: ros_websocket,
+//         name: '/configure_digital_in',
+//         serviceType: 'r2c_interfaces/ConfigureDigitalIn',
+//     });
 
-    const digital_out_config_service = new ROSLIB.Service({
-        ros: ros_websocket,
-        name: '/configure_digital_out',
-        serviceType: 'r2c_interfaces/ConfigureDigitalOut',
-    });
+//     const digital_out_config_service = new ROSLIB.Service({
+//         ros: ros_websocket,
+//         name: '/configure_digital_out',
+//         serviceType: 'r2c_interfaces/ConfigureDigitalOut',
+//     });
 
-    const analog_in_config_service = new ROSLIB.Service({
-        ros: ros_websocket,
-        name: '/configure_analog_in',
-        serviceType: 'r2c_interfaces/ConfigureAnalogIn',
-    });
+//     const analog_in_config_service = new ROSLIB.Service({
+//         ros: ros_websocket,
+//         name: '/configure_analog_in',
+//         serviceType: 'r2c_interfaces/ConfigureAnalogIn',
+//     });
 
-    const analog_out_config_service = new ROSLIB.Service({
-        ros: ros_websocket,
-        name: '/configure_analog_out',
-        serviceType: 'r2c_interfaces/ConfigureAnalogOut',
-    });
+//     const analog_out_config_service = new ROSLIB.Service({
+//         ros: ros_websocket,
+//         name: '/configure_analog_out',
+//         serviceType: 'r2c_interfaces/ConfigureAnalogOut',
+//     });
 
-    let config_services: IOConfigurationServices =
-        new IOConfigurationServices();
-    config_services.set_service(
-        IOPointType.ANALOG_INPUT,
-        analog_in_config_service
-    );
-    config_services.set_service(
-        IOPointType.ANALOG_OUTPUT,
-        analog_out_config_service
-    );
-    config_services.set_service(
-        IOPointType.DIGITAL_INPUT,
-        digital_in_config_service
-    );
-    config_services.set_service(
-        IOPointType.DIGITAL_OUTPUT,
-        digital_out_config_service
-    );
+//     let config_services: IOConfigurationServices =
+//         new IOConfigurationServices();
+//     config_services.set_service(
+//         IOPointType.ANALOG_INPUT,
+//         analog_in_config_service
+//     );
+//     config_services.set_service(
+//         IOPointType.ANALOG_OUTPUT,
+//         analog_out_config_service
+//     );
+//     config_services.set_service(
+//         IOPointType.DIGITAL_INPUT,
+//         digital_in_config_service
+//     );
+//     config_services.set_service(
+//         IOPointType.DIGITAL_OUTPUT,
+//         digital_out_config_service
+//     );
 
-    return config_services;
-}
+//     return config_services;
+// }
 
-function initializeIOCommandServices(
-    ros_websocket: ROSLIB.Ros
-): IOCommandServices {
-    const digital_out_command_service = new ROSLIB.Service({
-        ros: ros_websocket,
-        name: '/gpio/set_digital_out',
-        serviceType: 'r2c_interfaces/SetDigitalOutputStates',
-    });
+// function initializeIOCommandServices(
+//     ros_websocket: ROSLIB.Ros
+// ): IOCommandServices {
+//     const digital_out_command_service = new ROSLIB.Service({
+//         ros: ros_websocket,
+//         name: '/gpio/set_digital_out',
+//         serviceType: 'r2c_interfaces/SetDigitalOutputStates',
+//     });
 
-    const analog_out_command_service = new ROSLIB.Service({
-        ros: ros_websocket,
-        name: '/gpio/set_analog_out',
-        serviceType: 'r2c_interfaces/SetAnalogOutputStates',
-    });
+//     const analog_out_command_service = new ROSLIB.Service({
+//         ros: ros_websocket,
+//         name: '/gpio/set_analog_out',
+//         serviceType: 'r2c_interfaces/SetAnalogOutputStates',
+//     });
 
-    let io_state_services: IOCommandServices = new IOCommandServices();
-    io_state_services.set_service(
-        IOPointType.DIGITAL_OUTPUT,
-        digital_out_command_service
-    );
+//     let io_state_services: IOCommandServices = new IOCommandServices();
+//     io_state_services.set_service(
+//         IOPointType.DIGITAL_OUTPUT,
+//         digital_out_command_service
+//     );
 
-    io_state_services.set_service(
-        IOPointType.ANALOG_OUTPUT,
-        analog_out_command_service
-    );
+//     io_state_services.set_service(
+//         IOPointType.ANALOG_OUTPUT,
+//         analog_out_command_service
+//     );
 
-    return io_state_services;
-}
+//     return io_state_services;
+// }
 
 function initializeCameraServices(
     ros_websocket: ROSLIB.Ros
@@ -487,6 +489,22 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                 });
             },
         });
+
+        addSubscription({
+            topic: '/modbus/io_system_state',
+            messageType: 'r2c_interfaces/IOSystemState',
+            callback: (message: IRosTypeR2CInterfacesIoSystemState) => {
+                logMessage(
+                    `Got IO data update: ${JSON.stringify(message)}`,
+                    'info',
+                    'ROS'
+                );
+                setDashboardContext({
+                    payload: message,
+                    type: 'modbus_io/data/set',
+                });
+            },
+        });
     };
 
     // --- ROSLIB.js Connection Logic ---
@@ -562,15 +580,11 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                                 camera_services: initializeCameraServices(
                                     ros.current
                                 ),
-                                ai_training_services: initializeAITrainingServices(ros.current)
+                                ai_training_services: initializeAITrainingServices(ros.current),
+                                io_services: new IOServices(ros.current)
                             };
 
                             setRosContext(
-                                // initializeIOConfigurationServices(ros.current),
-                                // initializeIOCommandServices(ros.current),
-                                // // initializeApplicationServices(ros.current),
-                                // initializeAxisServices(ros.current),
-                                // initializeCameraServices(ros.current),
                                 services,
                                 true
                             );
