@@ -321,6 +321,7 @@ export interface IRosTypeR2CInterfacesConfigureIoRackRequest {
 }
 
 export interface IRosTypeR2CInterfacesConfigureIoRackResponse {
+  message: string;
   success: boolean;
 }
 
@@ -399,6 +400,7 @@ export interface IRosTypeR2CInterfacesCreateOpcuaSubscriptionRequest {
 }
 
 export interface IRosTypeR2CInterfacesCreateOpcuaSubscriptionResponse {
+  message: string;
   success: boolean;
 }
 
@@ -885,6 +887,7 @@ export interface IRosTypeR2CInterfacesSetIoPointRequest {
 }
 
 export interface IRosTypeR2CInterfacesSetIoPointResponse {
+  message: string;
   success: boolean;
 }
 
@@ -898,6 +901,7 @@ export interface IRosTypeR2CInterfacesSetOpcuaVariableRequest {
 }
 
 export interface IRosTypeR2CInterfacesSetOpcuaVariableResponse {
+  message: string;
   success: boolean;
 }
 
