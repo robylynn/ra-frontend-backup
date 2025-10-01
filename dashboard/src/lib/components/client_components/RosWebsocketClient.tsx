@@ -291,23 +291,12 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
     const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
     const setRosContext = (
-        // config_services: IOConfigurationServices,
-        // io_state_services: IOCommandServices,
-        // // application_services: ApplicationServices,
-        // axis_command_services: AxisCommandServices,
-        // camera_services: CameraCommandServices,
         services: RosServices,
         connected?: boolean
     ) => {
         setDashboardContext({
             payload: {
-                // ros_config_services: config_services,
-                // ros_io_state_services: io_state_services,
-                // // ros_application_services: application_services,
-                // ros_axis_command_services: axis_command_services,
-                // ros_camera_services: camera_services,
                 services: services,
-                // ra_ros_websocket: ros.current,
                 ros_state: {
                     ros: ros.current,
                     connected: connected ?? isConnected,
@@ -325,8 +314,6 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
 
         setDashboardContext({
             payload: {
-                // ros_config_services: null,
-                // ros_io_state_services: null,
                 services: null,
                 ros_state: {
                     ros: ros.current,
@@ -532,6 +519,8 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
         });
         ros.current = newRos;
 
+
+        
         newRos.on('connection', () => {
             // Event when connected
             if (isMounted.current) {
@@ -549,7 +538,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                     name: '/rosapi/nodes',
                     serviceType: 'rosapi_msgs/srv/Nodes',
                 });
-                timeoutServiceCall(nodes_service, {}, reconnectInterval / 2)
+                timeoutServiceCall(nodes_service, {}, reconnectInterval / 2, 3, 100)
                     .then(
                         (nodes) => {
                             logMessage(

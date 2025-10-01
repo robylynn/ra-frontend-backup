@@ -33,10 +33,11 @@ import {
 } from '@/lib/models/ros_types';
 import { getUsernameForConfiguration } from '@/lib/utils/configUserName';
 import { fetchFromBackendApi } from '@/lib/utils/timeoutFetch';
-import { useSession } from 'next-auth/react';
 import { produce } from 'immer';
+import { useSession } from 'next-auth/react';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { SliderToggle } from './Controls';
 
 const SignalIcon = () => (
     <svg
@@ -107,31 +108,6 @@ const IOPointComponent: React.FC<IOPointProps> = ({ point, onUpdateValue }) => {
                     {point.point_type.label}
                 </span>
             </div>
-            {isDigital ? (
-                <button
-                    onClick={isInput ? undefined : handleDigitalToggle}
-                    type="button"
-                    className={`h-6 w-12 rounded-full p-0.5 transition-colors duration-200 relative flex items-center justify-center ${isInput ? 'bg-gray-200 cursor-not-allowed' : point.point_value ? 'bg-green-500' : 'bg-gray-400'}`}
-                    disabled={isInput}
-                >
-                    <div
-                        className={`h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${point.point_value ? 'translate-x-3' : '-translate-x-3'}`}
-                    ></div>
-                </button>
-            ) : (
-                <div className="flex items-center gap-1 w-full">
-                    <input
-                        type="number"
-                        value={point.point_value as number}
-                        onChange={handleAnalogChange}
-                        disabled={isInput}
-                        min={-100}
-                        max={100}
-                        step={0.1}
-                        className={`w-16 p-1 text-sm rounded-md text-center border focus:outline-none focus:ring-2 focus:ring-blue-500 ${isInput ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-800 border-gray-300'}`}
-                    />
-                </div>
-            )}
         </div>
     );
 };
@@ -215,13 +191,13 @@ const ModuleModal: React.FC<ModuleModalProps> = ({
                 )
         );
 
-        setFormData((prev) => ({
-            ...prev,
-            points: prev.points.map((p) =>
-                // Correct the property name from `value` to `point_value`
-                p.id === point.id ? { ...p, point_value: value } : p
-            ),
-        }));
+        // setFormData((prev) => ({
+        //     ...prev,
+        //     points: prev.points.map((p) =>
+        //         // Correct the property name from `value` to `point_value`
+        //         p.id === point.id ? { ...p, point_value: value } : p
+        //     ),
+        // }));
     };
 
     const handleSave = () => {
@@ -413,6 +389,9 @@ const ModuleComponent: React.FC<ModuleProps> = ({
     onDragStart,
     onDragEnd,
 }) => {
+    const { dashboardContext } = useContext(DashboardContext);
+    const { showAlert } = useAlert();
+
     return (
         <div
             className="flex-shrink-0 w-[240px] h-[400px] flex flex-col bg-white rounded-2xl shadow-xl border border-gray-200 p-4 relative cursor-grab active:cursor-grabbing"
@@ -454,13 +433,40 @@ const ModuleComponent: React.FC<ModuleProps> = ({
                         <span className="text-sm font-medium text-gray-700 truncate">
                             {point.point_type.label}
                         </span>
-                        <span className="text-sm font-mono text-gray-600">
-                            {point.point_type.type.startsWith('D')
-                                ? point.point_value
-                                    ? 'ON'
-                                    : 'OFF'
-                                : `${point.point_value}`}
-                        </span>
+                        {point.point_type.type == 'DI' ? (
+                            <span className="text-sm font-mono text-gray-600">
+                                {/* {point.point_type.type.startsWith('D')
+                                    ? point.point_value
+                                        ? 'ON'
+                                        : 'OFF'
+                                    : `${point.point_value}`} */}
+                                {point.point_value ? 'ON' : 'OFF'}
+                            </span>
+                        ) : point.point_type.type == 'DO' ? (
+                            <SliderToggle
+                                isActive={
+                                    point.point_value ? true : (false ?? false)
+                                }
+                                onClick={() => {
+                                    const toggled_val = point.point_value
+                                        ? 0
+                                        : 1;
+                                    dashboardContext?.ros_services?.io_services.setIOPoint(
+                                        point.location.rack_index,
+                                        point.location.module_index,
+                                        point.location.point_index,
+                                        toggled_val,
+                                        () =>
+                                            showAlert(
+                                                `Successfully set point ${point.location.rack_index}.${point.location.module_index}.${point.location.point_index} to ${toggled_val}`,
+                                                'success'
+                                            )
+                                    );
+                                }}
+                            />
+                        ) : (
+                            <>NOT IMPLEMENTED</>
+                        )}
                     </div>
                 ))}
             </div>
@@ -739,27 +745,6 @@ export const IOConfigurationComponent: React.FC = () => {
             });
         }
     }, [dashboardContext?.io_configuration]);
-
-    // useEffect(() => {
-    //     const newRacks = [...racks];
-
-    //     newRacks.forEach((rack) => {
-    //         rack.modules.forEach((module) => {
-    //             module.points.forEach((point) => {
-    //                 newRacks[point.location.rack_index].modules[
-    //                     point.location.module_index
-    //                 ].points[point.location.point_index].point_value =
-    //                     dashboardContext.modbus_io_state?.rack_states[
-    //                         point.location.rack_index
-    //                     ].module_states[point.location.module_index]
-    //                         .point_states[point.location.point_index].state ??
-    //                     0;
-    //             });
-    //         });
-    //     });
-
-    //     setRacks(newRacks);
-    // }, [JSON.stringify(dashboardContext.modbus_io_state)]);
 
     useEffect(() => {
         const modbusState = dashboardContext.modbus_io_state;
