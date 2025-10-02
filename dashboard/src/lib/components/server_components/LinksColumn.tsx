@@ -146,6 +146,11 @@ export default async function LinksColumn(props: { className?: string }) {
                                 href={'/training'}
                             />
                             <PageTab
+                                tab_text={'Annotation'}
+                                icon_path={'/icons/pencil.svg'}
+                                href={'/annotation'}
+                            />
+                            <PageTab
                                 tab_text={'Jogging'}
                                 icon_path={'/icons/gears.svg'}
                                 href={'/jog'}
