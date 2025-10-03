@@ -44,7 +44,7 @@ const JogButton = (props: {
                 IRosTypeR2CInterfacesAxisStateAxisIndex.STATE_CLOSED_LOOP_CONTROL
             }
             onClick={() =>
-                dashboardContext.axis_command_services.jog_axis(
+                dashboardContext.ros_services.axis_command_services.jog_axis(
                     props.axis,
                     jog_mode,
                     props.amount

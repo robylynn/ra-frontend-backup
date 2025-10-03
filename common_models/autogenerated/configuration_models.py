@@ -111,6 +111,7 @@ UiComponent = Union[
     ]
 class UiConfiguration(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
+    header: Optional[str] = None
     theme: Literal['light','dark','system'] = 'system'
     tiles: List[UiComponent] = Field(default_factory=list)
     plots: List[PlotConfiguration] = Field(default_factory=list)
@@ -218,3 +219,20 @@ class FullConfiguration(BaseModel):
     ui_configuration: UiConfiguration = Field(...)
     io_configuration: IoConfiguration = Field(...)
     opc_configuration: OpcConfiguration = Field(...)
+
+class CapturedImage(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    id: str = Field(...)
+    timestamp: datetime = Field(...)
+    @field_serializer('timestamp')
+    def serialize_last_updated(self, timestamp: datetime, _info):
+        return timestamp.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    status: Literal['pass','fail'] = 'pass'
+    defect_types: List[str]
+    confidence: float = Field(...)
+    batch_id: str = Field(...)
+    image_src: str = Field(...)
+
+class CapturedImageBatch(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    images: List[CapturedImage] = Field(...)

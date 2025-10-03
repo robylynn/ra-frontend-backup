@@ -542,30 +542,24 @@ export class RosServiceCategory {
 
     public constructor(ros: ROSLIB.Ros) {
         this._ros = ros;
-
-        // this.initialize();
     }
-
-    // public initialize() {
-
-    // }
 }
 
 interface ServiceCall<T> {
     (
-        onSuccess?: () => void, // = () => {},
-        onFailure?: () => void, // = () => {},
-        onError?: (error: any) => void, // = (error) => {},
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
         onComplete?: () => void
-    ): Promise<T>; // = () => {}): boolean
+    ): Promise<T>;
 }
 
 interface SubscribeServiceCall {
     (
         node_id: string,
-        onSuccess?: () => void, // = () => {},
-        onFailure?: () => void, // = () => {},
-        onError?: (error: any) => void, // = (error) => {},
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
         onComplete?: () => void
     ): Promise<boolean>;
 }
@@ -574,9 +568,9 @@ interface WriteServiceCall {
     (
         data_point: opcDataPointType,
         value: string | number | boolean,
-        onSuccess?: () => void, // = () => {},
-        onFailure?: () => void, // = () => {},
-        onError?: (error: any) => void, // = (error) => {},
+        onSuccess?: () => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
         onComplete?: () => void
     ): Promise<boolean>;
 }
@@ -586,57 +580,8 @@ type ServiceResult<T> = T | null;
 export class OPCUAServices extends RosServiceCategory {
     [immerable] = true;
 
-    // protected _ros: ROSLIB.Ros;
-    // private _services: Record<string, ROSLIB.Service> = {
-    //     connect: null,
-    //     browse: null,
-    //     subscribe: null,
-    //     unsubscribe: null,
-    //     write: null,
-    // };
-
-    // private async _call_service<T extends { success: boolean }>(
-    //     service: ROSLIB.Service,
-    //     request: ROSLIB.ServiceRequest,
-    //     onSuccess?: () => void,
-    //     onError?: (message: string) => void,
-    //     onFailure?: () => void,
-    //     onComplete?: () => void,
-    //     onUndefined?: (error: string) => void
-    // ): Promise<ServiceResult<T>> {
-    //     let service_result: ServiceResult<T> = null;
-
-    //     if (!service) {
-    //         onUndefined(`OPC-UA service not defined.`);
-    //         return service_result;
-    //     }
-
-    //     try {
-    //         const res = await timeoutServiceCall<T>(service, request, 3000);
-
-    //         if (res.success) {
-    //             if (onSuccess) onSuccess();
-    //             return res; // Return the successful result
-    //         } else {
-    //             const errorMsg = `OPC-UA service call unsuccessful`;
-    //             logMessage(errorMsg, 'error', 'ROS');
-    //             if (onFailure) onFailure();
-    //             return null; // Return null on failure
-    //         }
-    //     } catch (error) {
-    //         const errorMsg = `OPC-UA service call failed: ${error}`;
-    //         logMessage(errorMsg, 'error', 'ROS');
-    //         if (onError) onError(error);
-    //         return null; // Return null on a promise rejection
-    //     } finally {
-    //         if (onComplete) onComplete();
-    //     }
-    // }
-
     public constructor(ros: ROSLIB.Ros) {
         super(ros);
-
-        // this._ros = ros;
 
         this._services = {
             connect: null,
@@ -1475,6 +1420,7 @@ export interface RosServices {
     camera_services: CameraCommandServices;
     ai_training_services: AITrainingCommandServices;
     io_services: IOServices;
+    axis_command_services: AxisCommandServices;
 }
 
 export class ApplicationContext {

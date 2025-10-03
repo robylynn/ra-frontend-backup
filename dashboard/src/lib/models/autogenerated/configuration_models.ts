@@ -213,6 +213,7 @@ export const uiComponent = z.union([
 export type uiComponentType = z.infer<typeof uiComponent>;
 
 export interface IuiConfiguration {
+    header?: string,
     theme?: ['light'| 'dark'| 'system'],
     tiles?: IuiComponent[],
     plots?: IplotConfiguration[],
@@ -220,6 +221,7 @@ export interface IuiConfiguration {
 }
 
 export const uiConfiguration = z.object({
+    header: z.string().optional(),
     theme: z.enum(['light','dark','system']).default('system'),
     tiles: z.array(uiComponent).min(0).default([]),
     plots: z.array(plotConfiguration).default([]),
@@ -418,3 +420,33 @@ export const fullConfiguration = z.object({
     opc_configuration: opcConfiguration
 });
 export type fullConfigurationType = z.infer<typeof fullConfiguration>;
+
+export interface IcapturedImage {
+    id: string,
+    timestamp: Date,
+    status?: ['pass'| 'fail'],
+    defect_types: string[],
+    confidence: number,
+    batch_id: string,
+    image_src: string
+}
+
+export const capturedImage = z.object({
+    id: z.string(),
+    timestamp: z.string(),
+    status: z.enum(['pass','fail']).default('pass'),
+    defect_types: z.array(z.string()),
+    confidence: z.number(),
+    batch_id: z.string(),
+    image_src: z.string()
+});
+export type capturedImageType = z.infer<typeof capturedImage>;
+
+export interface IcapturedImageBatch {
+    images: IcapturedImage[]
+}
+
+export const capturedImageBatch = z.object({
+    images: z.array(capturedImage)
+});
+export type capturedImageBatchType = z.infer<typeof capturedImageBatch>;

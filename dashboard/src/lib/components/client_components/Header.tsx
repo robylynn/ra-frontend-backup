@@ -1,11 +1,10 @@
 // Frontend Web Application for RA Products
 // Developed by R2 Labs
 
-'use client';
+ 'use client';
 
-import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { PagePanel } from '@/lib/components/client_components/DashboardHeaderContainer';
-// import { DatabaseDocumentInterface } from '@/lib/models/database_models';
+import { DashboardContext } from '@/lib/components/client_components/DashboardContextWrapper';
 import { Icon } from '@blueprintjs/core';
 import { ReactNode, useContext } from 'react';
 
@@ -38,10 +37,9 @@ function RoundedContainer(props: { className?: string; children?: ReactNode }) {
 }
 
 export default function Header(props: {
-    // data_sample?: DatabaseDocumentInterface;
     className?: string;
 }) {
-    const { dashboardContext: context } = useContext(DashboardContext);
+    const { dashboardContext } = useContext(DashboardContext);
 
     return (
         <PagePanel
@@ -49,15 +47,13 @@ export default function Header(props: {
             flex 
             flex-row 
             justify-around 
-            my-1 
             place-items-center
-            border-r-0
-            rounded-r-none
             ${props.className ?? ''}
             `}
         >
             <RoundedContainer className="text-xl font-bold dark:text-white">
-                R2 Autonomy Controller
+                {/* R2 Autonomy Controller */}
+                {dashboardContext.ui_configuration?.header}
             </RoundedContainer>
         </PagePanel>
     );

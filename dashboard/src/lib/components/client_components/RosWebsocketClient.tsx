@@ -570,6 +570,7 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                                     ros.current
                                 ),
                                 ai_training_services: initializeAITrainingServices(ros.current),
+                                axis_command_services: initializeAxisServices(ros.current),
                                 io_services: new IOServices(ros.current)
                             };
 
@@ -700,37 +701,8 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
                 listener.unsubscribe();
             }
         },
-        // [logDebugMessage]
         []
     );
-
-    // const callServiceClient = useCallback(
-    //     (
-    //         client: RosServiceClient,
-    //         request: any,
-    //         onResponse: (result: any) => void,
-    //         onError: (errorMsg: string) => void
-    //     ) => {
-    //         if (ros.current && ros.current.isConnected) {
-    //             logMessage(`Calling service: ${client.name}`, 'debug');
-    //             const serviceClient = new ROSLIB.Service({
-    //                 ros: ros.current,
-    //                 name: client.name,
-    //                 serviceType: client.serviceType,
-    //             });
-    //             const rosRequest = new ROSLIB.ServiceRequest(request);
-    //             serviceClient.callService(rosRequest, onResponse, onError);
-    //         } else {
-    //             logMessage(
-    //                 `Cannot call service ${client.name}: Not connected.`,
-    //                 'error'
-    //             );
-    //             onError('Not connected to Rosbridge.');
-    //         }
-    //     },
-    //     // [logDebugMessage]
-    //     []
-    // );
 
     return <></>;
 };

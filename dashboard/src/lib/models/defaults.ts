@@ -27,6 +27,7 @@ export const OLD_DEFAULT_UI_CONFIG: uiConfigurationType = {
 
 export const DEFAULT_UI_CONFIG: uiConfigurationType = {
     theme: 'dark', // Default from schema
+    header: 'Paint Line Vision System',
     tiles: [
         // At least one component is required by .min(1)
         {

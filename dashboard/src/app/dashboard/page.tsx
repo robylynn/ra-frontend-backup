@@ -11,12 +11,12 @@ import DashboardMainPanel from './dashboard_panel';
 export default function Dashboard() {
     return (
         <ProtectedPage>
-            <div className="flex flex-col justify-end h-full gap-y-2">
-                <div className="flex col-2 h-[7%] w-full">
-                    <Header className="h-full w-[30%]" />
-                    <ApplicationStateContainer className="h-full w-[70%]" />
-                </div>
-                <AxisPositionContainer />
+            <div className="flex flex-col justify-end h-full w-full gap-y-2">
+                {/* <div className="flex col-2 h-[7%] w-full"> */}
+                    <Header className="h-[7%] w-full" />
+                    {/* <ApplicationStateContainer className="h-full w-[70%]" /> */}
+                {/* </div> */}
+                {/* <AxisPositionContainer /> */}
                 <DashboardMainPanel className="h-full grow overflow-y-auto" />
             </div>
         </ProtectedPage>

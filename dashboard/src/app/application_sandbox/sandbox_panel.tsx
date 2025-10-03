@@ -56,7 +56,7 @@ export default function SandboxPanel(props: {
         state_name: string,
         state_value: string | number
     ) => {
-        dashboardContext.application_services.set_state_variable(
+        dashboardContext.ros_services.application_services.set_state_variable(
             state_name,
             state_value
         );
@@ -112,7 +112,7 @@ export default function SandboxPanel(props: {
                         className="w-[40%] h-[80%]"
                         text={'Send Robot to Position'}
                         onClick={() => {
-                            dashboardContext.application_services.send_robot_command(
+                            dashboardContext.ros_services.application_services.send_robot_command(
                                 'GO_SOMEWHERE_TO_STAY'
                             );
                         }}
@@ -121,7 +121,7 @@ export default function SandboxPanel(props: {
                         className="w-[40%] h-[80%]"
                         text={'Start Cycle'}
                         onClick={() => {
-                            dashboardContext.application_services.send_robot_command(
+                            dashboardContext.ros_services.application_services.send_robot_command(
                                 'OPEN'
                             );
                         }}
@@ -130,7 +130,7 @@ export default function SandboxPanel(props: {
                         className="w-[40%] h-[80%]"
                         text={'Go Drop'}
                         onClick={() => {
-                            dashboardContext.application_services.send_robot_command(
+                            dashboardContext.ros_services.application_services.send_robot_command(
                                 'GO_DROP'
                             );
                         }}
@@ -139,7 +139,7 @@ export default function SandboxPanel(props: {
                         className="w-[40%] h-[80%]"
                         text={'Cancel Cycle'}
                         onClick={() => {
-                            dashboardContext.application_services.send_robot_command(
+                            dashboardContext.ros_services.application_services.send_robot_command(
                                 'CANCEL'
                             );
                         }}

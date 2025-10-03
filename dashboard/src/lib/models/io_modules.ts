@@ -188,39 +188,75 @@ export const ioModuleTypes: ioModuleDescriptionType[] = [
             },
         ],
     },
-
     {
         name: '4-Slot AIO',
         icon: 'AnalogIOIcon',
+        ros_module_type:
+            IRosTypeR2CInterfacesIoModuleStateModuleType.T2PT_AI_2PT_AO,
         points: [
-            { label: 'AI-1', type: 'AI' },
-            { label: 'AI-2', type: 'AI' },
-            { label: 'AO-1', type: 'AO' },
-            { label: 'AO-2', type: 'AO' },
+            {
+                label: 'AI-1',
+                type: 'AI',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AI,
+            },
+            {
+                label: 'AI-2',
+                type: 'AI',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AI,
+            },
+            {
+                label: 'AO-1',
+                type: 'AO',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AO,
+            },
+            {
+                label: 'AO-2',
+                type: 'AO',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AO,
+            },
         ],
     },
     {
-        name: '2-Slot AI',
+        name: '4-Slot AI',
         icon: 'AnalogInIcon',
+        ros_module_type: IRosTypeR2CInterfacesIoModuleStateModuleType.T4PT_AI,
         points: [
-            { label: 'AI-1', type: 'AI' },
-            { label: 'AI-2', type: 'AI' },
+            {
+                label: 'AI-1',
+                type: 'AI',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AI,
+            },
+            {
+                label: 'AI-2',
+                type: 'AI',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AI,
+            },
+            {
+                label: 'AI-3',
+                type: 'AI',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AI,
+            },
+            {
+                label: 'AI-4',
+                type: 'AI',
+                ros_point_type: IRosTypeR2CInterfacesIoPointStatePointType.AI,
+            },
         ],
     },
-    {
-        name: 'Temperature',
-        icon: 'TempIcon',
-        points: [
-            { label: 'Temp-1', type: 'AI' },
-            { label: 'Temp-2', type: 'AI' },
-        ],
-    },
-    {
-        name: 'H.S. Counter',
-        icon: 'CounterIcon',
-        points: [
-            { label: 'Count-A', type: 'DI' },
-            { label: 'Count-B', type: 'DI' },
-        ],
-    },
+    // {
+    //     name: 'Temperature',
+    //     icon: 'TempIcon',
+    //     points: [
+    //         { label: 'Temp-1', type: 'AI' },
+    //         { label: 'Temp-2', type: 'AI' },
+    //     ],
+    // },
+    // {
+    //     name: 'H.S. Counter',
+    //     icon: 'CounterIcon',
+    //     points: [
+    //         { label: 'Count-A', type: 'DI' },
+    //         { label: 'Count-B', type: 'DI' },
+    //     ],
+    // },
 ];

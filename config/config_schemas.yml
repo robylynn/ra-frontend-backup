@@ -159,6 +159,7 @@ schemas:
   ui_configuration:
     type: object
     properties:
+      header: { type: string, default: '' }
       theme:
         type: enum
         valid_values: [light, dark, system]
@@ -343,3 +344,30 @@ schemas:
       ui_configuration: { ref: ui_configuration }
       io_configuration: { ref: io_configuration }
       opc_configuration: { ref: opc_configuration }
+  
+  ###################
+  ##### Image Schemas
+  ###################
+
+  captured_image:
+    type: object
+    properties:
+      id: { type: string }
+      timestamp: { type: datetime }
+      status:
+        type: enum
+        valid_values: [pass, fail]
+        default: pass
+      defect_types:
+        type: array
+        elements: { type: string }
+      confidence: { type: number }
+      batch_id: { type: string }
+      image_src: { type: string }
+  
+  captured_image_batch:
+    type: object
+    properties:
+      images:
+        type: array
+        elements: { ref: captured_image }

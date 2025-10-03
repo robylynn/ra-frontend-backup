@@ -445,7 +445,7 @@ const ModuleComponent: React.FC<ModuleProps> = ({
                         ) : point.point_type.type == 'DO' ? (
                             <SliderToggle
                                 isActive={
-                                    point.point_value ? true : (false ?? false)
+                                    point.point_value ? true : false
                                 }
                                 onClick={() => {
                                     const toggled_val = point.point_value

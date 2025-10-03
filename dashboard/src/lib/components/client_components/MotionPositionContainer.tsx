@@ -44,7 +44,7 @@ function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
                     enabled={axis_available}
                     state={axis_enabled}
                     onClick={() =>
-                        dashboardContext.axis_command_services.set_axis_enable(
+                        dashboardContext.ros_services.axis_command_services.set_axis_enable(
                             axis_index,
                             !axis_enabled
                         )
@@ -115,7 +115,7 @@ function AxisPositions(props: { available_axes: Array<number> }): ReactElement {
                                             <R2Button
                                                 text="Clear Fault"
                                                 onClick={() => {
-                                                    dashboardContext.axis_command_services.clear_axis_errors(
+                                                    dashboardContext.ros_services.axis_command_services.clear_axis_errors(
                                                         axis
                                                     );
                                                 }}

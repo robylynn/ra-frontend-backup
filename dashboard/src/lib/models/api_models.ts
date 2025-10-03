@@ -807,10 +807,13 @@ export type backendApiResponseSchemaType = z.infer<
 >;
 
 export function createAPIResponse(
-    res: backendApiResponseSchemaType
+    res: backendApiResponseSchemaType,
+    status?: number
 ): NextResponse {
     try {
-        return NextResponse.json(backendApiResponseBaseSchema.parse(res));
+        return NextResponse.json(backendApiResponseBaseSchema.parse(res), {
+            status: status ?? 200,
+        });
     } catch (e) {
         logMessage(`Error validating backend response against schema: ${e}`);
         return NextResponse.json({});
