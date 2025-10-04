@@ -581,6 +581,21 @@ export enum IRosTypeR2CInterfacesHeartbeatConst {
   RESULT_NOT_CONVERGING = 15,
 }
 
+export interface IRosTypeR2CInterfacesImageCapture {
+  request: IRosTypeR2CInterfacesImageCaptureRequest;
+  response: IRosTypeR2CInterfacesImageCaptureResponse;
+}
+
+export interface IRosTypeR2CInterfacesImageCaptureRequest {
+  camera_id: number;
+  folder_path: string;
+}
+
+export interface IRosTypeR2CInterfacesImageCaptureResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface IRosTypeR2CInterfacesInputMode {
   stamp: { sec: number, nanosec: number };
   axis_index: number;

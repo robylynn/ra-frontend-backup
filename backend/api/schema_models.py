@@ -4,10 +4,6 @@ from typing import Dict, Any, Optional
 from loguru import logger  # Keep logger import, but remove configuration here
 from pydantic import BaseModel, Field
 
-# Import the new Pydantic model for schema configuration
-# from backend.api.models import SchemaConfig
-
-
 # --- Models for Schema.yml Structure ---
 class ColumnDef(BaseModel):
     """Represents a column definition from schema.yml."""
@@ -38,7 +34,7 @@ LOADED_RAW_SCHEMA: Optional[SchemaConfig] = None
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_dir, "..", "..")
 sys.path.insert(0, project_root)
-SCHEMA_FILE_PATH = os.path.join(project_root, "config", "database_schema.yml")
+SCHEMA_FILE_PATH = os.path.join(project_root, "r2_backend_models", "database_schema.yml")
 
 
 def load_raw_schema():

@@ -1,6 +1,5 @@
 import os
 
-
 def is_running_in_docker() -> bool:
     try:
         with open("/proc/self/cgroup", "r") as f:

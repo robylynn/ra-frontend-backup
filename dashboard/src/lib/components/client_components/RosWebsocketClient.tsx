@@ -163,6 +163,12 @@ function initializeCameraServices(
         serviceType: 'r2c_interfaces/ToggleAI',
     });
 
+    const camera_capture_service = new ROSLIB.Service({
+        ros: ros_websocket,
+        name: '/camera/capture_image',
+        serviceType: 'r2c_interfaces/ImageCapture',
+    });
+
     const camera_services = new CameraCommandServices();
     camera_services.set_service(
         CameraServiceType.START_STREAM,
@@ -179,6 +185,10 @@ function initializeCameraServices(
     camera_services.set_service(
         CameraServiceType.ENABLE_AI,
         camera_enable_ai_service
+    );
+    camera_services.set_service(
+        CameraServiceType.CAPTURE_FRAME,
+        camera_capture_service
     );
 
     return camera_services;
@@ -325,62 +335,62 @@ export const RosWebsocket: React.FC<WebsocketProps> = ({
     };
 
     const configureSubscriptions = () => {
-        addSubscription({
-            topic: `/gpio/analog_in_electrical_units`,
-            messageType: 'r2c_interfaces/AnalogInData',
-            callback: (message) => {
-                setDashboardContext({
-                    payload: {
-                        analog_in_data:
-                            message as IRosTypeR2CInterfacesAnalogInData,
-                    },
-                    type: 'data/analog_in',
-                });
-            },
-        });
+        // addSubscription({
+        //     topic: `/gpio/analog_in_electrical_units`,
+        //     messageType: 'r2c_interfaces/AnalogInData',
+        //     callback: (message) => {
+        //         setDashboardContext({
+        //             payload: {
+        //                 analog_in_data:
+        //                     message as IRosTypeR2CInterfacesAnalogInData,
+        //             },
+        //             type: 'data/analog_in',
+        //         });
+        //     },
+        // });
 
-        addSubscription({
-            topic: `/gpio/analog_out_electrical_units`,
-            messageType: 'r2c_interfaces/AnalogOutData',
-            callback: (message) => {
-                setDashboardContext({
-                    payload: {
-                        analog_out_data:
-                            message as IRosTypeR2CInterfacesAnalogOutData,
-                    },
-                    type: 'data/analog_out',
-                });
-            },
-        });
+        // addSubscription({
+        //     topic: `/gpio/analog_out_electrical_units`,
+        //     messageType: 'r2c_interfaces/AnalogOutData',
+        //     callback: (message) => {
+        //         setDashboardContext({
+        //             payload: {
+        //                 analog_out_data:
+        //                     message as IRosTypeR2CInterfacesAnalogOutData,
+        //             },
+        //             type: 'data/analog_out',
+        //         });
+        //     },
+        // });
 
-        addSubscription({
-            topic: `/gpio/digital_in`,
-            messageType: 'r2c_interfaces/DigitalInData',
-            callback: (message) => {
-                setDashboardContext({
-                    payload: {
-                        digital_in_data:
-                            message as IRosTypeR2CInterfacesDigitalInData,
-                    },
-                    type: 'data/digital_in',
-                });
-            },
-        });
+        // addSubscription({
+        //     topic: `/gpio/digital_in`,
+        //     messageType: 'r2c_interfaces/DigitalInData',
+        //     callback: (message) => {
+        //         setDashboardContext({
+        //             payload: {
+        //                 digital_in_data:
+        //                     message as IRosTypeR2CInterfacesDigitalInData,
+        //             },
+        //             type: 'data/digital_in',
+        //         });
+        //     },
+        // });
 
-        addSubscription({
-            topic: `/gpio/digital_out`,
-            messageType: 'r2c_interfaces/DigitalOutData',
-            callback: (message) => {
-                console.log('got digital out data');
-                setDashboardContext({
-                    payload: {
-                        digital_out_data:
-                            message as IRosTypeR2CInterfacesDigitalOutData,
-                    },
-                    type: 'data/digital_out',
-                });
-            },
-        });
+        // addSubscription({
+        //     topic: `/gpio/digital_out`,
+        //     messageType: 'r2c_interfaces/DigitalOutData',
+        //     callback: (message) => {
+        //         console.log('got digital out data');
+        //         setDashboardContext({
+        //             payload: {
+        //                 digital_out_data:
+        //                     message as IRosTypeR2CInterfacesDigitalOutData,
+        //             },
+        //             type: 'data/digital_out',
+        //         });
+        //     },
+        // });
 
         addSubscription({
             topic: `/gpio/configuration_state`,

@@ -835,8 +835,6 @@ export class IOServices extends RosServiceCategory {
         this._services.set_io_point = set_io_point_service;
     }
 
-    // public configureIoRack() {}
-
     public configureIoRack: ConfigureRackServiceCall = async (
         rack: ioRackType,
         rack_index: number,
@@ -1107,6 +1105,47 @@ export class CameraCommandServices extends CameraServices {
             },
             (error) => {
                 console.log('Error detecting cameras:', error);
+                if (onError) onError(error);
+            },
+            onComplete
+        );
+    }
+
+    public capture_frame(
+        camera_id_in: number,
+        path: string,
+        onSuccess?: (result: any) => void,
+        onFailure?: () => void,
+        onError?: (error: any) => void,
+        onComplete?: () => void
+    ) {
+        const request_data = {
+            camera_id: camera_id_in,
+            folder_path: path,
+        };
+
+        const camera_id = 0; // TODO: update later, use 0 for now
+
+        // console.info("Capturing frame with request data:", request_data);
+
+        this._call_camera_service(
+            request_data,
+            CameraServiceType.CAPTURE_FRAME,
+            (result) => {
+                console.log(
+                    `Successfully capture image for camera ${camera_id}`
+                );
+                if (onSuccess) onSuccess(result);
+            },
+            () => {
+                console.log(`Failed to capture image for camera ${camera_id}`);
+                if (onFailure) onFailure();
+            },
+            (error) => {
+                console.log(
+                    `Error capturing image for camera ${camera_id}:`,
+                    error
+                );
                 if (onError) onError(error);
             },
             onComplete

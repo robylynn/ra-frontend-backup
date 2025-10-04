@@ -26,6 +26,7 @@ RUN rm -rf /var/lib/apt/lists/*
 ## Copy over necessary files for building and deployment
 COPY host_services ./host_services
 COPY common_models ./common_models
+COPY r2_backend_models ./r2_backend_models
 # COPY scripts/launch.sh ${APP_WORKDIR}/launch.sh
 RUN python3 -m pip install -r ./host_services/requirements.txt
 

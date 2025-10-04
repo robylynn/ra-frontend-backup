@@ -239,6 +239,57 @@ const CameraStreamContainer = ({
         );
     };
 
+    const handleCaptureImage = async () => {
+        if (!isStreaming) return;
+
+        const selectedCamera = availableCameras.find(
+            (camera) =>
+                camera.camera_id === selectedCameraId ||
+                camera.camera_id.toString() === selectedCameraId.toString()
+        );
+
+        if (!selectedCamera) {
+            setError('No camera selected');
+            return;
+        }
+
+        let numericCameraId: number;
+
+        if (selectedCamera.camera_type === 'depthai') {
+            numericCameraId = 99;
+        } else {
+            if (typeof selectedCamera.camera_id === 'string') {
+                const parsed = parseInt(selectedCamera.camera_id, 10);
+                if (isNaN(parsed)) {
+                    setError(`Invalid camera ID: ${selectedCamera.camera_id}`);
+                    return;
+                }
+                numericCameraId = parsed;
+            } else {
+                numericCameraId = selectedCamera.camera_id as number;
+            }
+        }
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `camera${numericCameraId}_${timestamp}.jpg`;
+        const savePath = `/test/path/${filename}`;
+
+        dashboardContext.ros_services?.camera_services.capture_frame(
+            numericCameraId,
+            savePath,
+            (result) => {
+                console.log('Image capture result:', result);
+            },
+            () => {
+                setError('Failed to capture image');
+            },
+            (error) => {
+                console.error('Image capture error:', error);
+                setError('Unable to communicate with camera service');
+            }
+        );
+    };
+
     const handleToggleModel = async () => {
         if (!isStreaming) return;
 
@@ -432,6 +483,7 @@ const CameraStreamContainer = ({
                                 <button
                                     onClick={() => {
                                         setIsCapturing(true);
+                                        handleCaptureImage();
                                         setTimeout(
                                             () => setIsCapturing(false),
                                             500

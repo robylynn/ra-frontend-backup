@@ -811,6 +811,8 @@ export function createAPIResponse(
     status?: number
 ): NextResponse {
     try {
+        const res_json = backendApiResponseBaseSchema.parse(res);
+        // return NextResponse.json(res_json);
         return NextResponse.json(backendApiResponseBaseSchema.parse(res), {
             status: status ?? 200,
         });

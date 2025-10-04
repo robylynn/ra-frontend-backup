@@ -10,6 +10,7 @@ COPY backend ./backend
 COPY config ./config
 COPY utilities ./utilities
 COPY common_models ./common_models
+COPY r2_backend_models /.r2_backend_models
 # COPY .env .
 
 RUN pip install --no-cache-dir -r backend/requirements.txt
