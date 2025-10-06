@@ -89,7 +89,7 @@ services:
       # POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      
+      IMAGE_SAVE_PATH: /data/images
       API_PORT: ${API_PORT}
       # NEW: Pass YAML config file path and deployment environment
       DB_CONFIG_FILE: ${DB_CONFIG_FILE}

@@ -428,6 +428,9 @@ export interface IcapturedImage {
     defect_types: string[],
     confidence: number,
     batch_id: string,
+    height: any,
+    width: any,
+    encoding: string,
     image_src: string
 }
 
@@ -438,6 +441,9 @@ export const capturedImage = z.object({
     defect_types: z.array(z.string()),
     confidence: z.number(),
     batch_id: z.string(),
+    height: z.any(),
+    width: z.any(),
+    encoding: z.string(),
     image_src: z.string()
 });
 export type capturedImageType = z.infer<typeof capturedImage>;
@@ -450,3 +456,16 @@ export const capturedImageBatch = z.object({
     images: z.array(capturedImage)
 });
 export type capturedImageBatchType = z.infer<typeof capturedImageBatch>;
+
+export interface IstoredImage {
+    filename?: string,
+    timestamp: Date,
+    camera_id: string
+}
+
+export const storedImage = z.object({
+    filename: z.string().optional(),
+    timestamp: z.string(),
+    camera_id: z.string()
+});
+export type storedImageType = z.infer<typeof storedImage>;

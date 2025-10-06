@@ -286,7 +286,8 @@ const CameraStreamContainer = ({
             (error) => {
                 console.error('Image capture error:', error);
                 setError('Unable to communicate with camera service');
-            }
+            },
+            () => setIsCapturing(false)
         );
     };
 
@@ -484,10 +485,10 @@ const CameraStreamContainer = ({
                                     onClick={() => {
                                         setIsCapturing(true);
                                         handleCaptureImage();
-                                        setTimeout(
-                                            () => setIsCapturing(false),
-                                            500
-                                        );
+                                        // setTimeout(
+                                        //     () => setIsCapturing(false),
+                                        //     500
+                                        // );
                                     }}
                                     disabled={isCapturing || !isStreaming}
                                     className="px-3 py-2 text-xs font-medium rounded-md transition-colors bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white"

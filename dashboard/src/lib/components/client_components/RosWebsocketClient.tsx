@@ -165,7 +165,7 @@ function initializeCameraServices(
 
     const camera_capture_service = new ROSLIB.Service({
         ros: ros_websocket,
-        name: '/camera/capture_image',
+        name: '/database/capture_image',
         serviceType: 'r2c_interfaces/ImageCapture',
     });
 

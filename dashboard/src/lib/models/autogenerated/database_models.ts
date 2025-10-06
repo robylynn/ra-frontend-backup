@@ -290,6 +290,18 @@ export const aiModelsBatchSchema = z.array(aiModelsSchema)
 export type aiModels = z.infer<typeof aiModelsSchema>
 export type aiModelsBatch = z.infer<typeof aiModelsBatchSchema>
 
+export const capturedImageMapSchema = z.object({
+stamp: z.string().datetime(),
+camera_id: z.string().optional(),
+filename: z.string().optional(),
+height: z.number().optional(),
+width: z.number().optional(),
+encoding: z.string().optional(),
+});
+export const capturedImageMapBatchSchema = z.array(capturedImageMapSchema)
+export type capturedImageMap = z.infer<typeof capturedImageMapSchema>
+export type capturedImageMapBatch = z.infer<typeof capturedImageMapBatchSchema>
+
 
 export const DatabaseDataSchemas = z.union([
 sensorDataBatchSchema,
@@ -312,6 +324,7 @@ digitalOutDataBatchSchema,
 axisEstimatesBatchSchema,
 defectDetectionBatchSchema,
 aiModelsBatchSchema,
+capturedImageMapBatchSchema,
 ]);
 export type DatabaseData = z.infer<typeof DatabaseDataSchemas>;
 
@@ -542,6 +555,15 @@ status: string | undefined;
 mAP: number | undefined;
 }
 
+export interface ICapturedImageMap {
+stamp: string;
+camera_id: string | undefined;
+filename: string | undefined;
+height: number | undefined;
+width: number | undefined;
+encoding: string | undefined;
+}
+
 
 // Mapping for dynamic inference
 export const TableSchemaMap = {
@@ -568,4 +590,5 @@ axis_estimates_2: axisEstimatesBatchSchema,
 axis_estimates_3: axisEstimatesBatchSchema,
 defect_detection: defectDetectionBatchSchema,
 ai_models: aiModelsBatchSchema,
+captured_image_map: capturedImageMapBatchSchema,
 }

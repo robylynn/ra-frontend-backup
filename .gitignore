@@ -132,3 +132,6 @@ dist
 __pycache__
 .venv/
 venv/
+
+# Captured images
+tests/test_images

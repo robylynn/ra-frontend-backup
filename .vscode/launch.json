@@ -16,8 +16,13 @@
             "env": {
                 "SIMULATE_WIFI_CONNECTIONS": "false",
                 "HOST_SERVICES_API_PORT": "8001",
-                "CONTAINERIZED": "false"
-            }
+                "CONTAINERIZED": "false",
+                "PYTHONPATH": "${workspaceFolder}",
+                "AMENT_PREFIX_PATH": "",
+                "ROS_DISTRO": "",
+                "ROS_PACKAGE_PATH": "",
+                "IMAGE_SAVE_PATH": "/home/jetson/r2/ra-frontend/tests/test_images"
+            },
             // You can add "--reload" to the "args" array if you want live reloading for development.
             // "args": [
             //     "--reload" 

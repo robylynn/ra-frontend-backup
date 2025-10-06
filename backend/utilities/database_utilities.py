@@ -1,5 +1,7 @@
 from asyncpg.pool import Pool as AsyncpgPool
 from typing import Any, List
+from pathlib import Path
+import mimetypes
 
 from backend.api.schema_models import TableDef
 from loguru import logger
@@ -68,3 +70,9 @@ async def setup_table(
         )
         # return False
         raise
+
+def get_mime_type(file_path: Path) -> str:
+    """Infers the MIME type from the file extension."""
+    mime_type, _ = mimetypes.guess_type(file_path.name)
+    # Default to octet-stream if MIME type cannot be inferred
+    return mime_type if mime_type else 'application/octet-stream'

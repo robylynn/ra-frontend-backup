@@ -25,6 +25,11 @@ import uvicorn
 from pydantic import ValidationError
 from backend.api.models import ApiState
 
+# sys.path = [p for p in sys.path if not ('/opt/ros/' in p or '/install/' in p or '/build/' in p)]
+# sys.path.insert(0, '/home/jetson/r2/ra-frontend/')
+# if 'PYTHONPATH' in os.environ:
+#     os.environ['PYTHONPATH'] = '/home/jetson/r2/ra-frontend/'
+
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.subscription_router import SubscriptionManager, subscription_router
 from backend.api.models import typedAppState
@@ -72,7 +77,6 @@ logger.add(
 DATABASE_CONFIGS_PATH = os.path.join(
     project_root, "config", os.getenv("DB_CONFIG_FILE", "dummy_database_configs.yaml")
 )
-
 
 def load_database_configs() -> DeploymentConfig:
     """Loads database connection configurations from database_configs.yml."""

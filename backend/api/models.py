@@ -7,10 +7,25 @@ from pathlib import Path
 from datetime import datetime
 from asyncpg.pool import Pool as AsyncpgPool
 from loguru import logger
+from enum import Enum
 import uuid, asyncio
 
 from backend.api.subscription_manager import SubscriptionManager
 
+class DatabaseExceptionReason(Enum):
+    TABLE_NOT_FOUND = 1
+    VALIDATION_FAILED = 2
+    EMPTY_COMMIT = 3
+    COMMMIT_FAILED = 4
+    COMMIT_PARTIAL_SUCCESS = 5
+
+class DatabaseException(Exception):
+    def __init__(self, message: str, exception_reason: DatabaseExceptionReason, details: Dict = None):
+        super().__init__(message)
+        self.exception_reason = exception_reason
+        self.details = details
+        
+        # self.message = f"{message}. Details: {details}" if details else message
 
 class ApiState(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -30,6 +45,12 @@ class ApiState(BaseModel):
 def typedAppState(request: Request) -> ApiState:
     return cast(ApiState, request.app.state)
 
+
+class DatabaseInsertResult(BaseModel):
+    record_index: int = Field(...)
+    success: bool = Field(...)
+    error: str = Field(default='')
+    data: Dict = Field(default={})
 
 # --- Models for Database Configuration YAML ---
 class CloudDbInstance(BaseModel):
