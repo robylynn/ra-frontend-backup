@@ -45,7 +45,7 @@ export const ImageArchivePanel = (props: {
                         layout="full"
                         showFilters={true}
                         showDetails={true}
-                        maxImages={3}
+                        maxImages={12}
                         refreshInterval={10000}
                     />
                 )}

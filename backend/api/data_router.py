@@ -790,8 +790,18 @@ async def save_image(request: Request, image: CapturedImage, state: ApiState = D
 
 @data_router.get("/captured_images", response_model=ApiResponse)
 async def get_captured_images(request: Request, limit: int = Query(5, ge=1, description="Maximum number of images to return."), state: ApiState = Depends(typedAppState)):
-    images_dir = Path(os.getcwd(), 'tests', 'test_images')
-    images_dir = Path('/home/jetson/r2/data/images')
+    # images_dir = Path(os.getcwd(), 'tests', 'test_images')
+    # images_dir = Path('/home/jetson/r2/data/images')
+
+    if not os.environ.get("IMAGE_SAVE_PATH"):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ApiResponse(
+                success=False, message=f"No path for saved images defined."
+            ).model_dump(),
+        )
+    
+    images_dir = Path(os.environ.get("IMAGE_SAVE_PATH"))
     
     # Allowed image extensions for filtering
     image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
@@ -824,15 +834,48 @@ async def get_captured_images(request: Request, limit: int = Query(5, ge=1, desc
             # Read file content in binary mode
             file_content = file_path.read_bytes()
             
+            
+            
+            resize_width = 640
+            # height, width, channels = image.shape
+            # aspect_ratio = width/height
+            image = cv2.imread(file_path.as_posix())
+
+            # 1. Get the original dimensions
+            (original_height, original_width) = image.shape[:2]
+
+            # 2. Calculate the aspect ratio and new height
+            # The ratio is: new_width / original_width
+            ratio = resize_width / original_width
+            
+            # New height must be an integer
+            new_height = int(original_height * ratio) 
+
+            # 3. Define the new dimensions tuple
+            new_dimensions = (resize_width, new_height)
+
+            # 4. Resize the image
+            # cv2.resize expects the dimensions as (width, height)
+            resized_image = cv2.resize(image, new_dimensions, interpolation=cv2.INTER_AREA)
+
+            # resized_image = cv2.resize(image, (640, 480/height))
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+            encoding = '.jpg'
+            success, buffer = cv2.imencode(f'.{encoding}', resized_image, encode_param)
+
+            if not success:
+                raise ValueError("Could not encode image into specified format.")
+            
             # Encode content to Base64
-            base64_data = base64.b64encode(file_content).decode('utf-8')
+            base64_data = base64.b64encode(buffer).decode('utf-8')
             
             # Determine MIME type
-            mime_type = get_mime_type(file_path)
+            mime_type, _ = mimetypes.guess_type('image' + encoding)
             
             # Construct Data URL
             image_data = f"data:{mime_type};base64,{base64_data}"
             
+            # TODO sync with database data
             images.append(
                 CapturedImage(
                     id=file_path.name,
@@ -855,6 +898,7 @@ async def get_captured_images(request: Request, limit: int = Query(5, ge=1, desc
         except Exception as e:
             a=5
         
+        logger.info(f"Returning {len(images)} saved images")
         return ApiResponse(
             success=True,
             data=CapturedImageBatch(
