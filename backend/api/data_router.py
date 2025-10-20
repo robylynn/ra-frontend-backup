@@ -786,10 +786,63 @@ async def save_image(request: Request, image: CapturedImage, state: ApiState = D
         success=True
     )
 
+def get_stored_image(file_path: Path, width_px: int = None, encoding: str = 'jpg') -> CapturedImage | None:
+    image = cv2.imread(file_path.as_posix())
+    
+    if image is None:
+        logger.error(f"No image found at path {file_path.as_posix()}")
+        return None
 
+    # 1. Get the original dimensions
+    (original_height, original_width) = image.shape[:2]
+    if width_px is None:
+        width_px = original_width
+
+    # 2. Calculate the aspect ratio and new height
+    # The ratio is: new_width / original_width
+    ratio = width_px / original_width
+    
+    # New height must be an integer
+    new_height = int(original_height * ratio) 
+
+    # cv2.resize expects the dimensions as (width, height)
+    resized_image = cv2.resize(image, (width_px, new_height), interpolation=cv2.INTER_AREA)
+
+    # resized_image = cv2.resize(image, (640, 480/height))
+    # encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+    if encoding not in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+        raise ValueError(f"Image encoding {encoding} not supported.")
+
+    # success, buffer = cv2.imencode(f'.{encoding}', resized_image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    success, buffer = cv2.imencode(f'.{encoding}', resized_image, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+
+    if not success:
+        raise ValueError("Could not encode image into specified format.")
+    
+    # Encode content to Base64
+    base64_data = base64.b64encode(buffer).decode('utf-8')
+    
+    # Determine MIME type
+    mime_type, _ = mimetypes.guess_type('.'.join([file_path.name, encoding]))
+    
+    # Construct Data URL
+    image_data = f"data:{mime_type};base64,{base64_data}"
+
+    return CapturedImage(
+        id=file_path.name,
+        timestamp=datetime.now(timezone.utc),
+        status="pass",
+        defect_types=["hole", "paint"],
+        confidence=0.85,
+        batch_id='batch_1',
+        image_src=image_data,
+        height=0,
+        width=0,
+        encoding='bgr8'
+    )
 
 @data_router.get("/captured_images", response_model=ApiResponse)
-async def get_captured_images(request: Request, limit: int = Query(5, ge=1, description="Maximum number of images to return."), state: ApiState = Depends(typedAppState)):
+async def get_captured_images(request: Request, limit: int = Query(5, ge=1, description="Maximum number of images to return."), width_px: int = 640, state: ApiState = Depends(typedAppState)):
     # images_dir = Path(os.getcwd(), 'tests', 'test_images')
     # images_dir = Path('/home/jetson/r2/data/images')
 
@@ -818,85 +871,20 @@ async def get_captured_images(request: Request, limit: int = Query(5, ge=1, desc
         )
 
     try:
-        # 1. List files and filter for images
-        image_files = [
-            f for f in images_dir.iterdir()
-            if f.is_file() and f.suffix.lower() in image_extensions
-        ]
-        
-        # 2. Apply the limit
-        files_to_read = image_files[:limit]
-        
-        images: List[CapturedImage] = []
-        
-        # 3. Process each file
-        for file_path in files_to_read:
-            # Read file content in binary mode
-            file_content = file_path.read_bytes()
-            
-            
-            
-            resize_width = 640
-            # height, width, channels = image.shape
-            # aspect_ratio = width/height
-            image = cv2.imread(file_path.as_posix())
-
-            # 1. Get the original dimensions
-            (original_height, original_width) = image.shape[:2]
-
-            # 2. Calculate the aspect ratio and new height
-            # The ratio is: new_width / original_width
-            ratio = resize_width / original_width
-            
-            # New height must be an integer
-            new_height = int(original_height * ratio) 
-
-            # 3. Define the new dimensions tuple
-            new_dimensions = (resize_width, new_height)
-
-            # 4. Resize the image
-            # cv2.resize expects the dimensions as (width, height)
-            resized_image = cv2.resize(image, new_dimensions, interpolation=cv2.INTER_AREA)
-
-            # resized_image = cv2.resize(image, (640, 480/height))
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
-            encoding = '.jpg'
-            success, buffer = cv2.imencode(f'.{encoding}', resized_image, encode_param)
-
-            if not success:
-                raise ValueError("Could not encode image into specified format.")
-            
-            # Encode content to Base64
-            base64_data = base64.b64encode(buffer).decode('utf-8')
-            
-            # Determine MIME type
-            mime_type, _ = mimetypes.guess_type('image' + encoding)
-            
-            # Construct Data URL
-            image_data = f"data:{mime_type};base64,{base64_data}"
-            
-            # TODO sync with database data
-            images.append(
-                CapturedImage(
-                    id=file_path.name,
-                    timestamp=datetime.now(timezone.utc),
-                    status="pass",
-                    defect_types=["hole", "paint"],
-                    confidence=0.85,
-                    batch_id='batch_1',
-                    image_src=image_data,
-                    height=0,
-                    width=0,
-                    encoding='bgr8'
-                )
-            )
 
         # Get image data from database
-        try:
-            # await get_data(table_name='defect_detection', limit=limit, state=state)
-            image_data = await _fetch_historical_data(table_name='defect_detection', limit=limit, local_db_pool=state.local_db_pool)
-        except Exception as e:
-            a=5
+        # try:
+        image_data = await _fetch_historical_data(table_name='captured_image_map', limit=limit, local_db_pool=state.local_db_pool)
+        image_records = [CapturedImageMap(**r) for r in image_data]
+        
+        images = []
+        for i in image_records:
+            stored_image = get_stored_image(file_path=Path(images_dir, i.filename), width_px=width_px, encoding='jpg')
+            if stored_image is not None:
+                images.append(stored_image)
+
+        # except Exception as e:
+        #     a=5
         
         logger.info(f"Returning {len(images)} saved images")
         return ApiResponse(
